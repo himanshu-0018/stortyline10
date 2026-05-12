@@ -24,6 +24,9 @@ const TG_BREAKOUT_6OF6    = process.env.TG_BREAKOUT_6OF6;
 const TG_BREAKOUT_WD4H1H  = process.env.TG_BREAKOUT_WD4H1H;
 const TG_CUSTOM_ALIGNMENT = process.env.TG_CUSTOM_ALIGNMENT;
 
+// ═══ CRT TELEGRAM CHANNEL ═══
+const TG_CRT_CHANNEL = process.env.TG_CRT_CHANNEL;
+
 const REDIS_STATE_KEY     = process.env.REDIS_KEY || 'godModeState_v4';
 const REDIS_LOG_KEY       = REDIS_STATE_KEY + '_activityLog';
 const REDIS_STATS_KEY     = REDIS_STATE_KEY + '_tradeStats';
@@ -123,6 +126,57 @@ async function sendTelegram(chatId, message) {
             { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ chat_id:chatId, text:message, parse_mode:"HTML" }) });
         return resp.ok;
     } catch (err) { console.error("TG Error:", err); return false; }
+}
+
+// ══════════════════════════════════════════════
+// CRT TELEGRAM MESSAGE BUILDER
+// ══════════════════════════════════════════════
+function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt }) {
+    const dirEmoji = side === 'BULLISH' ? '🐂' : '🐻';
+
+    if (kind === 'CRT') {
+        return [
+            `<b>${dirEmoji} CRT FORMED: ${sym}</b>`,
+            ``,
+            `<b>Timeframe:</b> ${tf}`,
+            `<b>Side:</b> ${side}`,
+            ``,
+            `<b>Rejection:</b> <code>${rej}</code>`,
+            `<b>Breakout:</b>  <code>${bo}</code>`,
+            `<b>Extension:</b> <code>${ext}</code>`,
+            `<b>Target:</b>    <code>${tgt}</code>`,
+        ].join('\n');
+    }
+
+    if (kind === 'CRT_TARGET') {
+        return [
+            `<b>🎯 CRT TARGET HIT: ${sym}</b>`,
+            ``,
+            `<b>Timeframe:</b> ${tf}`,
+            `<b>Side:</b> ${dirEmoji} ${side}`,
+            ``,
+            `<b>Rejection:</b> <code>${rej}</code>`,
+            `<b>Breakout:</b>  <code>${bo}</code>`,
+            `<b>Extension:</b> <code>${ext}</code>`,
+            `<b>Target:</b>    <code>${tgt}</code> ✅`,
+        ].join('\n');
+    }
+
+    if (kind === 'CRT_INVALID') {
+        return [
+            `<b>❌ CRT INVALIDATED: ${sym}</b>`,
+            ``,
+            `<b>Timeframe:</b> ${tf}`,
+            `<b>Side:</b> ${dirEmoji} ${side}`,
+            ``,
+            `<b>Rejection:</b> <code>${rej}</code>`,
+            `<b>Breakout:</b>  <code>${bo}</code>`,
+            `<b>Extension:</b> <code>${ext}</code>`,
+            `<b>Target:</b>    <code>${tgt}</code>`,
+        ].join('\n');
+    }
+
+    return null;
 }
 
 // ══════════════════════════════════════════════
@@ -675,6 +729,11 @@ app.post('/webhook', async (req, res) => {
             };
             const logMsg = `${dirEmoji} ${tf} CRT FORMED: ${side} | Rej:${rej} BO:${bo} Tgt:${tgt}`;
             await pushCRTLog(sym, side, logMsg, { tf, rej, bo, ext, tgt, action: 'CRT_FORMED' });
+
+            // ── Send to CRT Telegram channel ──
+            const crtTgMsg = buildCRTTelegramMessage('CRT', sym, tf, side, { rej, bo, ext, tgt });
+            if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
+
             console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side}`);
         }
 
@@ -683,7 +742,6 @@ app.post('/webhook', async (req, res) => {
             if (crtState[sym][tf]) {
                 crtState[sym][tf].status  = 'TP_HIT';
                 crtState[sym][tf].tp_time = Date.now();
-                // Update levels in case they changed
                 crtState[sym][tf].rej = rej;
                 crtState[sym][tf].bo  = bo;
                 crtState[sym][tf].ext = ext;
@@ -693,6 +751,11 @@ app.post('/webhook', async (req, res) => {
             }
             const logMsg = `🎯 ${tf} CRT TARGET HIT: ${side} | Tgt:${tgt}`;
             await pushCRTLog(sym, side, logMsg, { tf, tgt, action: 'CRT_TARGET' });
+
+            // ── Send to CRT Telegram channel ──
+            const crtTgMsg = buildCRTTelegramMessage('CRT_TARGET', sym, tf, side, { rej, bo, ext, tgt });
+            if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
+
             console.log(`  🎯 CRT TP HIT: ${sym} ${tf} ${side}`);
         }
 
@@ -710,6 +773,11 @@ app.post('/webhook', async (req, res) => {
             }
             const logMsg = `❌ ${tf} CRT INVALIDATED: ${side} | Ext:${ext}`;
             await pushCRTLog(sym, side, logMsg, { tf, ext, action: 'CRT_INVALID' });
+
+            // ── Send to CRT Telegram channel ──
+            const crtTgMsg = buildCRTTelegramMessage('CRT_INVALID', sym, tf, side, { rej, bo, ext, tgt });
+            if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
+
             console.log(`  ❌ CRT INVALID: ${sym} ${tf} ${side}`);
         }
 
@@ -918,6 +986,7 @@ app.listen(PORT, () => {
     console.log(`📡 Breakout 6/6:       ${TG_BREAKOUT_6OF6    || 'NOT SET'}`);
     console.log(`📡 Breakout W+D+4H+1H: ${TG_BREAKOUT_WD4H1H  || 'NOT SET'}`);
     console.log(`📡 Custom Alignment:   ${TG_CUSTOM_ALIGNMENT  || 'NOT SET'}`);
+    console.log(`📡 CRT Channel:        ${TG_CRT_CHANNEL       || 'NOT SET'}`);
     console.log(`⚙️ Active Alignments:  ${appSettings.activeAlignments.length > 0 ? appSettings.activeAlignments.join(', ') : 'NONE'}`);
     console.log(`🔄 CRT symbols loaded: ${Object.keys(crtState).length}`);
 });
