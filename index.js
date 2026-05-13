@@ -102,8 +102,11 @@ function broadcastCRTSound(symbol, side) {
 async function sendTelegramTracked(chatId, message) {
     if (!TELEGRAM_TOKEN || !chatId) return { ok: false, messageId: null };
     try {
-        const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
-            { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ chat_id:chatId, text:message, parse_mode:"HTML" }) });
+        const resp = await fetch(
+            `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: "HTML" }) }
+        );
         if (!resp.ok) return { ok: false, messageId: null };
         const data = await resp.json();
         return { ok: true, messageId: data?.result?.message_id || null };
@@ -113,8 +116,11 @@ async function sendTelegramTracked(chatId, message) {
 async function deleteTelegramMessage(chatId, messageId) {
     if (!TELEGRAM_TOKEN || !chatId || !messageId) return false;
     try {
-        const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/deleteMessage`,
-            { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ chat_id:chatId, message_id:messageId }) });
+        const resp = await fetch(
+            `https://api.telegram.org/bot${TELEGRAM_TOKEN}/deleteMessage`,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, message_id: messageId }) }
+        );
         return resp.ok;
     } catch (err) { console.error("TG Delete Error:", err); return false; }
 }
@@ -122,8 +128,11 @@ async function deleteTelegramMessage(chatId, messageId) {
 async function sendTelegram(chatId, message) {
     if (!TELEGRAM_TOKEN || !chatId) return false;
     try {
-        const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
-            { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ chat_id:chatId, text:message, parse_mode:"HTML" }) });
+        const resp = await fetch(
+            `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: "HTML" }) }
+        );
         return resp.ok;
     } catch (err) { console.error("TG Error:", err); return false; }
 }
@@ -185,7 +194,7 @@ function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt }) {
 async function pushLogEvent(symbol, type, message, extra = {}, timestamp = null) {
     const ts = timestamp || Date.now();
     const isDup = activityLog.some(e =>
-        e.symbol === symbol && e.type === type && Math.abs((e.timestamp||0) - ts) < 5000
+        e.symbol === symbol && e.type === type && Math.abs((e.timestamp || 0) - ts) < 5000
     );
     if (isDup) return;
     activityLog.unshift({ symbol, type, message, timestamp: ts, ...extra });
@@ -199,7 +208,7 @@ async function pushLogEvent(symbol, type, message, extra = {}, timestamp = null)
 async function pushCRTLog(symbol, side, message, extra = {}) {
     const ts = Date.now();
     const isDup = crtLog.some(e =>
-        e.symbol === symbol && e.message === message && Math.abs((e.timestamp||0) - ts) < 5000
+        e.symbol === symbol && e.message === message && Math.abs((e.timestamp || 0) - ts) < 5000
     );
     if (isDup) return;
     crtLog.unshift({ symbol, side, message, timestamp: ts, ...extra });
@@ -217,7 +226,7 @@ function priceMatch(a, b) {
 }
 
 function makeTradeId(symbol, tf) {
-    return `${symbol}_${tf}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+    return `${symbol}_${tf}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
 // ══════════════════════════════════════════════
@@ -226,7 +235,9 @@ function makeTradeId(symbol, tf) {
 function getMatchedCombos(symbol, direction) {
     if (!marketState[symbol]) return [];
     const tfs = marketState[symbol].timeframes || {};
-    return ALIGNMENT_COMBOS.filter(c => c.tfs.every(tf => tfs[tf] === direction)).map(c => c.id);
+    return ALIGNMENT_COMBOS
+        .filter(c => c.tfs.every(tf => tfs[tf] === direction))
+        .map(c => c.id);
 }
 
 function checkDirectionAlignment(symbol, direction) {
@@ -236,14 +247,14 @@ function checkDirectionAlignment(symbol, direction) {
     ZONE_TIMEFRAMES.forEach(tf => { if (tfs[tf] === direction) count++; });
     if (count < PARTIAL_THRESHOLD) return { aligned: false, reason: `Only ${count}/6 aligned for ${direction}` };
     const combos = getMatchedCombos(symbol, direction);
-    const type = count >= GOD_THRESHOLD ? 'GOD' : 'PARTIAL';
+    const type   = count >= GOD_THRESHOLD ? 'GOD' : 'PARTIAL';
     return { aligned: true, type, count, combos };
 }
 
 function checkWD4H1HAlignment(symbol, direction) {
     if (!marketState[symbol]) return false;
     const tfs = marketState[symbol].timeframes || {};
-    return ['1W','1D','4H','1H'].every(tf => tfs[tf] === direction);
+    return ['1W', '1D', '4H', '1H'].every(tf => tfs[tf] === direction);
 }
 
 function checkCustomAlignment(symbol, direction) {
@@ -257,7 +268,7 @@ function checkCustomAlignment(symbol, direction) {
 }
 
 function recalculateAlignment(symbol) {
-    if (!marketState[symbol]) return { dominantState:"NONE", bullCount:0, bearCount:0, alignCount:0, partialState:"NONE", partialCount:0 };
+    if (!marketState[symbol]) return { dominantState: "NONE", bullCount: 0, bearCount: 0, alignCount: 0, partialState: "NONE", partialCount: 0 };
     const tfs = marketState[symbol].timeframes || {};
     let bullCount = 0, bearCount = 0;
     ZONE_TIMEFRAMES.forEach(tf => {
@@ -269,12 +280,12 @@ function recalculateAlignment(symbol) {
     if (bearCount >= GOD_THRESHOLD) dominantState = "BEARISH";
     let partialState = "NONE", partialCount = 0;
     if (dominantState === "NONE") {
-        if (bullCount >= PARTIAL_THRESHOLD) { partialState = "BULLISH"; partialCount = bullCount; }
+        if (bullCount >= PARTIAL_THRESHOLD)      { partialState = "BULLISH"; partialCount = bullCount; }
         else if (bearCount >= PARTIAL_THRESHOLD) { partialState = "BEARISH"; partialCount = bearCount; }
     }
-    marketState[symbol].alignCount = Math.max(bullCount, bearCount);
-    marketState[symbol].partialState = partialState;
-    marketState[symbol].partialCount = partialCount;
+    marketState[symbol].alignCount    = Math.max(bullCount, bearCount);
+    marketState[symbol].partialState  = partialState;
+    marketState[symbol].partialCount  = partialCount;
     return { dominantState, bullCount, bearCount, alignCount: Math.max(bullCount, bearCount), partialState, partialCount };
 }
 
@@ -290,7 +301,7 @@ function getDirectionAlignCount(symbol, direction) {
 // STATS HELPERS
 // ══════════════════════════════════════════════
 function ensureStats(symbol, tf) {
-    if (!tradeStats[symbol]) tradeStats[symbol] = {};
+    if (!tradeStats[symbol])     tradeStats[symbol] = {};
     if (!tradeStats[symbol][tf]) tradeStats[symbol][tf] = { total_signals: 0, trades: [] };
     return tradeStats[symbol][tf];
 }
@@ -302,7 +313,7 @@ function buildEnrichedStats() {
         for (const tf in tradeStats[sym]) {
             enriched[sym][tf] = {
                 total_signals: tradeStats[sym][tf].total_signals || 0,
-                trades: tradeStats[sym][tf].trades
+                trades:        tradeStats[sym][tf].trades
             };
         }
     }
@@ -317,8 +328,8 @@ async function saveStats() {
 // TRADE FINDER
 // ══════════════════════════════════════════════
 function findBestTrade(stats, { direction, entry, allowedStatuses }) {
-    const trades = stats.trades;
-    let candidates = [];
+    const trades     = stats.trades;
+    let candidates   = [];
     if (entry !== undefined && entry !== null) {
         for (let i = 0; i < trades.length; i++) {
             const t = trades[i];
@@ -350,8 +361,8 @@ async function invalidatePendingTrades(symbol) {
             if (trade.status !== 'PENDING') continue;
             const count = getDirectionAlignCount(symbol, trade.direction);
             if (count < PARTIAL_THRESHOLD) {
-                trade.status = 'CANCELLED';
-                trade.cancelled_time = Date.now();
+                trade.status           = 'CANCELLED';
+                trade.cancelled_time   = Date.now();
                 trade.cancelled_reason = `Alignment dropped to ${count}/6`;
                 if (stats.total_signals > 0) stats.total_signals--;
                 let deleted = false;
@@ -374,10 +385,15 @@ async function invalidatePendingTrades(symbol) {
 function normalizeTf(tf) {
     if (!tf) return null;
     const map = {
-        "1":"1M","1M":"1M","1MIN":"1M","3":"3M","3M":"3M","3MIN":"3M",
-        "5":"5M","5M":"5M","5MIN":"5M","15":"15M","15M":"15M","15MIN":"15M",
-        "30":"30M","30M":"30M","30MIN":"30M","60":"1H","1H":"1H","1HR":"1H",
-        "240":"4H","4H":"4H","1D":"1D","D":"1D","1W":"1W","W":"1W","WEEKLY":"1W"
+        "1": "1M", "1M": "1M", "1MIN": "1M",
+        "3": "3M", "3M": "3M", "3MIN": "3M",
+        "5": "5M", "5M": "5M", "5MIN": "5M",
+        "15": "15M", "15M": "15M", "15MIN": "15M",
+        "30": "30M", "30M": "30M", "30MIN": "30M",
+        "60": "1H", "1H": "1H", "1HR": "1H",
+        "240": "4H", "4H": "4H",
+        "1D": "1D", "D": "1D",
+        "1W": "1W", "W": "1W", "WEEKLY": "1W"
     };
     return map[tf.toString().toUpperCase().trim()] || tf.toString().toUpperCase().trim();
 }
@@ -385,6 +401,22 @@ function normalizeTf(tf) {
 function tfInfoString(sym) {
     const tfs = marketState[sym]?.timeframes || {};
     return ZONE_TIMEFRAMES.map(tf => `${tf}: ${tfs[tf] || '?'}`).join('\n');
+}
+
+// ══════════════════════════════════════════════
+// CRT STATE MIGRATION — object → array per TF
+// ══════════════════════════════════════════════
+function migrateCRTState(state) {
+    for (const sym in state) {
+        for (const tf in state[sym]) {
+            const entry = state[sym][tf];
+            if (entry && !Array.isArray(entry)) {
+                state[sym][tf] = [entry];
+                console.log(`🔄 Migrated CRT ${sym} ${tf} to array format`);
+            }
+        }
+    }
+    return state;
 }
 
 // ══════════════════════════════════════════════
@@ -410,10 +442,15 @@ if (savedState) {
             marketState[sym].lastGodModeStartTime = Date.now();
     }
     await redisClient.set(REDIS_STATE_KEY, JSON.stringify(marketState));
-} else { console.log('🆕 No saved state'); }
+} else {
+    console.log('🆕 No saved state');
+}
 
 const savedLog = await redisClient.get(REDIS_LOG_KEY);
-if (savedLog) { activityLog = JSON.parse(savedLog); console.log(`📋 ${activityLog.length} log entries`); }
+if (savedLog) {
+    activityLog = JSON.parse(savedLog);
+    console.log(`📋 ${activityLog.length} log entries`);
+}
 
 const savedStats = await redisClient.get(REDIS_STATS_KEY);
 if (savedStats) {
@@ -423,11 +460,11 @@ if (savedStats) {
             const s = tradeStats[sym][tf];
             if (!s.trades) s.trades = [];
             s.trades.forEach(t => {
-                if (!t.id) t.id = makeTradeId(sym, tf);
-                if (!t.alignment) t.alignment = 'NONE';
-                if (!t.entry_tf) t.entry_tf = tf;
+                if (!t.id)           t.id           = makeTradeId(sym, tf);
+                if (!t.alignment)    t.alignment    = 'NONE';
+                if (!t.entry_tf)     t.entry_tf     = tf;
                 if (!t.align_combos) t.align_combos = [];
-                if (!t.align_count) t.align_count = 0;
+                if (!t.align_count)  t.align_count  = 0;
                 if (t.status === 'SIGNAL') t.status = 'PENDING';
             });
         }
@@ -446,6 +483,8 @@ if (savedSettings) {
 const savedCRT = await redisClient.get(REDIS_CRT_KEY);
 if (savedCRT) {
     crtState = JSON.parse(savedCRT);
+    // ── Migrate old single-object format → array format ──
+    crtState = migrateCRTState(crtState);
     console.log(`🔄 CRT state loaded: ${Object.keys(crtState).length} symbols`);
 } else {
     console.log('🆕 No CRT state found');
@@ -460,8 +499,8 @@ if (savedCRTLog) {
 // ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
-app.get('/api/state', (req, res) => res.json({ marketState, activityLog, settings: appSettings }));
-app.get('/api/stats', (req, res) => res.json({ tradeStats: buildEnrichedStats(), alignmentCombos: ALIGNMENT_COMBOS }));
+app.get('/api/state',     (req, res) => res.json({ marketState, activityLog, settings: appSettings }));
+app.get('/api/stats',     (req, res) => res.json({ tradeStats: buildEnrichedStats(), alignmentCombos: ALIGNMENT_COMBOS }));
 app.get('/api/crt-state', (req, res) => res.json({ crtState, crtLog }));
 
 app.get('/api/settings', (req, res) => {
@@ -480,10 +519,10 @@ app.post('/api/settings', async (req, res) => {
 });
 
 app.get('/api/stream', (req, res) => {
-    res.setHeader('Content-Type','text/event-stream');
-    res.setHeader('Cache-Control','no-cache');
-    res.setHeader('Connection','keep-alive');
-    res.setHeader('X-Accel-Buffering','no');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
     const id = Date.now();
     clients.push({ id, res });
@@ -492,10 +531,10 @@ app.get('/api/stream', (req, res) => {
 });
 
 app.get('/api/stats-stream', (req, res) => {
-    res.setHeader('Content-Type','text/event-stream');
-    res.setHeader('Cache-Control','no-cache');
-    res.setHeader('Connection','keep-alive');
-    res.setHeader('X-Accel-Buffering','no');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
     const id = Date.now();
     statsClients.push({ id, res });
@@ -504,10 +543,10 @@ app.get('/api/stats-stream', (req, res) => {
 });
 
 app.get('/api/crt-stream', (req, res) => {
-    res.setHeader('Content-Type','text/event-stream');
-    res.setHeader('Cache-Control','no-cache');
-    res.setHeader('Connection','keep-alive');
-    res.setHeader('X-Accel-Buffering','no');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
     const id = Date.now();
     crtClients.push({ id, res });
@@ -547,7 +586,7 @@ app.post('/api/delete-crt', async (req, res) => {
     const sym = symbol.toUpperCase().trim();
     if (sym === "ALL") {
         crtState = {};
-        crtLog = [];
+        crtLog   = [];
     } else {
         if (crtState[sym]) delete crtState[sym];
         crtLog = crtLog.filter(e => e.symbol !== sym);
@@ -575,7 +614,7 @@ app.post('/webhook', async (req, res) => {
     if (isStoryline) {
         const sym   = (payload.symbol || '').toUpperCase().trim();
         const tf    = normalizeTf(payload.tf);
-        const state = (payload.state || '').toUpperCase().trim();
+        const state = (payload.state  || '').toUpperCase().trim();
 
         if (!sym || !tf || !state) return res.status(400).send("Invalid Storyline");
         if (!ZONE_TIMEFRAMES.includes(tf)) return res.status(200).send("OK");
@@ -597,16 +636,18 @@ app.post('/webhook', async (req, res) => {
         const { dominantState, partialState, partialCount, alignCount } = recalculateAlignment(sym);
 
         if (dominantState !== "NONE" && dominantState !== prev) {
-            marketState[sym].lastAlertedState = dominantState;
+            marketState[sym].lastAlertedState    = dominantState;
             marketState[sym].lastGodModeStartTime = Date.now();
             const emoji = dominantState === "BULLISH" ? "🚀 🐂" : "🩸 🐻";
-            await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID, `<b>${emoji} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (6/6)\n${tfInfoString(sym)}\n\n✅ All 6 timeframes aligned!`);
+            await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
+                `<b>${emoji} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (6/6)\n${tfInfoString(sym)}\n\n✅ All 6 timeframes aligned!`);
             await pushLogEvent(sym, dominantState, `GOD-MODE ON: ${dominantState} (6/6)`);
         }
 
         if (dominantState === "NONE" && prev !== "NONE") {
             marketState[sym].lastAlertedState = "NONE";
-            await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID, `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (6/6)\nNow: ${partialState !== "NONE" ? partialState + ` (${partialCount}/6)` : `${alignCount}/6`}\n${tfInfoString(sym)}`);
+            await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
+                `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (6/6)\nNow: ${partialState !== "NONE" ? partialState + ` (${partialCount}/6)` : `${alignCount}/6`}\n${tfInfoString(sym)}`);
             await pushLogEvent(sym, 'NONE', `Alignment Lost: was ${prev} (6/6)`);
         }
 
@@ -614,7 +655,8 @@ app.post('/webhook', async (req, res) => {
             const prevPartial = marketState[sym]._lastPartialState || "NONE";
             if (prevPartial !== partialState || (prev !== "NONE" && dominantState === "NONE")) {
                 const emoji = partialState === "BULLISH" ? "⚡ 🐂" : "⚡ 🐻";
-                await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID, `<b>${emoji} PARTIAL: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/6)\n${tfInfoString(sym)}`);
+                await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
+                    `<b>${emoji} PARTIAL: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/6)\n${tfInfoString(sym)}`);
                 await pushLogEvent(sym, partialState, `PARTIAL: ${partialState} (${partialCount}/6)`);
             }
         }
@@ -642,7 +684,6 @@ app.post('/webhook', async (req, res) => {
         console.log(`\n[BREAKOUT] ${sym} | ${direction} | Chart TF: ${chartTf}`);
 
         const align = checkDirectionAlignment(sym, direction);
-
         if (!align.aligned) {
             console.log(`  ❌ BREAKOUT IGNORED: ${sym} ${direction} | ${align.reason}`);
             return res.status(200).send("OK — Not aligned");
@@ -662,7 +703,6 @@ app.post('/webhook', async (req, res) => {
         tgMsg += `${tfInfoString(sym)}`;
 
         const sentChannels = [];
-
         if (align.count === PARTIAL_THRESHOLD && align.type === 'PARTIAL') {
             if (TG_BREAKOUT_5OF6) { await sendTelegram(TG_BREAKOUT_5OF6, tgMsg); sentChannels.push('5/6'); }
         }
@@ -677,7 +717,9 @@ app.post('/webhook', async (req, res) => {
         }
 
         const channelStr = sentChannels.length > 0 ? ` → [${sentChannels.join(', ')}]` : '';
-        await pushLogEvent(sym, direction, `💥 BREAKOUT: ${direction} | Chart:${chartTfStr} | ${alignLabel}${channelStr}`, { logAction: 'BREAKOUT', direction, chart_tf: chartTfStr });
+        await pushLogEvent(sym, direction,
+            `💥 BREAKOUT: ${direction} | Chart:${chartTfStr} | ${alignLabel}${channelStr}`,
+            { logAction: 'BREAKOUT', direction, chart_tf: chartTfStr });
 
         broadcastAll();
         broadcastSoundAlert(sym, direction);
@@ -690,7 +732,7 @@ app.post('/webhook', async (req, res) => {
     // ════════════════════════════════════════
     if (isCRT) {
         const sym  = (payload.coin || '').toUpperCase().trim();
-        const tf   = (payload.tf   || '').toUpperCase().trim();
+        const tf   = normalizeTf(payload.tf || '');          // ← normalized
         const side = (payload.side || '').toUpperCase().trim();
         const rej  = payload.rej  || '---';
         const bo   = payload.bo   || '---';
@@ -712,69 +754,112 @@ app.post('/webhook', async (req, res) => {
 
         if (!crtState[sym]) crtState[sym] = {};
 
+        // ── Ensure array structure (safety guard) ──
+        if (!Array.isArray(crtState[sym][tf])) {
+            crtState[sym][tf] = crtState[sym][tf] ? [crtState[sym][tf]] : [];
+        }
+
         const dirEmoji = side === 'BULLISH' ? '🐂' : '🐻';
 
-        // ── CRT FORMED → ACTIVE ──
+        // ── CRT FORMED → push new ACTIVE entry ──
         if (payload.kind === 'CRT') {
-            crtState[sym][tf] = {
+            const newEntry = {
+                id:        `${sym}_${tf}_${Date.now()}`,
                 side,
-                rej,
-                bo,
-                ext,
-                tgt,
+                rej, bo, ext, tgt,
                 status:    'ACTIVE',
                 timestamp: Date.now(),
                 tp_time:   null,
                 inv_time:  null
             };
+            crtState[sym][tf].push(newEntry);
+
+            // Keep max 20 entries per TF to avoid unbounded growth
+            if (crtState[sym][tf].length > 20) {
+                crtState[sym][tf] = crtState[sym][tf].slice(-20);
+            }
+
             const logMsg = `${dirEmoji} ${tf} CRT FORMED: ${side} | Rej:${rej} BO:${bo} Tgt:${tgt}`;
             await pushCRTLog(sym, side, logMsg, { tf, rej, bo, ext, tgt, action: 'CRT_FORMED' });
 
-            // ── Send to CRT Telegram channel ──
             const crtTgMsg = buildCRTTelegramMessage('CRT', sym, tf, side, { rej, bo, ext, tgt });
             if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
 
-            console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side}`);
+            console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side} | Total entries: ${crtState[sym][tf].length}`);
         }
 
-        // ── CRT_TARGET → TP_HIT ──
+        // ── CRT_TARGET → update the most recent ACTIVE entry matching side ──
         if (payload.kind === 'CRT_TARGET') {
-            if (crtState[sym][tf]) {
-                crtState[sym][tf].status  = 'TP_HIT';
-                crtState[sym][tf].tp_time = Date.now();
-                crtState[sym][tf].rej = rej;
-                crtState[sym][tf].bo  = bo;
-                crtState[sym][tf].ext = ext;
-                crtState[sym][tf].tgt = tgt;
-            } else {
-                crtState[sym][tf] = { side, rej, bo, ext, tgt, status: 'TP_HIT', timestamp: Date.now(), tp_time: Date.now(), inv_time: null };
+            const entries = crtState[sym][tf];
+            let target = null;
+            for (let i = entries.length - 1; i >= 0; i--) {
+                if (entries[i].status === 'ACTIVE' && entries[i].side === side) {
+                    target = entries[i];
+                    break;
+                }
             }
+
+            if (target) {
+                target.status  = 'TP_HIT';
+                target.tp_time = Date.now();
+                target.rej = rej;
+                target.bo  = bo;
+                target.ext = ext;
+                target.tgt = tgt;
+            } else {
+                // No active found — push resolved entry so it's recorded
+                crtState[sym][tf].push({
+                    id:        `${sym}_${tf}_${Date.now()}`,
+                    side, rej, bo, ext, tgt,
+                    status:    'TP_HIT',
+                    timestamp: Date.now(),
+                    tp_time:   Date.now(),
+                    inv_time:  null
+                });
+            }
+
             const logMsg = `🎯 ${tf} CRT TARGET HIT: ${side} | Tgt:${tgt}`;
             await pushCRTLog(sym, side, logMsg, { tf, tgt, action: 'CRT_TARGET' });
 
-            // ── Send to CRT Telegram channel ──
             const crtTgMsg = buildCRTTelegramMessage('CRT_TARGET', sym, tf, side, { rej, bo, ext, tgt });
             if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
 
             console.log(`  🎯 CRT TP HIT: ${sym} ${tf} ${side}`);
         }
 
-        // ── CRT_INVALID → INVALID ──
+        // ── CRT_INVALID → update the most recent ACTIVE entry matching side ──
         if (payload.kind === 'CRT_INVALID') {
-            if (crtState[sym][tf]) {
-                crtState[sym][tf].status   = 'INVALID';
-                crtState[sym][tf].inv_time = Date.now();
-                crtState[sym][tf].rej = rej;
-                crtState[sym][tf].bo  = bo;
-                crtState[sym][tf].ext = ext;
-                crtState[sym][tf].tgt = tgt;
-            } else {
-                crtState[sym][tf] = { side, rej, bo, ext, tgt, status: 'INVALID', timestamp: Date.now(), tp_time: null, inv_time: Date.now() };
+            const entries = crtState[sym][tf];
+            let target = null;
+            for (let i = entries.length - 1; i >= 0; i--) {
+                if (entries[i].status === 'ACTIVE' && entries[i].side === side) {
+                    target = entries[i];
+                    break;
+                }
             }
+
+            if (target) {
+                target.status   = 'INVALID';
+                target.inv_time = Date.now();
+                target.rej = rej;
+                target.bo  = bo;
+                target.ext = ext;
+                target.tgt = tgt;
+            } else {
+                // No active found — push resolved entry so it's recorded
+                crtState[sym][tf].push({
+                    id:        `${sym}_${tf}_${Date.now()}`,
+                    side, rej, bo, ext, tgt,
+                    status:    'INVALID',
+                    timestamp: Date.now(),
+                    tp_time:   null,
+                    inv_time:  Date.now()
+                });
+            }
+
             const logMsg = `❌ ${tf} CRT INVALIDATED: ${side} | Ext:${ext}`;
             await pushCRTLog(sym, side, logMsg, { tf, ext, action: 'CRT_INVALID' });
 
-            // ── Send to CRT Telegram channel ──
             const crtTgMsg = buildCRTTelegramMessage('CRT_INVALID', sym, tf, side, { rej, bo, ext, tgt });
             if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
 
@@ -784,7 +869,6 @@ app.post('/webhook', async (req, res) => {
         await redisClient.set(REDIS_CRT_KEY, JSON.stringify(crtState));
         broadcastCRT();
 
-        // Only play sound on new CRT formed
         if (payload.kind === 'CRT') {
             broadcastCRTSound(sym, side);
         }
@@ -796,7 +880,7 @@ app.post('/webhook', async (req, res) => {
     // PINESCRIPT OB ALERTS
     // ════════════════════════════════════════
     if (isPineEntry) {
-        const sym       = (payload.coin || '').toUpperCase().trim();
+        const sym       = (payload.coin      || '').toUpperCase().trim();
         const direction = (payload.direction || '').toUpperCase().trim();
         const entry     = payload.entry;
         const sl        = payload.sl;
@@ -825,12 +909,25 @@ app.post('/webhook', async (req, res) => {
             stats.total_signals++;
 
             const trade = {
-                id: makeTradeId(sym, entryTf), direction,
-                entry: parseFloat(entry)||entry, sl: parseFloat(sl)||sl, tp: parseFloat(tp)||tp, rr: parseFloat(rr)||rr,
-                alignment: align.type, align_combos: align.combos, align_count: align.count,
-                status: 'PENDING', signal_time: Date.now(), entry_time: null, result_time: null, entry_tf: entryTf,
-                telegram_chat_id: null, telegram_message_id: null, telegram_deleted: false,
-                cancelled_time: null, cancelled_reason: null
+                id:                   makeTradeId(sym, entryTf),
+                direction,
+                entry:                parseFloat(entry) || entry,
+                sl:                   parseFloat(sl)    || sl,
+                tp:                   parseFloat(tp)    || tp,
+                rr:                   parseFloat(rr)    || rr,
+                alignment:            align.type,
+                align_combos:         align.combos,
+                align_count:          align.count,
+                status:               'PENDING',
+                signal_time:          Date.now(),
+                entry_time:           null,
+                result_time:          null,
+                entry_tf:             entryTf,
+                telegram_chat_id:     null,
+                telegram_message_id:  null,
+                telegram_deleted:     false,
+                cancelled_time:       null,
+                cancelled_reason:     null
             };
             stats.trades.push(trade);
             if (stats.trades.length > 500) stats.trades = stats.trades.slice(-500);
@@ -839,18 +936,24 @@ app.post('/webhook', async (req, res) => {
             let soundTriggered = false;
             if (chatId) {
                 const alignLabel = align.type === 'GOD' ? 'GOD-MODE (6/6)' : `PARTIAL (${align.count}/6)`;
-                const dirEmoji = direction === "BULLISH" ? "🟢 🐂" : "🔴 🐻";
+                const dirEmoji   = direction === "BULLISH" ? "🟢 🐂" : "🔴 🐻";
                 let msg = `<b>${dirEmoji} ${entryTf} OB SIGNAL: ${sym}</b>\n\n<b>Entry:</b> <code>${entry}</code>\n<b>SL:</b> <code>${sl}</code>\n`;
                 if (tp) msg += `<b>TP:</b> <code>${tp}</code>\n`;
                 if (rr) msg += `<b>R:R:</b> ${rr}\n`;
                 msg += `\n${align.type === 'GOD' ? '✅' : '⚡'} <b>${alignLabel}</b>\n${tfInfoString(sym)}`;
                 const sent = await sendTelegramTracked(chatId, msg);
-                if (sent.ok) { soundTriggered = true; trade.telegram_chat_id = chatId; trade.telegram_message_id = sent.messageId; }
+                if (sent.ok) {
+                    soundTriggered          = true;
+                    trade.telegram_chat_id  = chatId;
+                    trade.telegram_message_id = sent.messageId;
+                }
             }
 
             await saveStats(); broadcastStats();
             if (soundTriggered) broadcastSoundAlert(sym, direction);
-            await pushLogEvent(sym, direction, `📡 OB SIGNAL: ${direction} ${entryTf} @ ${entry} [${align.type} ${align.count}/6]`, { entry_tf: entryTf, direction, logAction: 'SIGNAL' });
+            await pushLogEvent(sym, direction,
+                `📡 OB SIGNAL: ${direction} ${entryTf} @ ${entry} [${align.type} ${align.count}/6]`,
+                { entry_tf: entryTf, direction, logAction: 'SIGNAL' });
             broadcastAll();
             return res.status(200).send("OK");
         }
@@ -860,7 +963,8 @@ app.post('/webhook', async (req, res) => {
             if (!stats) return res.status(200).send("OK");
             const found = findBestTrade(stats, { direction, entry, allowedStatuses: ['PENDING'] });
             if (found) {
-                found.trade.status = 'ACTIVE'; found.trade.entry_time = Date.now();
+                found.trade.status     = 'ACTIVE';
+                found.trade.entry_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, direction, `📥 ENTRY FILLED: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'ENTRY_FILLED' });
                 broadcastAll();
@@ -873,7 +977,9 @@ app.post('/webhook', async (req, res) => {
             if (!stats) return res.status(200).send("OK");
             const found = findBestTrade(stats, { direction, entry, allowedStatuses: ['PENDING'] });
             if (found) {
-                found.trade.status = 'SL_HIT'; found.trade.entry_time = Date.now(); found.trade.result_time = Date.now();
+                found.trade.status      = 'SL_HIT';
+                found.trade.entry_time  = Date.now();
+                found.trade.result_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, 'BEARISH', `💀 ENTRY+SL HIT: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'SL_HIT' });
                 broadcastAll();
@@ -886,7 +992,9 @@ app.post('/webhook', async (req, res) => {
             if (!stats) return res.status(200).send("OK");
             const found = findBestTrade(stats, { direction, entry, allowedStatuses: ['PENDING'] });
             if (found) {
-                found.trade.status = 'TP_HIT'; found.trade.entry_time = Date.now(); found.trade.result_time = Date.now();
+                found.trade.status      = 'TP_HIT';
+                found.trade.entry_time  = Date.now();
+                found.trade.result_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, 'BULLISH', `🎯 ENTRY+TP HIT: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'TP_HIT' });
                 broadcastAll();
@@ -899,7 +1007,8 @@ app.post('/webhook', async (req, res) => {
             if (!stats) return res.status(200).send("OK");
             const foundActive = findBestTrade(stats, { direction, entry, allowedStatuses: ['ACTIVE'] });
             if (foundActive) {
-                foundActive.trade.status = 'TP_HIT'; foundActive.trade.result_time = Date.now();
+                foundActive.trade.status      = 'TP_HIT';
+                foundActive.trade.result_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, 'BULLISH', `🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'TP_HIT' });
                 broadcastAll();
@@ -907,7 +1016,8 @@ app.post('/webhook', async (req, res) => {
             }
             const foundPending = findBestTrade(stats, { direction, entry, allowedStatuses: ['PENDING'] });
             if (foundPending) {
-                foundPending.trade.status = 'TP_NO_ENTRY'; foundPending.trade.result_time = Date.now();
+                foundPending.trade.status      = 'TP_NO_ENTRY';
+                foundPending.trade.result_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, 'NONE', `⏭️ TP without entry: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'TP_NO_ENTRY' });
                 broadcastAll();
@@ -920,7 +1030,8 @@ app.post('/webhook', async (req, res) => {
             if (!stats) return res.status(200).send("OK");
             const foundActive = findBestTrade(stats, { direction, entry, allowedStatuses: ['ACTIVE'] });
             if (foundActive) {
-                foundActive.trade.status = 'SL_HIT'; foundActive.trade.result_time = Date.now();
+                foundActive.trade.status      = 'SL_HIT';
+                foundActive.trade.result_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, 'BEARISH', `💀 SL HIT: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'SL_HIT' });
                 broadcastAll();
@@ -928,7 +1039,8 @@ app.post('/webhook', async (req, res) => {
             }
             const foundPending = findBestTrade(stats, { direction, entry, allowedStatuses: ['PENDING'] });
             if (foundPending) {
-                foundPending.trade.status = 'SL_NO_ENTRY'; foundPending.trade.result_time = Date.now();
+                foundPending.trade.status      = 'SL_NO_ENTRY';
+                foundPending.trade.result_time = Date.now();
                 await saveStats(); broadcastStats();
                 await pushLogEvent(sym, 'NONE', `⏭️ SL without entry: ${direction} ${entryTf} @ ${entry}`, { entry_tf: entryTf, direction, logAction: 'SL_NO_ENTRY' });
                 broadcastAll();
@@ -949,7 +1061,7 @@ app.get('/api/filtered-state/wdh', (req, res) => {
     const filtered = {};
     for (const sym in marketState) {
         const tfs = marketState[sym].timeframes || {};
-        const w = tfs['1W']||'NONE', d = tfs['1D']||'NONE', h4 = tfs['4H']||'NONE';
+        const w = tfs['1W'] || 'NONE', d = tfs['1D'] || 'NONE', h4 = tfs['4H'] || 'NONE';
         if (w !== 'NONE' && w === d && d === h4) filtered[sym] = { ...marketState[sym], filterDirection: w };
     }
     res.json({ marketState: filtered, activityLog });
@@ -959,7 +1071,7 @@ app.get('/api/filtered-state/dh1h', (req, res) => {
     const filtered = {};
     for (const sym in marketState) {
         const tfs = marketState[sym].timeframes || {};
-        const d = tfs['1D']||'NONE', h4 = tfs['4H']||'NONE', h1 = tfs['1H']||'NONE';
+        const d = tfs['1D'] || 'NONE', h4 = tfs['4H'] || 'NONE', h1 = tfs['1H'] || 'NONE';
         if (d !== 'NONE' && d === h4 && h4 === h1) filtered[sym] = { ...marketState[sym], filterDirection: d };
     }
     res.json({ marketState: filtered, activityLog });
