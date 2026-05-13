@@ -497,6 +497,110 @@ if (savedCRTLog) {
 }
 
 // ══════════════════════════════════════════════
+// RECOVER MISSING CRT ENTRIES FROM LOG
+// ══════════════════════════════════════════════
+// The old single-object format overwrote entries.
+// This rebuilds them from the log so counts are correct.
+(function recoverCRTFromLog() {
+    if (!crtLog.length) return;
+
+    const validTFs = ['1W', '1D', '4H'];
+
+    // Build a map of all CRT_FORMED events from log (oldest first)
+    const formedEvents = [...crtLog]
+        .reverse() // log is newest-first, we want oldest-first
+        .filter(e => e.action === 'CRT_FORMED' && e.symbol && e.tf && validTFs.includes(e.tf));
+
+    // Build lookup for TARGET and INVALID events
+    const targetEvents = crtLog.filter(e => e.action === 'CRT_TARGET');
+    const invalidEvents = crtLog.filter(e => e.action === 'CRT_INVALID');
+
+    let recovered = 0;
+
+    for (const formed of formedEvents) {
+        const sym  = formed.symbol;
+        const tf   = formed.tf;
+        const side = formed.side;
+        const ts   = formed.timestamp;
+
+        if (!crtState[sym]) crtState[sym] = {};
+        if (!Array.isArray(crtState[sym][tf])) {
+            crtState[sym][tf] = crtState[sym][tf] ? [crtState[sym][tf]] : [];
+        }
+
+        // Check if this exact entry already exists in crtState
+        const alreadyExists = crtState[sym][tf].some(e =>
+            e.side === side && Math.abs((e.timestamp || 0) - ts) < 10000
+        );
+        if (alreadyExists) continue;
+
+        // Find matching TARGET or INVALID for this formed event
+        // Must be same symbol, tf, side, and timestamp AFTER the formed event
+        const matchTarget = targetEvents.find(e =>
+            e.symbol === sym && e.tf === tf && e.side === side && e.timestamp > ts
+        );
+        const matchInvalid = invalidEvents.find(e =>
+            e.symbol === sym && e.tf === tf && e.side === side && e.timestamp > ts
+        );
+
+        // Determine final status
+        let status = 'ACTIVE';
+        let tp_time = null;
+        let inv_time = null;
+
+        if (matchTarget && (!matchInvalid || matchTarget.timestamp < matchInvalid.timestamp)) {
+            status = 'TP_HIT';
+            tp_time = matchTarget.timestamp;
+        } else if (matchInvalid && (!matchTarget || matchInvalid.timestamp < matchTarget.timestamp)) {
+            status = 'INVALID';
+            inv_time = matchInvalid.timestamp;
+        }
+
+        const recoveredEntry = {
+            id:        `${sym}_${tf}_${ts}`,
+            side,
+            rej:       formed.rej  || '---',
+            bo:        formed.bo   || '---',
+            ext:       formed.ext  || '---',
+            tgt:       formed.tgt  || '---',
+            status,
+            timestamp: ts,
+            tp_time,
+            inv_time
+        };
+
+        crtState[sym][tf].push(recoveredEntry);
+        recovered++;
+        console.log(`🔧 Recovered CRT: ${sym} ${tf} ${side} → ${status}`);
+    }
+
+    if (recovered > 0) {
+        // Sort entries by timestamp within each TF
+        for (const sym in crtState) {
+            for (const tf in crtState[sym]) {
+                if (Array.isArray(crtState[sym][tf])) {
+                    crtState[sym][tf].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+                    // Deduplicate — same side + close timestamp
+                    const deduped = [];
+                    for (const entry of crtState[sym][tf]) {
+                        const isDup = deduped.some(d =>
+                            d.side === entry.side && Math.abs((d.timestamp || 0) - (entry.timestamp || 0)) < 10000
+                        );
+                        if (!isDup) deduped.push(entry);
+                    }
+                    crtState[sym][tf] = deduped;
+                }
+            }
+        }
+
+        console.log(`✅ Recovered ${recovered} CRT entries from log`);
+        // Save the recovered state
+        redisClient.set(REDIS_CRT_KEY, JSON.stringify(crtState));
+    }
+})();
+
+// ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
 app.get('/api/state',     (req, res) => res.json({ marketState, activityLog, settings: appSettings }));
