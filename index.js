@@ -483,7 +483,6 @@ if (savedSettings) {
 const savedCRT = await redisClient.get(REDIS_CRT_KEY);
 if (savedCRT) {
     crtState = JSON.parse(savedCRT);
-    // ── Migrate old single-object format → array format ──
     crtState = migrateCRTState(crtState);
     console.log(`🔄 CRT state loaded: ${Object.keys(crtState).length} symbols`);
 } else {
@@ -499,20 +498,16 @@ if (savedCRTLog) {
 // ══════════════════════════════════════════════
 // RECOVER MISSING CRT ENTRIES FROM LOG
 // ══════════════════════════════════════════════
-// The old single-object format overwrote entries.
-// This rebuilds them from the log so counts are correct.
 (function recoverCRTFromLog() {
     if (!crtLog.length) return;
 
     const validTFs = ['1W', '1D', '4H'];
 
-    // Build a map of all CRT_FORMED events from log (oldest first)
     const formedEvents = [...crtLog]
-        .reverse() // log is newest-first, we want oldest-first
+        .reverse()
         .filter(e => e.action === 'CRT_FORMED' && e.symbol && e.tf && validTFs.includes(e.tf));
 
-    // Build lookup for TARGET and INVALID events
-    const targetEvents = crtLog.filter(e => e.action === 'CRT_TARGET');
+    const targetEvents  = crtLog.filter(e => e.action === 'CRT_TARGET');
     const invalidEvents = crtLog.filter(e => e.action === 'CRT_INVALID');
 
     let recovered = 0;
@@ -528,14 +523,11 @@ if (savedCRTLog) {
             crtState[sym][tf] = crtState[sym][tf] ? [crtState[sym][tf]] : [];
         }
 
-        // Check if this exact entry already exists in crtState
         const alreadyExists = crtState[sym][tf].some(e =>
             e.side === side && Math.abs((e.timestamp || 0) - ts) < 10000
         );
         if (alreadyExists) continue;
 
-        // Find matching TARGET or INVALID for this formed event
-        // Must be same symbol, tf, side, and timestamp AFTER the formed event
         const matchTarget = targetEvents.find(e =>
             e.symbol === sym && e.tf === tf && e.side === side && e.timestamp > ts
         );
@@ -543,16 +535,15 @@ if (savedCRTLog) {
             e.symbol === sym && e.tf === tf && e.side === side && e.timestamp > ts
         );
 
-        // Determine final status
-        let status = 'ACTIVE';
-        let tp_time = null;
+        let status   = 'ACTIVE';
+        let tp_time  = null;
         let inv_time = null;
 
         if (matchTarget && (!matchInvalid || matchTarget.timestamp < matchInvalid.timestamp)) {
-            status = 'TP_HIT';
+            status  = 'TP_HIT';
             tp_time = matchTarget.timestamp;
         } else if (matchInvalid && (!matchTarget || matchInvalid.timestamp < matchTarget.timestamp)) {
-            status = 'INVALID';
+            status   = 'INVALID';
             inv_time = matchInvalid.timestamp;
         }
 
@@ -575,13 +566,11 @@ if (savedCRTLog) {
     }
 
     if (recovered > 0) {
-        // Sort entries by timestamp within each TF
         for (const sym in crtState) {
             for (const tf in crtState[sym]) {
                 if (Array.isArray(crtState[sym][tf])) {
                     crtState[sym][tf].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-                    // Deduplicate — same side + close timestamp
                     const deduped = [];
                     for (const entry of crtState[sym][tf]) {
                         const isDup = deduped.some(d =>
@@ -595,7 +584,6 @@ if (savedCRTLog) {
         }
 
         console.log(`✅ Recovered ${recovered} CRT entries from log`);
-        // Save the recovered state
         redisClient.set(REDIS_CRT_KEY, JSON.stringify(crtState));
     }
 })();
@@ -836,7 +824,7 @@ app.post('/webhook', async (req, res) => {
     // ════════════════════════════════════════
     if (isCRT) {
         const sym  = (payload.coin || '').toUpperCase().trim();
-        const tf   = normalizeTf(payload.tf || '');          // ← normalized
+        const tf   = normalizeTf(payload.tf || '');
         const side = (payload.side || '').toUpperCase().trim();
         const rej  = payload.rej  || '---';
         const bo   = payload.bo   || '---';
@@ -878,7 +866,6 @@ app.post('/webhook', async (req, res) => {
             };
             crtState[sym][tf].push(newEntry);
 
-            // Keep max 20 entries per TF to avoid unbounded growth
             if (crtState[sym][tf].length > 20) {
                 crtState[sym][tf] = crtState[sym][tf].slice(-20);
             }
@@ -892,7 +879,7 @@ app.post('/webhook', async (req, res) => {
             console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side} | Total entries: ${crtState[sym][tf].length}`);
         }
 
-        // ── CRT_TARGET → update the most recent ACTIVE entry matching side ──
+        // ── CRT_TARGET → only update if ACTIVE entry exists for this side ──
         if (payload.kind === 'CRT_TARGET') {
             const entries = crtState[sym][tf];
             let target = null;
@@ -903,24 +890,17 @@ app.post('/webhook', async (req, res) => {
                 }
             }
 
-            if (target) {
-                target.status  = 'TP_HIT';
-                target.tp_time = Date.now();
-                target.rej = rej;
-                target.bo  = bo;
-                target.ext = ext;
-                target.tgt = tgt;
-            } else {
-                // No active found — push resolved entry so it's recorded
-                crtState[sym][tf].push({
-                    id:        `${sym}_${tf}_${Date.now()}`,
-                    side, rej, bo, ext, tgt,
-                    status:    'TP_HIT',
-                    timestamp: Date.now(),
-                    tp_time:   Date.now(),
-                    inv_time:  null
-                });
+            if (!target) {
+                console.log(`  ⚠️ CRT_TARGET ignored: no ACTIVE ${side} entry found for ${sym} ${tf}`);
+                return res.status(200).send("OK — No active CRT to target");
             }
+
+            target.status  = 'TP_HIT';
+            target.tp_time = Date.now();
+            target.rej = rej;
+            target.bo  = bo;
+            target.ext = ext;
+            target.tgt = tgt;
 
             const logMsg = `🎯 ${tf} CRT TARGET HIT: ${side} | Tgt:${tgt}`;
             await pushCRTLog(sym, side, logMsg, { tf, tgt, action: 'CRT_TARGET' });
@@ -931,7 +911,7 @@ app.post('/webhook', async (req, res) => {
             console.log(`  🎯 CRT TP HIT: ${sym} ${tf} ${side}`);
         }
 
-        // ── CRT_INVALID → update the most recent ACTIVE entry matching side ──
+        // ── CRT_INVALID → only update if ACTIVE entry exists for this side ──
         if (payload.kind === 'CRT_INVALID') {
             const entries = crtState[sym][tf];
             let target = null;
@@ -942,24 +922,17 @@ app.post('/webhook', async (req, res) => {
                 }
             }
 
-            if (target) {
-                target.status   = 'INVALID';
-                target.inv_time = Date.now();
-                target.rej = rej;
-                target.bo  = bo;
-                target.ext = ext;
-                target.tgt = tgt;
-            } else {
-                // No active found — push resolved entry so it's recorded
-                crtState[sym][tf].push({
-                    id:        `${sym}_${tf}_${Date.now()}`,
-                    side, rej, bo, ext, tgt,
-                    status:    'INVALID',
-                    timestamp: Date.now(),
-                    tp_time:   null,
-                    inv_time:  Date.now()
-                });
+            if (!target) {
+                console.log(`  ⚠️ CRT_INVALID ignored: no ACTIVE ${side} entry found for ${sym} ${tf}`);
+                return res.status(200).send("OK — No active CRT to invalidate");
             }
+
+            target.status   = 'INVALID';
+            target.inv_time = Date.now();
+            target.rej = rej;
+            target.bo  = bo;
+            target.ext = ext;
+            target.tgt = tgt;
 
             const logMsg = `❌ ${tf} CRT INVALIDATED: ${side} | Ext:${ext}`;
             await pushCRTLog(sym, side, logMsg, { tf, ext, action: 'CRT_INVALID' });
@@ -1047,8 +1020,8 @@ app.post('/webhook', async (req, res) => {
                 msg += `\n${align.type === 'GOD' ? '✅' : '⚡'} <b>${alignLabel}</b>\n${tfInfoString(sym)}`;
                 const sent = await sendTelegramTracked(chatId, msg);
                 if (sent.ok) {
-                    soundTriggered          = true;
-                    trade.telegram_chat_id  = chatId;
+                    soundTriggered            = true;
+                    trade.telegram_chat_id    = chatId;
                     trade.telegram_message_id = sent.messageId;
                 }
             }
