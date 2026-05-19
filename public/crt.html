@@ -40,7 +40,7 @@
         .btn-clear:hover { background:linear-gradient(135deg,rgba(239,68,68,0.4),rgba(153,27,27,0.25));color:#fee2e2; }
         .btn-sound { background:rgba(30,41,59,0.7);border-color:rgba(71,85,105,0.5);color:#94a3b8; }
         .btn-sound:hover { border-color:rgba(100,116,139,0.8);color:#cbd5e1; }
-        .btn-sound.on { background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(52,211,153,0.1));border-color:rgba(16,185,129,0.5);color:#34d399;box-shadow:0 0 20px rgba(16,185,129,0.15); }
+        .btn-sound.on { background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(52,211,153,0.1));border-color:rgba(16,185,129,0.5);color:#34d399; }
         .stat-chip { display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(10px); }
         .live-badge { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);backdrop-filter:blur(10px); }
         .live-badge.offline { background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3); }
@@ -64,7 +64,7 @@
         .coin-section { flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(245,158,11,0.3) transparent; }
         .coin-section::-webkit-scrollbar { width:4px; }
         .coin-section::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
-        .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px; }
+        .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px; }
 
         .coin-card { border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:default; }
         .coin-card::before { content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none; }
@@ -86,7 +86,7 @@
         .card-badge-mixed { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(196,181,253,0.15));border:1px solid rgba(167,139,250,0.4);color:#c4b5fd; }
         .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
 
-        .tf-row { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px; }
+        .tf-row { display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px; }
         .tf-cell { padding:8px 4px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.50rem;text-align:center; }
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
         .tf-cell-bear { background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.25); }
@@ -104,13 +104,34 @@
         .align-bar-mixed { background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#c4b5fd; }
         .align-bar-none { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
 
+        .align-tag { font-family:'JetBrains Mono',monospace;font-size:0.40rem;font-weight:700;padding:2px 5px;border-radius:4px;display:inline-block;margin-top:3px; }
+        .align-tag-mow { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
+        .align-tag-mo { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .align-tag-w { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .align-tag-none { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
+
+        /* ── HIT RATE PANEL ── */
+        .hitrate-panel { position:relative;z-index:10;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.6);backdrop-filter:blur(10px); }
+        .hitrate-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px; }
+        .hitrate-card { padding:10px 14px;border-radius:12px;font-family:'JetBrains Mono',monospace; }
+        .hitrate-card-good { background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25); }
+        .hitrate-card-warn { background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25); }
+        .hitrate-card-bad { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25); }
+        .hitrate-card-neutral { background:rgba(71,85,105,0.1);border:1px solid rgba(71,85,105,0.25); }
+        .hitrate-label { font-size:0.50rem;color:rgba(203,213,225,0.5);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px; }
+        .hitrate-value { font-size:1rem;font-weight:800; }
+        .hitrate-sub { font-size:0.45rem;color:rgba(203,213,225,0.4);margin-top:2px; }
+        .hitrate-value-good { color:#34d399; }
+        .hitrate-value-warn { color:#fbbf24; }
+        .hitrate-value-bad { color:#f87171; }
+        .hitrate-value-neutral { color:#64748b; }
+
         .feed-panel { width:280px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(8,12,22,0.85);backdrop-filter:blur(24px); }
         .feed-header { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(251,191,36,0.08));display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
         .feed-title { font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#fbbf24;letter-spacing:0.1em; }
         .feed-body { flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:rgba(245,158,11,0.3) transparent; }
         .feed-body::-webkit-scrollbar { width:4px; }
         .feed-body::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
-        .feed-count { font-family:'JetBrains Mono',monospace;font-size:0.5rem;color:rgba(251,191,36,0.5); }
 
         .log-card { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out; }
         .log-card-bull { background:linear-gradient(135deg,rgba(5,46,22,0.8),rgba(6,78,59,0.4));border:1px solid rgba(16,185,129,0.25);border-left:3px solid #10b981; }
@@ -150,7 +171,7 @@
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
             <div>
                 <div class="brand-name">CRT DASHBOARD</div>
-                <div class="brand-sub">CANDLE RANGE THEORY · 1W · 1D · 4H · LIVE LIFECYCLE</div>
+                <div class="brand-sub">CANDLE RANGE THEORY · 1W · 1D · STORYLINE ALIGNED</div>
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -180,7 +201,18 @@
         <span id="tpPill" class="stats-pill sp-tp">🎯 0 TP HIT</span>
         <span id="invPill" class="stats-pill sp-inv">❌ 0 INVALID</span>
         <div class="divider-v"></div>
-        <span id="totalPill" class="stats-pill sp-total">🔄 0 TRACKED</span>
+        <span id="totalPill" class="stats-pill sp-total">🔄 0 TOTAL</span>
+    </div>
+
+    <!-- HIT RATE PANEL -->
+    <div class="hitrate-panel" id="hitratePanel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#fbbf24;letter-spacing:0.1em;">📊 CRT HIT RATE ANALYSIS</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:0.45rem;color:rgba(148,163,184,0.35);letter-spacing:0.08em;">RESOLVED TRADES ONLY (TP + INV)</span>
+        </div>
+        <div class="hitrate-grid" id="hitrateGrid">
+            <p style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.3);text-align:center;grid-column:1/-1;padding:10px;">Loading stats...</p>
+        </div>
     </div>
 
     <div class="main-layout">
@@ -201,9 +233,10 @@
     </div>
 
     <script>
-        const CRT_TFS = ['1W', '1D', '4H'];
+        const CRT_TFS = ['1W', '1D'];
         let crtState = {};
         let crtLog = [];
+        let crtStats = {};
 
         const moneySound = new Audio('/money.mp3');
         moneySound.volume = 0.85;
@@ -231,23 +264,19 @@
             return old ? d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+t : t;
         }
 
-        // ── Safe accessor: always returns array for a TF ──
         function getTFEntries(sym, tf) {
             const raw = crtState[sym]?.[tf];
             if (!raw) return [];
             if (Array.isArray(raw)) return raw;
-            // Old single-object format — wrap it
             return [raw];
         }
 
-        // ── Get the LATEST (most recent) entry for a TF ──
         function getLatestEntry(sym, tf) {
             const entries = getTFEntries(sym, tf);
             if (!entries.length) return null;
             return entries[entries.length - 1];
         }
 
-        // ── Flatten all entries across all TFs for a symbol ──
         function getAllEntries(sym) {
             const out = [];
             CRT_TFS.forEach(tf => {
@@ -257,9 +286,6 @@
         }
 
         function getCardType(sym) {
-            const data = crtState[sym];
-            if (!data) return 'idle';
-            // Use latest entry per TF to determine card colour
             const sides = CRT_TFS.map(tf => getLatestEntry(sym, tf)?.side).filter(s => s);
             if (sides.length === 0) return 'idle';
             if (sides.every(s => s === 'BULLISH')) return 'bull';
@@ -270,7 +296,6 @@
         function getAlignBarInfo(sym) {
             const all = getAllEntries(sym);
             if (!all.length) return { cls: 'align-bar-none', txt: '— No CRT signals' };
-
             let active = 0, tp = 0, inv = 0;
             all.forEach(e => {
                 if (e.status === 'ACTIVE') active++;
@@ -279,13 +304,11 @@
             });
             const total = active + tp + inv;
             if (total === 0) return { cls: 'align-bar-none', txt: '— No CRT signals' };
-
             const type = getCardType(sym);
             const parts = [];
             if (active > 0) parts.push(`🔵 ${active} Active`);
             if (tp > 0) parts.push(`🎯 ${tp} TP`);
             if (inv > 0) parts.push(`❌ ${inv} Inv`);
-
             if (type === 'bull') return { cls: 'align-bar-bull', txt: `🐂 ${parts.join(' · ')}` };
             if (type === 'bear') return { cls: 'align-bar-bear', txt: `🐻 ${parts.join(' · ')}` };
             if (type === 'mixed') return { cls: 'align-bar-mixed', txt: `🔀 ${parts.join(' · ')}` };
@@ -309,6 +332,66 @@
             return '<span class="status-badge status-none">—</span>';
         }
 
+        function alignTagHTML(entry) {
+            if (!entry || !entry.align_level) return '';
+            const level = entry.align_level;
+            if (level === 'MO+W') return '<span class="align-tag align-tag-mow">MO+W ✅</span>';
+            if (level === 'MO')   return '<span class="align-tag align-tag-mo">MO ✅</span>';
+            if (level === 'W')    return '<span class="align-tag align-tag-w">W ✅</span>';
+            return '<span class="align-tag align-tag-none">NO ALIGN</span>';
+        }
+
+        // ── HIT RATE RENDERING ──
+        function getHRCardClass(rate) {
+            if (rate === '—') return 'hitrate-card-neutral';
+            const v = parseFloat(rate);
+            if (v >= 60) return 'hitrate-card-good';
+            if (v >= 40) return 'hitrate-card-warn';
+            return 'hitrate-card-bad';
+        }
+        function getHRValueClass(rate) {
+            if (rate === '—') return 'hitrate-value-neutral';
+            const v = parseFloat(rate);
+            if (v >= 60) return 'hitrate-value-good';
+            if (v >= 40) return 'hitrate-value-warn';
+            return 'hitrate-value-bad';
+        }
+
+        function renderHitRates() {
+            const grid = document.getElementById('hitrateGrid');
+            if (!crtStats || !crtStats.overall) {
+                grid.innerHTML = '<p style="font-family:\'JetBrains Mono\',monospace;font-size:0.6rem;color:rgba(148,163,184,0.3);text-align:center;grid-column:1/-1;padding:10px;">No data yet...</p>';
+                return;
+            }
+
+            const cards = [
+                { key: 'overall',     label: 'OVERALL',                 icon: '📊' },
+                { key: 'daily',       label: 'DAILY CRT',              icon: '📅' },
+                { key: 'weekly',      label: 'WEEKLY CRT',             icon: '📆' },
+                { key: 'daily_mo_w',  label: 'DAILY — MO+W ALIGNED',   icon: '✅' },
+                { key: 'daily_mo',    label: 'DAILY — MO ONLY',        icon: '🟡' },
+                { key: 'daily_w',     label: 'DAILY — W ONLY',         icon: '🔵' },
+                { key: 'daily_none',  label: 'DAILY — NO ALIGN',       icon: '⚠️' },
+                { key: 'weekly_mo',   label: 'WEEKLY — MO ALIGNED',    icon: '✅' },
+                { key: 'weekly_none', label: 'WEEKLY — NO MO ALIGN',   icon: '⚠️' },
+            ];
+
+            grid.innerHTML = cards.map(c => {
+                const s = crtStats[c.key];
+                if (!s) return '';
+                const rate = s.hit_rate;
+                const resolved = s.tp + s.inv;
+                const cardCls = getHRCardClass(rate);
+                const valCls = getHRValueClass(rate);
+                return `
+                    <div class="hitrate-card ${cardCls}">
+                        <div class="hitrate-label">${c.icon} ${c.label}</div>
+                        <div class="hitrate-value ${valCls}">${rate === '—' ? '—' : rate + '%'}</div>
+                        <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
+                    </div>`;
+            }).join('');
+        }
+
         function render() {
             const grid = document.getElementById('coinGrid');
             const syms = Object.keys(crtState).sort((a, b) => {
@@ -323,7 +406,6 @@
                 return tb - ta;
             });
 
-            // ── Stats: count EVERY individual entry ──
             let totalBull=0, totalBear=0, totalActive=0, totalTP=0, totalInv=0, totalEntries=0;
             syms.forEach(sym => {
                 getAllEntries(sym).forEach(e => {
@@ -351,7 +433,6 @@
 
             grid.innerHTML = '';
             syms.forEach(sym => {
-                const data = crtState[sym];
                 const type = getCardType(sym);
                 const cardCls = type === 'bull' ? 'card-bull' : type === 'bear' ? 'card-bear' : type === 'mixed' ? 'card-mixed' : 'card-idle';
 
@@ -364,7 +445,6 @@
                 const allE = getAllEntries(sym);
                 let latestTs = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
 
-                // ── TF cells — original 3 column grid, showing LATEST entry per TF ──
                 let tfCells = '';
                 CRT_TFS.forEach(tf => {
                     const d = getLatestEntry(sym, tf);
@@ -375,13 +455,12 @@
                     const sideText = d?.side || 'NONE';
                     const tfTime = d?.timestamp ? fmtTime(d.timestamp) : '';
                     const entryCount = entries.length;
+                    const alignHTML = alignTagHTML(d);
 
-                    // Count per-TF stats
                     const tfTP = entries.filter(e => e.status === 'TP_HIT').length;
                     const tfInv = entries.filter(e => e.status === 'INVALID').length;
                     const tfActive = entries.filter(e => e.status === 'ACTIVE').length;
 
-                    // Mini count line if more than 1 entry
                     let countLine = '';
                     if (entryCount > 1) {
                         const bits = [];
@@ -391,14 +470,17 @@
                         countLine = `<div style="color:rgba(203,213,225,0.45);font-size:0.38rem;margin-top:2px;">${entryCount} signals · ${bits.join(' ')}</div>`;
                     }
 
+                    const tfLabel = tf === '1W' ? 'WEEKLY' : 'DAILY';
+
                     tfCells += `
                         <div class="tf-cell ${cellCls}">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-                                <span style="color:rgba(203,213,225,0.5);font-size:0.42rem;text-transform:uppercase;letter-spacing:.04em;">${tf}</span>
+                                <span style="color:rgba(203,213,225,0.5);font-size:0.42rem;text-transform:uppercase;letter-spacing:.04em;">${tfLabel}</span>
                                 <span style="font-size:0.65rem;">${emoji}</span>
                             </div>
                             <div style="color:rgba(203,213,225,0.6);font-size:0.42rem;">${sideText}</div>
                             ${d?.side ? statusHTML : ''}
+                            ${alignHTML}
                             ${countLine}
                             ${tfTime ? `<div style="color:rgba(203,213,225,0.7);font-size:0.48rem;font-weight:600;margin-top:4px;font-family:'JetBrains Mono',monospace;">🕐 ${tfTime}</div>` : ''}
                         </div>`;
@@ -415,9 +497,7 @@
                             </div>
                             ${badgeHTML}
                         </div>
-                        <div class="tf-row">
-                            ${tfCells}
-                        </div>
+                        <div class="tf-row">${tfCells}</div>
                         <div class="align-bar ${alignBar.cls}">${alignBar.txt}</div>
                     </div>`);
             });
@@ -425,27 +505,22 @@
 
         function rebuildFeed() {
             const feed = document.getElementById('activityFeed');
-
             if (!crtLog.length) {
                 feed.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting CRT signals...</p>`;
                 return;
             }
-
             feed.innerHTML = crtLog.slice(0, 100).map(e => {
                 let cls;
                 if (e.action === 'CRT_TARGET') cls = 'log-card log-card-tp';
                 else if (e.action === 'CRT_INVALID') cls = 'log-card log-card-inv';
                 else if (e.side === 'BULLISH') cls = 'log-card log-card-bull';
                 else cls = 'log-card log-card-bear';
-
                 const tc = e.action === 'CRT_TARGET' ? 'rgba(52,211,153,0.8)' :
                            e.action === 'CRT_INVALID' ? 'rgba(248,113,113,0.8)' :
                            e.side === 'BULLISH' ? 'rgba(52,211,153,0.8)' : 'rgba(248,113,113,0.8)';
-
                 const icon = e.action === 'CRT_TARGET' ? '🎯' :
                              e.action === 'CRT_INVALID' ? '❌' :
                              e.side === 'BULLISH' ? '🐂' : '🐻';
-
                 return `<div class="${cls}">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
                         <span class="log-sym">${icon} ${e.symbol}</span>
@@ -463,9 +538,19 @@
         fetch('/api/crt-state').then(r => r.json()).then(data => {
             crtState = data.crtState || {};
             crtLog = data.crtLog || [];
+            crtStats = data.crtStats || {};
             render();
             rebuildFeed();
+            renderHitRates();
         });
+
+        // Periodically refresh hit rates
+        setInterval(() => {
+            fetch('/api/crt-stats').then(r => r.json()).then(data => {
+                crtStats = data.crtStats || {};
+                renderHitRates();
+            }).catch(() => {});
+        }, 30000);
 
         // SSE
         const es = new EventSource('/api/crt-stream');
@@ -482,6 +567,11 @@
             if (data.crtLog) crtLog = data.crtLog;
             render();
             rebuildFeed();
+            // Refresh stats on CRT updates
+            fetch('/api/crt-stats').then(r => r.json()).then(d => {
+                crtStats = d.crtStats || {};
+                renderHitRates();
+            }).catch(() => {});
         };
     </script>
 </body>
