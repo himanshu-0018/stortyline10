@@ -33,9 +33,10 @@ const REDIS_STATS_KEY     = REDIS_STATE_KEY + '_tradeStats';
 const REDIS_SETTINGS_KEY  = REDIS_STATE_KEY + '_settings';
 const REDIS_CRT_KEY       = REDIS_STATE_KEY + '_crt';
 
-const ZONE_TIMEFRAMES     = ["1W", "1D", "4H", "1H", "30M", "15M"];
-const GOD_THRESHOLD       = 6;
-const PARTIAL_THRESHOLD   = 5;
+// ═══ UPDATED: Only Monthly and Weekly for storyline ═══
+const ZONE_TIMEFRAMES     = ["1MO", "1W"];
+const GOD_THRESHOLD       = 2;
+const PARTIAL_THRESHOLD   = 1;
 const ENTRY_TFS           = ["1M", "3M", "5M"];
 
 const TG_CHANNEL_MAP = {
@@ -44,19 +45,13 @@ const TG_CHANNEL_MAP = {
     "5M": () => TG_5M_ENTRIES
 };
 
+// ═══ UPDATED: Alignment combos for 2 TFs ═══
 const ALIGNMENT_COMBOS = [
-    { id: "W_D_4H",             label: "W+D+4H",              tfs: ["1W","1D","4H"] },
-    { id: "W_D_4H_1H",          label: "W+D+4H+1H",           tfs: ["1W","1D","4H","1H"] },
-    { id: "W_D_4H_1H_30M",      label: "W+D+4H+1H+30M",       tfs: ["1W","1D","4H","1H","30M"] },
-    { id: "W_D_4H_1H_30M_15M",  label: "W+D+4H+1H+30M+15M",   tfs: ["1W","1D","4H","1H","30M","15M"] },
-    { id: "D_4H",               label: "D+4H",                tfs: ["1D","4H"] },
-    { id: "D_4H_1H",            label: "D+4H+1H",             tfs: ["1D","4H","1H"] },
-    { id: "D_4H_1H_30M",        label: "D+4H+1H+30M",         tfs: ["1D","4H","1H","30M"] },
-    { id: "D_4H_1H_30M_15M",    label: "D+4H+1H+30M+15M",     tfs: ["1D","4H","1H","30M","15M"] },
-    { id: "4H_1H",              label: "4H+1H",               tfs: ["4H","1H"] },
-    { id: "4H_1H_30M",          label: "4H+1H+30M",           tfs: ["4H","1H","30M"] },
-    { id: "4H_1H_30M_15M",      label: "4H+1H+30M+15M",       tfs: ["4H","1H","30M","15M"] }
+    { id: "MO_W", label: "MO+W", tfs: ["1MO","1W"] },
 ];
+
+// ═══ UPDATED: CRT only Daily and Weekly ═══
+const CRT_VALID_TFS = ['1W', '1D'];
 
 let marketState  = {};
 let activityLog  = [];
@@ -140,8 +135,9 @@ async function sendTelegram(chatId, message) {
 // ══════════════════════════════════════════════
 // CRT TELEGRAM MESSAGE BUILDER
 // ══════════════════════════════════════════════
-function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt }) {
+function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt, alignInfo }) {
     const dirEmoji = side === 'BULLISH' ? '🐂' : '🐻';
+    const alignLine = alignInfo ? `<b>Alignment:</b> ${alignInfo}` : '';
 
     if (kind === 'CRT') {
         return [
@@ -149,12 +145,13 @@ function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt }) {
             ``,
             `<b>Timeframe:</b> ${tf}`,
             `<b>Side:</b> ${side}`,
+            alignLine,
             ``,
             `<b>Rejection:</b> <code>${rej}</code>`,
             `<b>Breakout:</b>  <code>${bo}</code>`,
             `<b>Extension:</b> <code>${ext}</code>`,
             `<b>Target:</b>    <code>${tgt}</code>`,
-        ].join('\n');
+        ].filter(l => l !== '').join('\n');
     }
 
     if (kind === 'CRT_TARGET') {
@@ -163,12 +160,13 @@ function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt }) {
             ``,
             `<b>Timeframe:</b> ${tf}`,
             `<b>Side:</b> ${dirEmoji} ${side}`,
+            alignLine,
             ``,
             `<b>Rejection:</b> <code>${rej}</code>`,
             `<b>Breakout:</b>  <code>${bo}</code>`,
             `<b>Extension:</b> <code>${ext}</code>`,
             `<b>Target:</b>    <code>${tgt}</code> ✅`,
-        ].join('\n');
+        ].filter(l => l !== '').join('\n');
     }
 
     if (kind === 'CRT_INVALID') {
@@ -177,12 +175,13 @@ function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt }) {
             ``,
             `<b>Timeframe:</b> ${tf}`,
             `<b>Side:</b> ${dirEmoji} ${side}`,
+            alignLine,
             ``,
             `<b>Rejection:</b> <code>${rej}</code>`,
             `<b>Breakout:</b>  <code>${bo}</code>`,
             `<b>Extension:</b> <code>${ext}</code>`,
             `<b>Target:</b>    <code>${tgt}</code>`,
-        ].join('\n');
+        ].filter(l => l !== '').join('\n');
     }
 
     return null;
@@ -230,7 +229,36 @@ function makeTradeId(symbol, tf) {
 }
 
 // ══════════════════════════════════════════════
-// ALIGNMENT
+// CRT ALIGNMENT CHECK
+// ══════════════════════════════════════════════
+function checkCRTAlignment(symbol, tf, side) {
+    const storyline = marketState[symbol]?.timeframes || {};
+    const moState = storyline['1MO'] || 'NONE';
+    const wState  = storyline['1W']  || 'NONE';
+
+    if (tf === '1D') {
+        // Daily CRT: at least one of Monthly or Weekly must align
+        const moAligned = moState === side;
+        const wAligned  = wState === side;
+        const bothAligned = moAligned && wAligned;
+
+        if (bothAligned) return { aligned: true, level: 'MO+W', label: `MO+W aligned ${side}` };
+        if (moAligned)   return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
+        if (wAligned)    return { aligned: true, level: 'W', label: `W aligned ${side}` };
+        return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
+    }
+
+    if (tf === '1W') {
+        // Weekly CRT: Monthly must align
+        if (moState === side) return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
+        return { aligned: false, level: 'NONE', label: `MO not aligned for ${side}` };
+    }
+
+    return { aligned: false, level: 'NONE', label: 'Unknown TF' };
+}
+
+// ══════════════════════════════════════════════
+// ALIGNMENT (STORYLINE)
 // ══════════════════════════════════════════════
 function getMatchedCombos(symbol, direction) {
     if (!marketState[symbol]) return [];
@@ -245,16 +273,10 @@ function checkDirectionAlignment(symbol, direction) {
     const tfs = marketState[symbol].timeframes || {};
     let count = 0;
     ZONE_TIMEFRAMES.forEach(tf => { if (tfs[tf] === direction) count++; });
-    if (count < PARTIAL_THRESHOLD) return { aligned: false, reason: `Only ${count}/6 aligned for ${direction}` };
+    if (count < PARTIAL_THRESHOLD) return { aligned: false, reason: `Only ${count}/${ZONE_TIMEFRAMES.length} aligned for ${direction}` };
     const combos = getMatchedCombos(symbol, direction);
     const type   = count >= GOD_THRESHOLD ? 'GOD' : 'PARTIAL';
     return { aligned: true, type, count, combos };
-}
-
-function checkWD4H1HAlignment(symbol, direction) {
-    if (!marketState[symbol]) return false;
-    const tfs = marketState[symbol].timeframes || {};
-    return ['1W', '1D', '4H', '1H'].every(tf => tfs[tf] === direction);
 }
 
 function checkCustomAlignment(symbol, direction) {
@@ -363,7 +385,7 @@ async function invalidatePendingTrades(symbol) {
             if (count < PARTIAL_THRESHOLD) {
                 trade.status           = 'CANCELLED';
                 trade.cancelled_time   = Date.now();
-                trade.cancelled_reason = `Alignment dropped to ${count}/6`;
+                trade.cancelled_reason = `Alignment dropped to ${count}/${ZONE_TIMEFRAMES.length}`;
                 if (stats.total_signals > 0) stats.total_signals--;
                 let deleted = false;
                 if (trade.telegram_chat_id && trade.telegram_message_id) {
@@ -393,7 +415,8 @@ function normalizeTf(tf) {
         "60": "1H", "1H": "1H", "1HR": "1H",
         "240": "4H", "4H": "4H",
         "1D": "1D", "D": "1D",
-        "1W": "1W", "W": "1W", "WEEKLY": "1W"
+        "1W": "1W", "W": "1W", "WEEKLY": "1W",
+        "1MO": "1MO", "MO": "1MO", "M": "1MO", "MONTHLY": "1MO", "1MONTH": "1MO"
     };
     return map[tf.toString().toUpperCase().trim()] || tf.toString().toUpperCase().trim();
 }
@@ -417,6 +440,80 @@ function migrateCRTState(state) {
         }
     }
     return state;
+}
+
+// ══════════════════════════════════════════════
+// CRT STATS API — build alignment hit-rate stats
+// ══════════════════════════════════════════════
+function buildCRTStats() {
+    const stats = {
+        overall:     { total: 0, tp: 0, inv: 0, active: 0 },
+        daily:       { total: 0, tp: 0, inv: 0, active: 0 },
+        weekly:      { total: 0, tp: 0, inv: 0, active: 0 },
+        // Daily CRT alignment breakdowns
+        daily_mo_w:  { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — MO+W aligned' },
+        daily_mo:    { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — MO only aligned' },
+        daily_w:     { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — W only aligned' },
+        daily_none:  { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — No alignment' },
+        // Weekly CRT alignment breakdowns
+        weekly_mo:   { total: 0, tp: 0, inv: 0, active: 0, label: 'Weekly CRT — MO aligned' },
+        weekly_none: { total: 0, tp: 0, inv: 0, active: 0, label: 'Weekly CRT — No MO alignment' },
+    };
+
+    for (const sym in crtState) {
+        for (const tf in crtState[sym]) {
+            const entries = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
+            for (const entry of entries) {
+                if (!entry || !entry.side) continue;
+
+                const s = entry.status;
+                const bucket = tf === '1D' ? 'daily' : tf === '1W' ? 'weekly' : null;
+                if (!bucket) continue;
+
+                // Overall
+                stats.overall.total++;
+                if (s === 'TP_HIT') stats.overall.tp++;
+                if (s === 'INVALID') stats.overall.inv++;
+                if (s === 'ACTIVE') stats.overall.active++;
+
+                // Per TF
+                stats[bucket].total++;
+                if (s === 'TP_HIT') stats[bucket].tp++;
+                if (s === 'INVALID') stats[bucket].inv++;
+                if (s === 'ACTIVE') stats[bucket].active++;
+
+                // Alignment level stored on the entry
+                const alignLevel = entry.align_level || 'NONE';
+
+                if (tf === '1D') {
+                    const key = alignLevel === 'MO+W' ? 'daily_mo_w' :
+                                alignLevel === 'MO'   ? 'daily_mo' :
+                                alignLevel === 'W'    ? 'daily_w' : 'daily_none';
+                    stats[key].total++;
+                    if (s === 'TP_HIT') stats[key].tp++;
+                    if (s === 'INVALID') stats[key].inv++;
+                    if (s === 'ACTIVE') stats[key].active++;
+                }
+
+                if (tf === '1W') {
+                    const key = alignLevel === 'MO' ? 'weekly_mo' : 'weekly_none';
+                    stats[key].total++;
+                    if (s === 'TP_HIT') stats[key].tp++;
+                    if (s === 'INVALID') stats[key].inv++;
+                    if (s === 'ACTIVE') stats[key].active++;
+                }
+            }
+        }
+    }
+
+    // Calculate hit rates
+    for (const key in stats) {
+        const b = stats[key];
+        const resolved = b.tp + b.inv;
+        b.hit_rate = resolved > 0 ? ((b.tp / resolved) * 100).toFixed(1) : '—';
+    }
+
+    return stats;
 }
 
 // ══════════════════════════════════════════════
@@ -501,11 +598,9 @@ if (savedCRTLog) {
 (function recoverCRTFromLog() {
     if (!crtLog.length) return;
 
-    const validTFs = ['1W', '1D', '4H'];
-
     const formedEvents = [...crtLog]
         .reverse()
-        .filter(e => e.action === 'CRT_FORMED' && e.symbol && e.tf && validTFs.includes(e.tf));
+        .filter(e => e.action === 'CRT_FORMED' && e.symbol && e.tf && CRT_VALID_TFS.includes(e.tf));
 
     const targetEvents  = crtLog.filter(e => e.action === 'CRT_TARGET');
     const invalidEvents = crtLog.filter(e => e.action === 'CRT_INVALID');
@@ -548,16 +643,17 @@ if (savedCRTLog) {
         }
 
         const recoveredEntry = {
-            id:        `${sym}_${tf}_${ts}`,
+            id:          `${sym}_${tf}_${ts}`,
             side,
-            rej:       formed.rej  || '---',
-            bo:        formed.bo   || '---',
-            ext:       formed.ext  || '---',
-            tgt:       formed.tgt  || '---',
+            rej:         formed.rej  || '---',
+            bo:          formed.bo   || '---',
+            ext:         formed.ext  || '---',
+            tgt:         formed.tgt  || '---',
             status,
-            timestamp: ts,
+            timestamp:   ts,
             tp_time,
-            inv_time
+            inv_time,
+            align_level: formed.align_level || 'NONE'
         };
 
         crtState[sym][tf].push(recoveredEntry);
@@ -593,7 +689,8 @@ if (savedCRTLog) {
 // ══════════════════════════════════════════════
 app.get('/api/state',     (req, res) => res.json({ marketState, activityLog, settings: appSettings }));
 app.get('/api/stats',     (req, res) => res.json({ tradeStats: buildEnrichedStats(), alignmentCombos: ALIGNMENT_COMBOS }));
-app.get('/api/crt-state', (req, res) => res.json({ crtState, crtLog }));
+app.get('/api/crt-state', (req, res) => res.json({ crtState, crtLog, crtStats: buildCRTStats() }));
+app.get('/api/crt-stats', (req, res) => res.json({ crtStats: buildCRTStats() }));
 
 app.get('/api/settings', (req, res) => {
     res.json({ settings: appSettings, alignmentCombos: ALIGNMENT_COMBOS });
@@ -709,7 +806,7 @@ app.post('/webhook', async (req, res) => {
         const state = (payload.state  || '').toUpperCase().trim();
 
         if (!sym || !tf || !state) return res.status(400).send("Invalid Storyline");
-        if (!ZONE_TIMEFRAMES.includes(tf)) return res.status(200).send("OK");
+        if (!ZONE_TIMEFRAMES.includes(tf)) return res.status(200).send("OK — TF not tracked");
 
         console.log(`\n[STORYLINE] ${sym} | ${tf} → ${state}`);
 
@@ -732,15 +829,15 @@ app.post('/webhook', async (req, res) => {
             marketState[sym].lastGodModeStartTime = Date.now();
             const emoji = dominantState === "BULLISH" ? "🚀 🐂" : "🩸 🐻";
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
-                `<b>${emoji} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (6/6)\n${tfInfoString(sym)}\n\n✅ All 6 timeframes aligned!`);
-            await pushLogEvent(sym, dominantState, `GOD-MODE ON: ${dominantState} (6/6)`);
+                `<b>${emoji} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (2/2 — MO+W)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly aligned!`);
+            await pushLogEvent(sym, dominantState, `GOD-MODE ON: ${dominantState} (2/2 — MO+W)`);
         }
 
         if (dominantState === "NONE" && prev !== "NONE") {
             marketState[sym].lastAlertedState = "NONE";
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
-                `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (6/6)\nNow: ${partialState !== "NONE" ? partialState + ` (${partialCount}/6)` : `${alignCount}/6`}\n${tfInfoString(sym)}`);
-            await pushLogEvent(sym, 'NONE', `Alignment Lost: was ${prev} (6/6)`);
+                `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (2/2)\nNow: ${partialState !== "NONE" ? partialState + ` (${partialCount}/2)` : `${alignCount}/2`}\n${tfInfoString(sym)}`);
+            await pushLogEvent(sym, 'NONE', `Alignment Lost: was ${prev} (2/2)`);
         }
 
         if (dominantState === "NONE" && partialState !== "NONE") {
@@ -748,8 +845,8 @@ app.post('/webhook', async (req, res) => {
             if (prevPartial !== partialState || (prev !== "NONE" && dominantState === "NONE")) {
                 const emoji = partialState === "BULLISH" ? "⚡ 🐂" : "⚡ 🐻";
                 await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
-                    `<b>${emoji} PARTIAL: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/6)\n${tfInfoString(sym)}`);
-                await pushLogEvent(sym, partialState, `PARTIAL: ${partialState} (${partialCount}/6)`);
+                    `<b>${emoji} PARTIAL: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/2)\n${tfInfoString(sym)}`);
+                await pushLogEvent(sym, partialState, `PARTIAL: ${partialState} (${partialCount}/2)`);
             }
         }
         marketState[sym]._lastPartialState = partialState;
@@ -781,11 +878,11 @@ app.post('/webhook', async (req, res) => {
             return res.status(200).send("OK — Not aligned");
         }
 
-        console.log(`  ✅ BREAKOUT ALIGNED [${align.type}] (${align.count}/6)`);
+        console.log(`  ✅ BREAKOUT ALIGNED [${align.type}] (${align.count}/${ZONE_TIMEFRAMES.length})`);
 
         const dirEmoji   = direction === "BULLISH" ? "🚀 🐂" : "🩸 🐻";
         const alignEmoji = align.type === 'GOD' ? '✅' : '⚡';
-        const alignLabel = align.type === 'GOD' ? `GOD-MODE (6/6)` : `PARTIAL (${align.count}/6)`;
+        const alignLabel = align.type === 'GOD' ? `GOD-MODE (2/2)` : `PARTIAL (${align.count}/2)`;
         const chartTfStr = chartTf || payload.chart_tf || '?';
 
         let tgMsg = `<b>${dirEmoji} BREAKOUT: ${sym}</b>\n\n`;
@@ -796,13 +893,10 @@ app.post('/webhook', async (req, res) => {
 
         const sentChannels = [];
         if (align.count === PARTIAL_THRESHOLD && align.type === 'PARTIAL') {
-            if (TG_BREAKOUT_5OF6) { await sendTelegram(TG_BREAKOUT_5OF6, tgMsg); sentChannels.push('5/6'); }
+            if (TG_BREAKOUT_5OF6) { await sendTelegram(TG_BREAKOUT_5OF6, tgMsg); sentChannels.push('PARTIAL'); }
         }
         if (align.type === 'GOD') {
-            if (TG_BREAKOUT_6OF6) { await sendTelegram(TG_BREAKOUT_6OF6, tgMsg); sentChannels.push('6/6'); }
-        }
-        if (checkWD4H1HAlignment(sym, direction)) {
-            if (TG_BREAKOUT_WD4H1H) { await sendTelegram(TG_BREAKOUT_WD4H1H, tgMsg); sentChannels.push('W+D+4H+1H'); }
+            if (TG_BREAKOUT_6OF6) { await sendTelegram(TG_BREAKOUT_6OF6, tgMsg); sentChannels.push('GOD'); }
         }
         if (checkCustomAlignment(sym, direction)) {
             if (TG_CUSTOM_ALIGNMENT) { await sendTelegram(TG_CUSTOM_ALIGNMENT, tgMsg); sentChannels.push('CUSTOM'); }
@@ -836,9 +930,8 @@ app.post('/webhook', async (req, res) => {
             return res.status(400).send("Invalid CRT Payload");
         }
 
-        const validCRTTFs = ['1W', '1D', '4H'];
-        if (!validCRTTFs.includes(tf)) {
-            console.log(`[CRT] ${sym} | TF:${tf} — IGNORED (only 1W/1D/4H)`);
+        if (!CRT_VALID_TFS.includes(tf)) {
+            console.log(`[CRT] ${sym} | TF:${tf} — IGNORED (only 1W/1D)`);
             return res.status(200).send("OK — TF not accepted");
         }
 
@@ -853,16 +946,21 @@ app.post('/webhook', async (req, res) => {
 
         const dirEmoji = side === 'BULLISH' ? '🐂' : '🐻';
 
-        // ── CRT FORMED → push new ACTIVE entry ──
+        // ── CRT FORMED → check alignment, push new entry ──
         if (payload.kind === 'CRT') {
+            const alignCheck = checkCRTAlignment(sym, tf, side);
+
             const newEntry = {
-                id:        `${sym}_${tf}_${Date.now()}`,
+                id:          `${sym}_${tf}_${Date.now()}`,
                 side,
                 rej, bo, ext, tgt,
-                status:    'ACTIVE',
-                timestamp: Date.now(),
-                tp_time:   null,
-                inv_time:  null
+                status:      'ACTIVE',
+                timestamp:   Date.now(),
+                tp_time:     null,
+                inv_time:    null,
+                align_level: alignCheck.level,
+                align_label: alignCheck.label,
+                aligned:     alignCheck.aligned
             };
             crtState[sym][tf].push(newEntry);
 
@@ -870,13 +968,14 @@ app.post('/webhook', async (req, res) => {
                 crtState[sym][tf] = crtState[sym][tf].slice(-20);
             }
 
-            const logMsg = `${dirEmoji} ${tf} CRT FORMED: ${side} | Rej:${rej} BO:${bo} Tgt:${tgt}`;
-            await pushCRTLog(sym, side, logMsg, { tf, rej, bo, ext, tgt, action: 'CRT_FORMED' });
+            const alignTag = alignCheck.aligned ? `✅ ${alignCheck.label}` : `⚠️ ${alignCheck.label}`;
+            const logMsg = `${dirEmoji} ${tf} CRT FORMED: ${side} | Rej:${rej} BO:${bo} Tgt:${tgt} | ${alignTag}`;
+            await pushCRTLog(sym, side, logMsg, { tf, rej, bo, ext, tgt, action: 'CRT_FORMED', align_level: alignCheck.level });
 
-            const crtTgMsg = buildCRTTelegramMessage('CRT', sym, tf, side, { rej, bo, ext, tgt });
+            const crtTgMsg = buildCRTTelegramMessage('CRT', sym, tf, side, { rej, bo, ext, tgt, alignInfo: alignTag });
             if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
 
-            console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side} | Total entries: ${crtState[sym][tf].length}`);
+            console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side} | Alignment: ${alignCheck.level} (${alignCheck.aligned ? 'ALIGNED' : 'NOT ALIGNED'}) | Total entries: ${crtState[sym][tf].length}`);
         }
 
         // ── CRT_TARGET → only update if ACTIVE entry exists for this side ──
@@ -905,7 +1004,7 @@ app.post('/webhook', async (req, res) => {
             const logMsg = `🎯 ${tf} CRT TARGET HIT: ${side} | Tgt:${tgt}`;
             await pushCRTLog(sym, side, logMsg, { tf, tgt, action: 'CRT_TARGET' });
 
-            const crtTgMsg = buildCRTTelegramMessage('CRT_TARGET', sym, tf, side, { rej, bo, ext, tgt });
+            const crtTgMsg = buildCRTTelegramMessage('CRT_TARGET', sym, tf, side, { rej, bo, ext, tgt, alignInfo: target.align_label || '' });
             if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
 
             console.log(`  🎯 CRT TP HIT: ${sym} ${tf} ${side}`);
@@ -937,7 +1036,7 @@ app.post('/webhook', async (req, res) => {
             const logMsg = `❌ ${tf} CRT INVALIDATED: ${side} | Ext:${ext}`;
             await pushCRTLog(sym, side, logMsg, { tf, ext, action: 'CRT_INVALID' });
 
-            const crtTgMsg = buildCRTTelegramMessage('CRT_INVALID', sym, tf, side, { rej, bo, ext, tgt });
+            const crtTgMsg = buildCRTTelegramMessage('CRT_INVALID', sym, tf, side, { rej, bo, ext, tgt, alignInfo: target.align_label || '' });
             if (crtTgMsg) await sendTelegram(TG_CRT_CHANNEL, crtTgMsg);
 
             console.log(`  ❌ CRT INVALID: ${sym} ${tf} ${side}`);
@@ -1012,7 +1111,7 @@ app.post('/webhook', async (req, res) => {
             const chatId = TG_CHANNEL_MAP[entryTf]?.();
             let soundTriggered = false;
             if (chatId) {
-                const alignLabel = align.type === 'GOD' ? 'GOD-MODE (6/6)' : `PARTIAL (${align.count}/6)`;
+                const alignLabel = align.type === 'GOD' ? 'GOD-MODE (2/2)' : `PARTIAL (${align.count}/2)`;
                 const dirEmoji   = direction === "BULLISH" ? "🟢 🐂" : "🔴 🐻";
                 let msg = `<b>${dirEmoji} ${entryTf} OB SIGNAL: ${sym}</b>\n\n<b>Entry:</b> <code>${entry}</code>\n<b>SL:</b> <code>${sl}</code>\n`;
                 if (tp) msg += `<b>TP:</b> <code>${tp}</code>\n`;
@@ -1029,7 +1128,7 @@ app.post('/webhook', async (req, res) => {
             await saveStats(); broadcastStats();
             if (soundTriggered) broadcastSoundAlert(sym, direction);
             await pushLogEvent(sym, direction,
-                `📡 OB SIGNAL: ${direction} ${entryTf} @ ${entry} [${align.type} ${align.count}/6]`,
+                `📡 OB SIGNAL: ${direction} ${entryTf} @ ${entry} [${align.type} ${align.count}/2]`,
                 { entry_tf: entryTf, direction, logAction: 'SIGNAL' });
             broadcastAll();
             return res.status(200).send("OK");
@@ -1132,49 +1231,22 @@ app.post('/webhook', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════
-// FILTERED ALIGNMENT API
-// ══════════════════════════════════════════════
-app.get('/api/filtered-state/wdh', (req, res) => {
-    const filtered = {};
-    for (const sym in marketState) {
-        const tfs = marketState[sym].timeframes || {};
-        const w = tfs['1W'] || 'NONE', d = tfs['1D'] || 'NONE', h4 = tfs['4H'] || 'NONE';
-        if (w !== 'NONE' && w === d && d === h4) filtered[sym] = { ...marketState[sym], filterDirection: w };
-    }
-    res.json({ marketState: filtered, activityLog });
-});
-
-app.get('/api/filtered-state/dh1h', (req, res) => {
-    const filtered = {};
-    for (const sym in marketState) {
-        const tfs = marketState[sym].timeframes || {};
-        const d = tfs['1D'] || 'NONE', h4 = tfs['4H'] || 'NONE', h1 = tfs['1H'] || 'NONE';
-        if (d !== 'NONE' && d === h4 && h4 === h1) filtered[sym] = { ...marketState[sym], filterDirection: d };
-    }
-    res.json({ marketState: filtered, activityLog });
-});
-
-// ══════════════════════════════════════════════
 // PAGE ROUTES
 // ══════════════════════════════════════════════
 app.get('/',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'stats.html')));
-app.get('/wdh',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'wdh.html')));
-app.get('/dh1h',  (req, res) => res.sendFile(path.join(__dirname, 'public', 'dh1h.html')));
 app.get('/crt',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'crt.html')));
 
 // ══════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════
 app.listen(PORT, () => {
-    console.log(`\n🚀 God-Mode V6 on port ${PORT}`);
-    console.log(`📊 Alignment: ${GOD_THRESHOLD}/6 = GOD, ${PARTIAL_THRESHOLD}/6 = PARTIAL`);
+    console.log(`\n🚀 God-Mode V7 on port ${PORT}`);
+    console.log(`📊 Alignment: ${GOD_THRESHOLD}/2 = GOD, ${PARTIAL_THRESHOLD}/2 = PARTIAL`);
+    console.log(`📡 Storyline TFs: ${ZONE_TIMEFRAMES.join(', ')}`);
+    console.log(`📡 CRT TFs: ${CRT_VALID_TFS.join(', ')}`);
     console.log(`📡 Entry TFs: ${ENTRY_TFS.join(', ')}`);
     console.log(`📡 Combos: ${ALIGNMENT_COMBOS.length} tracked`);
-    console.log(`📡 Breakout 5/6:       ${TG_BREAKOUT_5OF6    || 'NOT SET'}`);
-    console.log(`📡 Breakout 6/6:       ${TG_BREAKOUT_6OF6    || 'NOT SET'}`);
-    console.log(`📡 Breakout W+D+4H+1H: ${TG_BREAKOUT_WD4H1H  || 'NOT SET'}`);
-    console.log(`📡 Custom Alignment:   ${TG_CUSTOM_ALIGNMENT  || 'NOT SET'}`);
     console.log(`📡 CRT Channel:        ${TG_CRT_CHANNEL       || 'NOT SET'}`);
     console.log(`⚙️ Active Alignments:  ${appSettings.activeAlignments.length > 0 ? appSettings.activeAlignments.join(', ') : 'NONE'}`);
     console.log(`🔄 CRT symbols loaded: ${Object.keys(crtState).length}`);
