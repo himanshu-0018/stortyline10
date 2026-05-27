@@ -58,6 +58,9 @@
         .sp-tp { background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#34d399; }
         .sp-inv { background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#f87171; }
         .sp-total { background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24; }
+        .sp-filter { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s; }
+        .sp-filter:hover { background:rgba(168,85,247,0.2);border-color:rgba(168,85,247,0.4);color:#c4b5fd; }
+        .active-filter { background:rgba(168,85,247,0.25)!important;border-color:rgba(168,85,247,0.5)!important;color:#c4b5fd!important; }
         .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
 
         .main-layout { position:relative;z-index:10;display:flex;gap:16px;padding:16px 24px;flex:1;overflow:hidden;height:calc(100vh - 130px); }
@@ -110,7 +113,6 @@
         .align-tag-w { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
         .align-tag-none { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
 
-        /* ── HIT RATE PANEL ── */
         .hitrate-panel { position:relative;z-index:10;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.6);backdrop-filter:blur(10px); }
         .hitrate-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px; }
         .hitrate-card { padding:10px 14px;border-radius:12px;font-family:'JetBrains Mono',monospace; }
@@ -118,6 +120,7 @@
         .hitrate-card-warn { background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25); }
         .hitrate-card-bad { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25); }
         .hitrate-card-neutral { background:rgba(71,85,105,0.1);border:1px solid rgba(71,85,105,0.25); }
+        .hitrate-card-purple { background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25); }
         .hitrate-label { font-size:0.50rem;color:rgba(203,213,225,0.5);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px; }
         .hitrate-value { font-size:1rem;font-weight:800; }
         .hitrate-sub { font-size:0.45rem;color:rgba(203,213,225,0.4);margin-top:2px; }
@@ -125,6 +128,8 @@
         .hitrate-value-warn { color:#fbbf24; }
         .hitrate-value-bad { color:#f87171; }
         .hitrate-value-neutral { color:#64748b; }
+        .hitrate-value-purple { color:#c4b5fd; }
+        .hitrate-section-label { font-family:'JetBrains Mono',monospace;font-size:0.50rem;font-weight:700;color:rgba(148,163,184,0.4);letter-spacing:0.1em;text-transform:uppercase;grid-column:1/-1;padding:8px 0 2px 0;border-top:1px solid rgba(255,255,255,0.05);margin-top:4px; }
 
         .feed-panel { width:280px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(8,12,22,0.85);backdrop-filter:blur(24px); }
         .feed-header { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(251,191,36,0.08));display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
@@ -202,6 +207,13 @@
         <span id="invPill" class="stats-pill sp-inv">❌ 0 INVALID</span>
         <div class="divider-v"></div>
         <span id="totalPill" class="stats-pill sp-total">🔄 0 TOTAL</span>
+        <div class="divider-v"></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">BO Filter</span>
+        <button id="filterAll" onclick="setFilter('ALL')" class="stats-pill sp-filter active-filter" style="cursor:pointer;">📊 ALL</button>
+        <button id="filterWBO" onclick="setFilter('W_BO')" class="stats-pill sp-filter" style="cursor:pointer;">📆 W BO</button>
+        <button id="filterMBO" onclick="setFilter('M_BO')" class="stats-pill sp-filter" style="cursor:pointer;">📅 M BO</button>
+        <button id="filterBothBO" onclick="setFilter('BOTH_BO')" class="stats-pill sp-filter" style="cursor:pointer;">✅ W+M BO</button>
+        <button id="filterNoBO" onclick="setFilter('NO_BO')" class="stats-pill sp-filter" style="cursor:pointer;">⚪ NO BO</button>
     </div>
 
     <!-- HIT RATE PANEL -->
@@ -237,6 +249,8 @@
         let crtState = {};
         let crtLog = [];
         let crtStats = {};
+        let breakoutState = {};
+        let activeFilter = 'ALL';
 
         const moneySound = new Audio('/money.mp3');
         moneySound.volume = 0.85;
@@ -254,6 +268,36 @@
         async function clearAllCRT() {
             if (!confirm('Clear all CRT data?')) return;
             await fetch('/api/delete-crt', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:'ALL'}) });
+        }
+
+        // ── FILTER FUNCTIONS ──
+        function setFilter(f) {
+            activeFilter = f;
+            document.querySelectorAll('.sp-filter').forEach(el => el.classList.remove('active-filter'));
+            const idMap = { 'ALL':'filterAll', 'W_BO':'filterWBO', 'M_BO':'filterMBO', 'BOTH_BO':'filterBothBO', 'NO_BO':'filterNoBO' };
+            document.getElementById(idMap[f]).classList.add('active-filter');
+            render();
+        }
+
+        function getBreakoutDir(sym, tf) {
+            const raw = breakoutState[sym]?.[tf];
+            if (!raw) return 'NONE';
+            const entries = Array.isArray(raw) ? raw : [raw];
+            if (!entries.length) return 'NONE';
+            return entries[entries.length - 1]?.direction || 'NONE';
+        }
+
+        function passesFilter(sym) {
+            if (activeFilter === 'ALL') return true;
+            const wBO  = getBreakoutDir(sym, '1W');
+            const mBO  = getBreakoutDir(sym, '1MO');
+            const hasW = wBO !== 'NONE';
+            const hasM = mBO !== 'NONE';
+            if (activeFilter === 'W_BO') return hasW;
+            if (activeFilter === 'M_BO') return hasM;
+            if (activeFilter === 'BOTH_BO') return hasW && hasM;
+            if (activeFilter === 'NO_BO') return !hasW && !hasM;
+            return true;
         }
 
         function fmtTime(ts) {
@@ -342,14 +386,22 @@
         }
 
         // ── HIT RATE RENDERING ──
-        function getHRCardClass(rate) {
+        function getHRCardClass(rate, isPurple) {
+            if (isPurple) return 'hitrate-card-purple';
             if (rate === '—') return 'hitrate-card-neutral';
             const v = parseFloat(rate);
             if (v >= 60) return 'hitrate-card-good';
             if (v >= 40) return 'hitrate-card-warn';
             return 'hitrate-card-bad';
         }
-        function getHRValueClass(rate) {
+        function getHRValueClass(rate, isPurple) {
+            if (isPurple) {
+                if (rate === '—') return 'hitrate-value-neutral';
+                const v = parseFloat(rate);
+                if (v >= 60) return 'hitrate-value-good';
+                if (v >= 40) return 'hitrate-value-warn';
+                return 'hitrate-value-bad';
+            }
             if (rate === '—') return 'hitrate-value-neutral';
             const v = parseFloat(rate);
             if (v >= 60) return 'hitrate-value-good';
@@ -364,7 +416,57 @@
                 return;
             }
 
-            const cards = [
+            // Build breakout hit rate stats from crtState + breakoutState
+            const boStats = {
+                bo_w:    { total: 0, tp: 0, inv: 0, active: 0 },
+                bo_m:    { total: 0, tp: 0, inv: 0, active: 0 },
+                bo_both: { total: 0, tp: 0, inv: 0, active: 0 },
+                bo_none: { total: 0, tp: 0, inv: 0, active: 0 },
+            };
+
+            for (const sym in crtState) {
+                const wBO = getBreakoutDir(sym, '1W');
+                const mBO = getBreakoutDir(sym, '1MO');
+                const hasW = wBO !== 'NONE';
+                const hasM = mBO !== 'NONE';
+
+                let boKey;
+                if (hasW && hasM) boKey = 'bo_both';
+                else if (hasW) boKey = 'bo_w';
+                else if (hasM) boKey = 'bo_m';
+                else boKey = 'bo_none';
+
+                CRT_TFS.forEach(tf => {
+                    const entries = getTFEntries(sym, tf);
+                    entries.forEach(e => {
+                        if (!e || !e.side) return;
+                        boStats[boKey].total++;
+                        if (e.status === 'TP_HIT') boStats[boKey].tp++;
+                        if (e.status === 'INVALID') boStats[boKey].inv++;
+                        if (e.status === 'ACTIVE') boStats[boKey].active++;
+
+                        if (hasW && hasM) {
+                            boStats['bo_w'].total++;
+                            if (e.status === 'TP_HIT') boStats['bo_w'].tp++;
+                            if (e.status === 'INVALID') boStats['bo_w'].inv++;
+                            if (e.status === 'ACTIVE') boStats['bo_w'].active++;
+
+                            boStats['bo_m'].total++;
+                            if (e.status === 'TP_HIT') boStats['bo_m'].tp++;
+                            if (e.status === 'INVALID') boStats['bo_m'].inv++;
+                            if (e.status === 'ACTIVE') boStats['bo_m'].active++;
+                        }
+                    });
+                });
+            }
+
+            for (const key in boStats) {
+                const b = boStats[key];
+                const resolved = b.tp + b.inv;
+                b.hit_rate = resolved > 0 ? ((b.tp / resolved) * 100).toFixed(1) : '—';
+            }
+
+            const storylineCards = [
                 { key: 'overall',     label: 'OVERALL',                 icon: '📊' },
                 { key: 'daily',       label: 'DAILY CRT',              icon: '📅' },
                 { key: 'weekly',      label: 'WEEKLY CRT',             icon: '📆' },
@@ -376,13 +478,24 @@
                 { key: 'weekly_none', label: 'WEEKLY — NO MO ALIGN',   icon: '⚠️' },
             ];
 
-            grid.innerHTML = cards.map(c => {
+            const breakoutCards = [
+                { key: 'bo_w',        label: 'WITH W BREAKOUT',         icon: '📆💥', bo: true },
+                { key: 'bo_m',        label: 'WITH M BREAKOUT',         icon: '📅💥', bo: true },
+                { key: 'bo_both',     label: 'WITH W+M BREAKOUT',       icon: '✅💥', bo: true },
+                { key: 'bo_none',     label: 'NO BREAKOUT',             icon: '⚪', bo: true },
+            ];
+
+            let html = '';
+
+            // Storyline section
+            html += '<div class="hitrate-section-label">📊 STORYLINE ALIGNMENT</div>';
+            html += storylineCards.map(c => {
                 const s = crtStats[c.key];
                 if (!s) return '';
                 const rate = s.hit_rate;
                 const resolved = s.tp + s.inv;
-                const cardCls = getHRCardClass(rate);
-                const valCls = getHRValueClass(rate);
+                const cardCls = getHRCardClass(rate, false);
+                const valCls = getHRValueClass(rate, false);
                 return `
                     <div class="hitrate-card ${cardCls}">
                         <div class="hitrate-label">${c.icon} ${c.label}</div>
@@ -390,11 +503,31 @@
                         <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
                     </div>`;
             }).join('');
+
+            // Breakout section
+            html += '<div class="hitrate-section-label">💥 BREAKOUT ALIGNMENT</div>';
+            html += breakoutCards.map(c => {
+                const s = boStats[c.key];
+                if (!s) return '';
+                const rate = s.hit_rate;
+                const resolved = s.tp + s.inv;
+                const cardCls = getHRCardClass(rate, true);
+                const valCls = getHRValueClass(rate, true);
+                return `
+                    <div class="hitrate-card ${cardCls}">
+                        <div class="hitrate-label">${c.icon} ${c.label}</div>
+                        <div class="hitrate-value ${valCls}">${rate === '—' ? '—' : rate + '%'}</div>
+                        <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
+                    </div>`;
+            }).join('');
+
+            grid.innerHTML = html;
         }
 
+        // ── RENDER ──
         function render() {
             const grid = document.getElementById('coinGrid');
-            const syms = Object.keys(crtState).sort((a, b) => {
+            const allSyms = Object.keys(crtState).sort((a, b) => {
                 const pri = { bull:3, bear:3, mixed:2, idle:0 };
                 const pa = pri[getCardType(a)] || 0;
                 const pb = pri[getCardType(b)] || 0;
@@ -406,8 +539,10 @@
                 return tb - ta;
             });
 
+            const syms = allSyms.filter(sym => passesFilter(sym));
+
             let totalBull=0, totalBear=0, totalActive=0, totalTP=0, totalInv=0, totalEntries=0;
-            syms.forEach(sym => {
+            allSyms.forEach(sym => {
                 getAllEntries(sym).forEach(e => {
                     totalEntries++;
                     if (e.side === 'BULLISH') totalBull++;
@@ -418,7 +553,7 @@
                 });
             });
 
-            document.getElementById('activeCount').textContent = syms.length;
+            document.getElementById('activeCount').textContent = allSyms.length;
             document.getElementById('bullPill').textContent = `🐂 ${totalBull} BULL`;
             document.getElementById('bearPill').textContent = `🐻 ${totalBear} BEAR`;
             document.getElementById('activePill').textContent = `🔵 ${totalActive} ACTIVE`;
@@ -427,7 +562,7 @@
             document.getElementById('totalPill').textContent = `🔄 ${totalEntries} TOTAL`;
 
             if (!syms.length) {
-                grid.innerHTML = '<p class="empty-state">Awaiting CRT signals...</p>';
+                grid.innerHTML = `<p class="empty-state">${activeFilter === 'ALL' ? 'Awaiting CRT signals...' : 'No coins match this breakout filter.'}</p>`;
                 return;
             }
 
@@ -444,6 +579,18 @@
 
                 const allE = getAllEntries(sym);
                 let latestTs = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
+
+                // Build breakout info line
+                const wBO = getBreakoutDir(sym, '1W');
+                const mBO = getBreakoutDir(sym, '1MO');
+                let boLine = '';
+                if (wBO !== 'NONE' || mBO !== 'NONE') {
+                    const parts = [];
+                    if (mBO !== 'NONE') parts.push(`MO:${mBO === 'BULLISH' ? '🐂' : '🐻'}`);
+                    if (wBO !== 'NONE') parts.push(`W:${wBO === 'BULLISH' ? '🐂' : '🐻'}`);
+                    const boColor = (mBO !== 'NONE' && wBO !== 'NONE') ? 'rgba(168,85,247,0.8)' : 'rgba(168,85,247,0.6)';
+                    boLine = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.42rem;color:${boColor};margin-top:2px;">💥 BO: ${parts.join(' · ')}</div>`;
+                }
 
                 let tfCells = '';
                 CRT_TFS.forEach(tf => {
@@ -494,6 +641,7 @@
                             <div>
                                 <div class="card-symbol">${sym}</div>
                                 <div class="card-time">🕐 ${latestTs ? fmtTime(latestTs) : 'N/A'}</div>
+                                ${boLine}
                             </div>
                             ${badgeHTML}
                         </div>
@@ -501,6 +649,9 @@
                         <div class="align-bar ${alignBar.cls}">${alignBar.txt}</div>
                     </div>`);
             });
+
+            // Also refresh hit rates when render is called (filter may have changed)
+            renderHitRates();
         }
 
         function rebuildFeed() {
@@ -534,11 +685,15 @@
             }).join('');
         }
 
-        // INIT
-        fetch('/api/crt-state').then(r => r.json()).then(data => {
-            crtState = data.crtState || {};
-            crtLog = data.crtLog || [];
-            crtStats = data.crtStats || {};
+        // ── INIT ──
+        Promise.all([
+            fetch('/api/crt-state').then(r => r.json()),
+            fetch('/api/breakout-state').then(r => r.json())
+        ]).then(([crtData, boData]) => {
+            crtState = crtData.crtState || {};
+            crtLog = crtData.crtLog || [];
+            crtStats = crtData.crtStats || {};
+            breakoutState = boData.breakoutState || {};
             render();
             rebuildFeed();
             renderHitRates();
@@ -552,7 +707,7 @@
             }).catch(() => {});
         }, 30000);
 
-        // SSE
+        // ── SSE (CRT) ──
         const es = new EventSource('/api/crt-stream');
         const dot = document.getElementById('pulseDot');
         const lbl = document.getElementById('liveLabel');
@@ -567,11 +722,20 @@
             if (data.crtLog) crtLog = data.crtLog;
             render();
             rebuildFeed();
-            // Refresh stats on CRT updates
             fetch('/api/crt-stats').then(r => r.json()).then(d => {
                 crtStats = d.crtStats || {};
                 renderHitRates();
             }).catch(() => {});
+        };
+
+        // ── SSE (Breakout — for filter updates) ──
+        const boEs = new EventSource('/api/breakout-stream');
+        boEs.onmessage = e => {
+            const data = JSON.parse(e.data);
+            if (data.breakoutState) {
+                breakoutState = data.breakoutState;
+                render();
+            }
         };
     </script>
 </body>
