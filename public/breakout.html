@@ -12,111 +12,123 @@
         .bg-container { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
         .bg-photo { position:absolute;inset:0;background-image:url('/bg.jpg');background-size:cover;background-position:center;opacity:0.18;filter:brightness(1.1) saturate(1.3) hue-rotate(10deg);animation:bgZoom 50s ease-in-out infinite alternate; }
         @keyframes bgZoom { 0%{transform:scale(1);} 100%{transform:scale(1.06);} }
-        .bg-gradient { position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(217,70,239,0.25) 0%,transparent 50%),radial-gradient(ellipse at 100% 0%,rgba(14,165,233,0.20) 0%,transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(16,185,129,0.18) 0%,transparent 50%),linear-gradient(135deg,rgba(10,14,26,0.82) 0%,rgba(15,20,40,0.78) 100%); }
-        .bg-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(217,70,239,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(217,70,239,0.06) 1px,transparent 1px);background-size:50px 50px;animation:gridDrift 40s linear infinite; }
+        .bg-gradient { position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(168,85,247,0.25) 0%,transparent 50%),radial-gradient(ellipse at 100% 0%,rgba(14,165,233,0.20) 0%,transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(16,185,129,0.18) 0%,transparent 50%),radial-gradient(ellipse at 0% 100%,rgba(236,72,153,0.15) 0%,transparent 50%),linear-gradient(135deg,rgba(10,14,26,0.82) 0%,rgba(15,20,40,0.78) 100%); }
+        .bg-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(168,85,247,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(168,85,247,0.06) 1px,transparent 1px);background-size:50px 50px;animation:gridDrift 40s linear infinite; }
         @keyframes gridDrift { 0%{transform:translate(0,0);} 100%{transform:translate(50px,50px);} }
-        .scan-beam { position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(217,70,239,0.6),rgba(232,121,249,0.8),rgba(217,70,239,0.6),transparent);animation:scanMove 10s ease-in-out infinite;box-shadow:0 0 20px rgba(217,70,239,0.4); }
+        .orb { position:absolute;border-radius:50%;filter:blur(60px);animation:orbFloat 15s ease-in-out infinite; }
+        .orb-1 { width:400px;height:400px;background:rgba(168,85,247,0.12);top:-100px;left:-100px;animation-duration:18s; }
+        .orb-2 { width:350px;height:350px;background:rgba(14,165,233,0.12);top:20%;right:-80px;animation-duration:22s;animation-delay:3s; }
+        .orb-3 { width:300px;height:300px;background:rgba(16,185,129,0.10);bottom:10%;left:20%;animation-duration:16s;animation-delay:6s; }
+        .orb-4 { width:250px;height:250px;background:rgba(236,72,153,0.09);bottom:-80px;right:30%;animation-duration:20s;animation-delay:9s; }
+        @keyframes orbFloat { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(30px,-40px) scale(1.1);} 66%{transform:translate(-20px,30px) scale(0.95);} }
+        .scan-beam { position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(168,85,247,0.6),rgba(192,132,252,0.8),rgba(168,85,247,0.6),transparent);animation:scanMove 10s ease-in-out infinite;box-shadow:0 0 20px rgba(168,85,247,0.4); }
         @keyframes scanMove { 0%{top:0%;opacity:0;} 10%{opacity:1;} 90%{opacity:1;} 100%{top:100%;opacity:0;} }
+        .candle-bar-bg { position:absolute;bottom:0;left:0;right:0;height:220px;display:flex;align-items:flex-end;gap:6px;padding:0 16px;opacity:0.08; }
+        .cbar { flex:1;border-radius:2px 2px 0 0;animation:cbarGrow 4s ease-in-out infinite; }
+        .cbar.g { background:linear-gradient(to top,#10b981,#34d399); }
+        .cbar.r { background:linear-gradient(to top,#ef4444,#f87171); }
+        @keyframes cbarGrow { 0%,100%{transform:scaleY(1);opacity:0.8;} 50%{transform:scaleY(1.12);opacity:1;} }
 
         .top-bar { position:relative;z-index:10;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(10,14,26,0.6);backdrop-filter:blur(20px); }
-        .brand-name { font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#e879f9,#d946ef,#c026d3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+        .brand-name { font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#c084fc,#a855f7,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
         .brand-sub { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.65);letter-spacing:0.12em;margin-top:2px; }
         .ctrl-btn { display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:10px;font-size:0.72rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;transition:all 0.2s ease;border:1px solid;backdrop-filter:blur(10px);font-family:'JetBrains Mono',monospace;text-decoration:none; }
         .ctrl-btn:hover { transform:translateY(-2px); }
-        
-        .btn-inject { background:linear-gradient(135deg,rgba(217,70,239,0.25),rgba(192,38,211,0.15));border-color:rgba(217,70,239,0.5);color:#f0abfc; }
-        .btn-inject:hover { background:linear-gradient(135deg,rgba(217,70,239,0.4),rgba(192,38,211,0.25));color:#fae8ff; }
         .btn-back { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(14,165,233,0.15));border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
         .btn-back:hover { background:linear-gradient(135deg,rgba(99,102,241,0.4),rgba(14,165,233,0.25));color:#c7d2fe; }
-        
+        .btn-inject { background:linear-gradient(135deg,rgba(168,85,247,0.25),rgba(192,132,252,0.15));border-color:rgba(168,85,247,0.5);color:#c4b5fd; }
+        .btn-inject:hover { background:linear-gradient(135deg,rgba(168,85,247,0.4),rgba(192,132,252,0.25));color:#e9d5ff; }
+        .btn-clear { background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(153,27,27,0.15));border-color:rgba(239,68,68,0.5);color:#fca5a5; }
+        .btn-clear:hover { background:linear-gradient(135deg,rgba(239,68,68,0.4),rgba(153,27,27,0.25));color:#fee2e2; }
+        .btn-sound { background:rgba(30,41,59,0.7);border-color:rgba(71,85,105,0.5);color:#94a3b8; }
+        .btn-sound:hover { border-color:rgba(100,116,139,0.8);color:#cbd5e1; }
+        .btn-sound.on { background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(52,211,153,0.1));border-color:rgba(16,185,129,0.5);color:#34d399; }
         .stat-chip { display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(10px); }
         .live-badge { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);backdrop-filter:blur(10px); }
+        .live-badge.offline { background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3); }
         .pulse-dot { width:7px;height:7px;border-radius:50%;background:#10b981;position:relative; }
         .pulse-dot::after { content:'';position:absolute;inset:-3px;border-radius:50%;background:rgba(16,185,129,0.4);animation:pulseRing 1.5s ease-in-out infinite; }
+        .offline .pulse-dot { background:#ef4444; }
+        .offline .pulse-dot::after { background:rgba(239,68,68,0.4); }
         @keyframes pulseRing { 0%,100%{transform:scale(0.9);opacity:0.9;} 50%{transform:scale(1.5);opacity:0;} }
 
         .stats-bar { position:relative;z-index:10;display:flex;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.5);backdrop-filter:blur(10px);flex-wrap:wrap; }
         .stats-pill { display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:0.68rem;font-weight:700;font-family:'JetBrains Mono',monospace; }
         .sp-bull { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
         .sp-bear { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
-        .sp-total { background:rgba(217,70,239,0.12);border:1px solid rgba(217,70,239,0.25);color:#e879f9; }
+        .sp-weekly { background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.25);color:#c4b5fd; }
+        .sp-monthly { background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.25);color:#f9a8d4; }
+        .sp-total { background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.25);color:#38bdf8; }
         .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
 
         .main-layout { position:relative;z-index:10;display:flex;gap:16px;padding:16px 24px;flex:1;overflow:hidden;height:calc(100vh - 130px); }
-        .coin-section { flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(217,70,239,0.3) transparent; }
+        .coin-section { flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(168,85,247,0.3) transparent; }
         .coin-section::-webkit-scrollbar { width:4px; }
-        .coin-section::-webkit-scrollbar-thumb { background:rgba(217,70,239,0.3);border-radius:4px; }
-        .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px; }
+        .coin-section::-webkit-scrollbar-thumb { background:rgba(168,85,247,0.3);border-radius:4px; }
+        .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px; }
 
-        /* CARDS */
         .coin-card { border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:default; }
         .coin-card::before { content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none; }
         .coin-card:hover { transform:translateY(-4px) scale(1.01); }
-        
         .card-idle { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border:1px solid rgba(255,255,255,0.07);box-shadow:0 4px 20px rgba(0,0,0,0.3);opacity:0.6;filter:saturate(0.7); }
         .card-idle:hover { opacity:0.85;filter:saturate(1); }
         .card-bull { background:linear-gradient(135deg,rgba(5,46,22,0.9) 0%,rgba(6,78,59,0.75) 50%,rgba(15,30,50,0.85) 100%);border:1px solid rgba(16,185,129,0.4);box-shadow:0 0 30px rgba(16,185,129,0.12),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(52,211,153,0.15); }
         .card-bull::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#10b981,#34d399,#10b981,transparent);animation:shimmer 3s ease-in-out infinite; }
         .card-bear { background:linear-gradient(135deg,rgba(69,10,10,0.9) 0%,rgba(127,29,29,0.75) 50%,rgba(15,20,45,0.85) 100%);border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 30px rgba(239,68,68,0.12),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(248,113,113,0.15); }
         .card-bear::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ef4444,#f87171,#ef4444,transparent);animation:shimmer 3s ease-in-out infinite; }
-        .card-partial-bull { background:linear-gradient(135deg,rgba(6,55,30,0.88) 0%,rgba(8,95,70,0.62) 50%,rgba(15,30,50,0.82) 100%);border:1px solid rgba(52,211,153,0.35);box-shadow:0 0 26px rgba(52,211,153,0.10),0 8px 32px rgba(0,0,0,0.4); }
-        .card-partial-bull::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#34d399,#6ee7b7,#34d399,transparent);animation:shimmer 3s ease-in-out infinite; }
-        .card-partial-bear { background:linear-gradient(135deg,rgba(80,18,18,0.88) 0%,rgba(140,45,45,0.62) 50%,rgba(20,22,50,0.82) 100%);border:1px solid rgba(248,113,113,0.35);box-shadow:0 0 26px rgba(248,113,113,0.10),0 8px 32px rgba(0,0,0,0.4); }
-        .card-partial-bear::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#f87171,#fca5a5,#f87171,transparent);animation:shimmer 3s ease-in-out infinite; }
+        .card-mixed { background:linear-gradient(135deg,rgba(30,20,50,0.9) 0%,rgba(50,30,80,0.75) 50%,rgba(15,20,45,0.85) 100%);border:1px solid rgba(167,139,250,0.4);box-shadow:0 0 30px rgba(167,139,250,0.12),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(196,181,253,0.15); }
+        .card-mixed::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#a78bfa,#c4b5fd,#a78bfa,transparent);animation:shimmer 3s ease-in-out infinite; }
         @keyframes shimmer { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
 
         .card-symbol { font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:#f1f5f9;letter-spacing:0.02em;line-height:1; }
         .card-time { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.5);letter-spacing:0.06em;margin-top:4px; }
-        
-        /* BADGES */
         .card-badge-bull { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(52,211,153,0.15));border:1px solid rgba(52,211,153,0.4);color:#6ee7b7; }
         .card-badge-bear { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(248,113,113,0.15));border:1px solid rgba(248,113,113,0.4);color:#fca5a5; }
-        .card-badge-partial-bull { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(52,211,153,0.25),rgba(110,231,183,0.12));border:1px solid rgba(110,231,183,0.35);color:#a7f3d0; }
-        .card-badge-partial-bear { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(248,113,113,0.25),rgba(252,165,165,0.12));border:1px solid rgba(252,165,165,0.35);color:#fecaca; }
+        .card-badge-mixed { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(196,181,253,0.15));border:1px solid rgba(167,139,250,0.4);color:#c4b5fd; }
         .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
 
-        /* TF ROW */
         .tf-row { display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px; }
-        .tf-cell { padding:10px 6px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;text-align:center;}
+        .tf-cell { padding:10px 6px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.50rem;text-align:center; }
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
         .tf-cell-bear { background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.25); }
         .tf-cell-none { background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2); }
 
-        /* ALIGN BAR */
-        .align-bar { margin-top:12px;padding:8px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;display:flex;align-items:center;gap:8px; }
+        .align-bar { margin-top:8px;padding:6px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;display:flex;align-items:center;gap:8px; }
         .align-bar-god { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
-        .align-bar-partial { background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fbbf24; }
+        .align-bar-partial-bull { background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.28);color:#6ee7b7; }
+        .align-bar-partial-bear { background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.28);color:#fca5a5; }
+        .align-bar-bull { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
+        .align-bar-bear { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
+        .align-bar-mixed { background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#c4b5fd; }
         .align-bar-none { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
 
-        /* FEED */
         .feed-panel { width:280px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(8,12,22,0.85);backdrop-filter:blur(24px); }
-        .feed-header { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(217,70,239,0.15),rgba(192,38,211,0.08));display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
-        .feed-title { font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#e879f9;letter-spacing:0.1em; }
-        .feed-body { flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px; }
-        
-        .log-card { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out; }
-        .log-card-bull { background:linear-gradient(135deg,rgba(5,46,22,0.8),rgba(6,78,59,0.4));border:1px solid rgba(16,185,129,0.25);border-left:3px solid #10b981; }
-        .log-card-bear { background:linear-gradient(135deg,rgba(69,10,10,0.8),rgba(127,29,29,0.4));border:1px solid rgba(239,68,68,0.25);border-left:3px solid #ef4444; }
+        .feed-header { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(192,132,252,0.08));display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
+        .feed-title { font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#c4b5fd;letter-spacing:0.1em; }
+        .feed-body { flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:rgba(168,85,247,0.3) transparent; }
+        .feed-body::-webkit-scrollbar { width:4px; }
+        .feed-body::-webkit-scrollbar-thumb { background:rgba(168,85,247,0.3);border-radius:4px; }
+
+        .log-card-bull { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out;background:linear-gradient(135deg,rgba(5,46,22,0.8),rgba(6,78,59,0.4));border:1px solid rgba(16,185,129,0.25);border-left:3px solid #10b981; }
+        .log-card-bear { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out;background:linear-gradient(135deg,rgba(69,10,10,0.8),rgba(127,29,29,0.4));border:1px solid rgba(239,68,68,0.25);border-left:3px solid #ef4444; }
+        .log-card-none { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out;background:rgba(30,41,59,0.6);border:1px solid rgba(168,85,247,0.25);border-left:3px solid #a855f7; }
         @keyframes logSlide { from{opacity:0;transform:translateX(12px);} to{opacity:1;transform:translateX(0);} }
         .log-sym { font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:#f1f5f9; }
-        .log-msg { font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(203,213,225,0.75);margin-top:3px; }
-        .log-time { font-family:'JetBrains Mono',monospace;font-size:0.55rem; }
+        .log-msg { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(203,213,225,0.75);margin-top:3px; }
+        .log-time { font-family:'JetBrains Mono',monospace;font-size:0.5rem; }
+        .log-tf-tag { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(168,85,247,0.15);color:#c4b5fd;border:1px solid rgba(168,85,247,0.3); }
 
-        /* MODAL */
+        /* ── MODAL ── */
         .modal-backdrop { position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:16px; }
-        .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(217,70,239,0.3);border-radius:20px;padding:28px;width:100%;max-width:540px;box-shadow:0 0 60px rgba(217,70,239,0.2); }
+        .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:28px;width:100%;max-width:540px;position:relative;box-shadow:0 0 60px rgba(168,85,247,0.2);max-height:90vh;overflow-y:auto; }
         .modal-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
         .modal-sub { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
-        .field-label { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;text-transform:uppercase;color:rgba(148,163,184,0.6);display:block;margin-bottom:5px; }
-        .field-input, .field-select { width:100%;padding:10px 14px;background:rgba(15,23,42,0.8);border:1px solid rgba(217,70,239,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;margin-bottom:14px; }
-        .field-input:focus, .field-select:focus { border-color:rgba(217,70,239,0.6);box-shadow:0 0 0 3px rgba(217,70,239,0.1); }
-        
-        .btn-cancel { flex:1;padding:11px;border-radius:10px;border:1px solid rgba(71,85,105,0.5);color:#94a3b8;background:rgba(15,23,42,0.5);font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s; }
-        .btn-inject-modal { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(217,70,239,0.3),rgba(192,38,211,0.2));border:1px solid rgba(217,70,239,0.5);color:#f0abfc;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
-        
+        .field-label { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(148,163,184,0.6);display:block;margin-bottom:5px; }
+        .field-input { width:100%;padding:10px 14px;background:rgba(15,23,42,0.8);border:1px solid rgba(168,85,247,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;transition:all 0.2s;margin-bottom:14px; }
+        .field-input:focus { border-color:rgba(168,85,247,0.6);box-shadow:0 0 0 3px rgba(168,85,247,0.1); }
         .inject-tf-block { padding:12px 14px;border-radius:12px;margin-bottom:10px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between; }
-        .inject-tf-title { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#e879f9;letter-spacing:0.08em; }
-        .inject-state-select { padding:5px 10px;border-radius:8px;background:rgba(15,23,42,0.8);border:1px solid rgba(217,70,239,0.3);color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.75rem;cursor:pointer;outline:none; }
+        .inject-tf-title { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#c4b5fd;letter-spacing:0.08em; }
+        .inject-state-select { padding:5px 10px;border-radius:8px;background:rgba(15,23,42,0.8);border:1px solid rgba(168,85,247,0.3);color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.75rem;cursor:pointer;outline:none; }
         .quick-fill-row { display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap; }
         .quick-btn { padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid; }
         .quick-btn-bull { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
@@ -125,83 +137,111 @@
         .quick-btn-bear:hover { background:rgba(239,68,68,0.3); }
         .quick-btn-none { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
         .quick-btn-none:hover { background:rgba(71,85,105,0.3); }
+        .btn-cancel { flex:1;padding:11px;border-radius:10px;border:1px solid rgba(71,85,105,0.5);color:#94a3b8;background:rgba(15,23,42,0.5);font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s; }
+        .btn-cancel:hover { border-color:rgba(100,116,139,0.8);color:#cbd5e1; }
+        .btn-inject-modal { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(168,85,247,0.3),rgba(192,132,252,0.2));border:1px solid rgba(168,85,247,0.5);color:#c4b5fd;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
+        .btn-inject-modal:hover { background:linear-gradient(135deg,rgba(168,85,247,0.5),rgba(192,132,252,0.35));color:#e9d5ff; }
         .inject-progress { font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);text-align:center;margin-top:8px;display:none; }
         .inject-progress.active { display:block; }
         .inject-progress .done { color:#34d399; }
         .inject-progress .fail { color:#f87171; }
+
+        .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);text-align:center;padding:40px 0;grid-column:1/-1; }
+        @keyframes logoGlow { 0%,100%{box-shadow:0 0 25px rgba(168,85,247,0.4);} 50%{box-shadow:0 0 40px rgba(192,132,252,0.5);} }
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:rgba(168,85,247,0.3);border-radius:4px; }
     </style>
 </head>
-<body>
+<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
 
-    <div class="bg-container"><div class="bg-photo"></div><div class="bg-gradient"></div><div class="bg-grid"></div><div class="scan-beam"></div></div>
+    <div class="bg-container">
+        <div class="bg-photo"></div><div class="bg-gradient"></div><div class="bg-grid"></div>
+        <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div>
+        <div class="scan-beam"></div>
+        <div class="candle-bar-bg">
+            <div class="cbar g" style="height:45%"></div><div class="cbar r" style="height:60%;animation-delay:.3s"></div>
+            <div class="cbar g" style="height:35%;animation-delay:.6s"></div><div class="cbar g" style="height:75%;animation-delay:.1s"></div>
+            <div class="cbar r" style="height:50%;animation-delay:.8s"></div><div class="cbar r" style="height:38%;animation-delay:.4s"></div>
+            <div class="cbar g" style="height:82%;animation-delay:.2s"></div><div class="cbar g" style="height:63%;animation-delay:.7s"></div>
+            <div class="cbar r" style="height:47%;animation-delay:.5s"></div><div class="cbar g" style="height:90%;animation-delay:.9s"></div>
+        </div>
+    </div>
 
+    <!-- TOP BAR -->
     <div class="top-bar">
         <div style="display:flex;align-items:center;gap:14px;">
-            <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#e879f9,#d946ef,#c026d3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">💥</div>
+            <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#a855f7,#7c3aed,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">💥</div>
             <div>
                 <div class="brand-name">BREAKOUT DASHBOARD</div>
-                <div class="brand-sub">LIVE BREAKOUT TRACKER · MULTI-TF</div>
+                <div class="brand-sub">MONTHLY + WEEKLY BREAKOUTS · STORYLINE ALIGNED</div>
             </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="openModal()" class="ctrl-btn btn-inject"><span>⚡</span> INJECT BREAKOUT</button>
-            <a href="/" class="ctrl-btn btn-back"><span>🏠</span> MAIN</a>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <a href="/" class="ctrl-btn btn-back"><span>⚡</span> MAIN</a>
+            <button onclick="openModal()" class="ctrl-btn btn-inject"><span>💥</span> INJECT</button>
+            <button onclick="clearAllBreakouts()" class="ctrl-btn btn-clear"><span>🗑️</span> CLEAR</button>
+            <button id="audioBtn" onclick="toggleAudio()" class="ctrl-btn btn-sound">
+                <span id="audioIco">🔇</span><span id="audioTxt">SOUND OFF</span>
+            </button>
             <div class="stat-chip">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);">COINS</span>
-                <span id="coinCounter" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:800;color:#e879f9;">0</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);letter-spacing:0.08em;">COINS</span>
+                <span id="activeCount" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:800;color:#c4b5fd;">0</span>
             </div>
-            <div class="live-badge">
-                <div class="pulse-dot"></div>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:#34d399;">LIVE</span>
+            <div class="live-badge" id="liveBadge">
+                <div class="pulse-dot" id="pulseDot"></div>
+                <span id="liveLabel" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:#34d399;">LIVE</span>
             </div>
         </div>
     </div>
 
+    <!-- STATS BAR -->
     <div class="stats-bar">
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Breakout Scan</span>
         <div class="divider-v"></div>
-        <span id="bullPill" class="stats-pill sp-bull">🐂 0 BULLISH</span>
-        <span id="bearPill" class="stats-pill sp-bear">🐻 0 BEARISH</span>
+        <span id="bullPill" class="stats-pill sp-bull">🐂 0 BULL</span>
+        <span id="bearPill" class="stats-pill sp-bear">🐻 0 BEAR</span>
+        <div class="divider-v"></div>
+        <span id="weeklyPill" class="stats-pill sp-weekly">📆 0 WEEKLY</span>
+        <span id="monthlyPill" class="stats-pill sp-monthly">📅 0 MONTHLY</span>
         <div class="divider-v"></div>
         <span id="totalPill" class="stats-pill sp-total">💥 0 TOTAL</span>
     </div>
 
+    <!-- MAIN LAYOUT -->
     <div class="main-layout">
         <div class="coin-section">
             <div class="coin-grid" id="coinGrid">
-                <p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);grid-column:1/-1;text-align:center;padding:40px 0;">Awaiting Breakout signals...</p>
+                <p class="empty-state">Awaiting breakout signals...</p>
             </div>
         </div>
         <div class="feed-panel">
             <div class="feed-header">
                 <span class="feed-title">📡 BREAKOUT FEED</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(196,181,253,0.5);letter-spacing:0.08em;">NEWEST FIRST</span>
             </div>
             <div class="feed-body" id="activityFeed">
-                <p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting signals...</p>
+                <p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting breakout signals...</p>
             </div>
         </div>
     </div>
 
+    <!-- INJECT MODAL -->
     <div class="modal-backdrop" id="modal">
-        <div class="modal-box" style="max-width:540px;">
-            <div class="modal-title">💥 Inject Breakout</div>
-            <div class="modal-sub">Simulate multi-timeframe Breakout payloads.</div>
-            
+        <div class="modal-box">
+            <div class="modal-title">💥 Breakout Inject</div>
+            <div class="modal-sub">Manually inject a Monthly or Weekly breakout signal.</div>
             <label class="field-label">Symbol</label>
             <input type="text" id="injSymbol" class="field-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;">
-            
             <div class="quick-fill-row">
                 <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.4);align-self:center;margin-right:4px;">QUICK FILL:</span>
                 <button class="quick-btn quick-btn-bull" onclick="quickFillAll('BULLISH')">🐂 ALL BULLISH</button>
                 <button class="quick-btn quick-btn-bear" onclick="quickFillAll('BEARISH')">🐻 ALL BEARISH</button>
                 <button class="quick-btn quick-btn-none" onclick="quickFillAll('NONE')">— ALL NONE</button>
             </div>
-            
             <div id="tfBlocks"></div>
-            
             <div class="inject-progress" id="injProgress"></div>
-            
-            <div style="display:flex;gap:10px;margin-top:16px;">
+            <div style="display:flex;gap:10px;margin-top:8px;">
                 <button onclick="closeModal()" class="btn-cancel">CANCEL</button>
                 <button onclick="doInject()" id="injBtn" class="btn-inject-modal">INJECT 💥</button>
             </div>
@@ -212,7 +252,36 @@
         const BREAKOUT_TFS = ['1MO', '1W'];
         const TF_LABELS = { '1MO':'MONTHLY', '1W':'WEEKLY' };
 
-        // Build the dropdowns dynamically
+        let breakoutState = {};
+        let breakoutLog = [];
+
+        const moneySound = new Audio('/money.mp3');
+        moneySound.volume = 0.85;
+        let audioOn = false;
+
+        function toggleAudio() {
+            audioOn = !audioOn;
+            document.getElementById('audioIco').textContent = audioOn ? '🔊' : '🔇';
+            document.getElementById('audioTxt').textContent = audioOn ? 'SOUND ON' : 'SOUND OFF';
+            document.getElementById('audioBtn').className = 'ctrl-btn btn-sound' + (audioOn ? ' on' : '');
+            if (audioOn) { moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
+        }
+        function playSound() { if (!audioOn) return; moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
+
+        async function clearAllBreakouts() {
+            if (!confirm('Clear all Breakout data?')) return;
+            await fetch('/api/delete-breakout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:'ALL'}) });
+        }
+
+        function fmtTime(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            const old = Date.now() - ts > 86400000;
+            const t = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            return old ? d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+t : t;
+        }
+
+        // ── INJECT MODAL ──
         (function buildTfBlocks() {
             const container = document.getElementById('tfBlocks');
             container.innerHTML = BREAKOUT_TFS.map(tf => `
@@ -226,192 +295,251 @@
                 </div>`).join('');
         })();
 
-        const openModal = () => document.getElementById('modal').style.display = 'flex';
+        const openModal = () => { document.getElementById('modal').style.display='flex'; };
         const closeModal = () => {
-            document.getElementById('modal').style.display = 'none';
-            document.getElementById('injSymbol').value = '';
+            document.getElementById('modal').style.display='none';
+            document.getElementById('injSymbol').value='';
             BREAKOUT_TFS.forEach(tf => { const el = document.getElementById('inj_'+tf); if(el) el.value='NONE'; });
-            const prog = document.getElementById('injProgress');
-            if (prog) { prog.innerHTML=''; prog.classList.remove('active'); }
+            const prog = document.getElementById('injProgress'); prog.innerHTML=''; prog.classList.remove('active');
         };
-        document.getElementById('modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
-
+        document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
         function quickFillAll(state) { BREAKOUT_TFS.forEach(tf => { const el = document.getElementById('inj_'+tf); if(el) el.value=state; }); }
 
         async function doInject() {
             const sym = document.getElementById('injSymbol').value.toUpperCase().trim();
             const btn = document.getElementById('injBtn');
             const prog = document.getElementById('injProgress');
-
             if (!sym) return alert('Please enter a symbol.');
+            const tfs = BREAKOUT_TFS.map(tf => ({ tf, state: document.getElementById('inj_'+tf)?.value||'NONE' })).filter(t => t.state !== 'NONE');
+            if (!tfs.length) return alert('Set at least one timeframe to BULLISH or BEARISH.');
+            btn.textContent='INJECTING...'; btn.style.pointerEvents='none'; prog.innerHTML=''; prog.classList.add('active');
 
-            // Gather only the timeframes that are NOT set to NONE
-            const tfs = BREAKOUT_TFS.map(tf => ({ 
-                tf, direction: document.getElementById('inj_'+tf)?.value || 'NONE' 
-            })).filter(t => t.direction !== 'NONE');
-
-            if (!tfs.length) return alert('Set at least one breakout direction.');
-
-            btn.textContent = 'INJECTING...';
-            btn.style.pointerEvents = 'none';
-            prog.innerHTML = '';
-            prog.classList.add('active');
-
-            let success = 0, fail = 0;
-
-            // Loop and send webhook payload sequentially
+            let success=0, fail=0;
             for (const t of tfs) {
                 try {
-                    const r = await fetch('/webhook', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ kind: 'BREAKOUT', symbol: sym, direction: t.direction, chart_tf: t.tf })
+                    const r = await fetch('/api/breakout-inject', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify({ symbol:sym, tf:t.tf, direction:t.state })
                     });
-                    if (r.ok) { 
-                        success++; 
-                        prog.innerHTML += `<span class="done">✅ ${t.tf} → ${t.direction}</span><br>`; 
-                    } else { 
-                        fail++; 
-                        prog.innerHTML += `<span class="fail">❌ ${t.tf} failed (${r.status})</span><br>`; 
-                    }
-                } catch {
-                    fail++; 
-                    prog.innerHTML += `<span class="fail">❌ ${t.tf} error</span><br>`;
-                }
-                await new Promise(r => setTimeout(r, 250)); // Tiny delay to prevent spamming
+                    if(r.ok) { success++; prog.innerHTML+=`<span class="done">✅ ${TF_LABELS[t.tf]} → ${t.state}</span><br>`; }
+                    else { fail++; prog.innerHTML+=`<span class="fail">❌ ${TF_LABELS[t.tf]} failed (${r.status})</span><br>`; }
+                } catch { fail++; prog.innerHTML+=`<span class="fail">❌ ${TF_LABELS[t.tf]} error</span><br>`; }
+                await new Promise(r=>setTimeout(r,200));
             }
+            if(fail===0) { prog.innerHTML+=`<br><span class="done">🎯 All injected for ${sym}!</span>`; setTimeout(()=>closeModal(),1200); }
+            else prog.innerHTML+=`<br><span class="fail">⚠️ ${fail} failed, ${success} succeeded</span>`;
+            btn.textContent='INJECT 💥'; btn.style.pointerEvents='auto';
+        }
 
-            if (fail === 0) {
-                prog.innerHTML += `<br><span class="done">🎯 All breakouts injected for ${sym}!</span>`;
-                setTimeout(() => closeModal(), 1200);
-            } else {
-                prog.innerHTML += `<br><span class="fail">⚠️ ${fail} failed, ${success} succeeded</span>`;
+        // ── CARD HELPERS ──
+        function getEntries(sym, tf) {
+            const raw = breakoutState[sym]?.[tf];
+            if (!raw) return [];
+            if (Array.isArray(raw)) return raw;
+            return [raw];
+        }
+
+        function getLatestEntry(sym, tf) {
+            const entries = getEntries(sym, tf);
+            return entries.length ? entries[entries.length - 1] : null;
+        }
+
+        function getAllEntries(sym) {
+            const out = [];
+            BREAKOUT_TFS.forEach(tf => {
+                getEntries(sym, tf).forEach(e => out.push({ ...e, _tf: tf }));
+            });
+            return out;
+        }
+
+        function getCardType(sym) {
+            const sides = BREAKOUT_TFS.map(tf => getLatestEntry(sym, tf)?.direction).filter(s => s);
+            if (sides.length === 0) return 'idle';
+            if (sides.every(s => s === 'BULLISH')) return 'bull';
+            if (sides.every(s => s === 'BEARISH')) return 'bear';
+            return 'mixed';
+        }
+
+        function tfCellCls(d) {
+            if (!d || !d.direction) return 'tf-cell-none';
+            return d.direction === 'BULLISH' ? 'tf-cell-bull' : 'tf-cell-bear';
+        }
+
+        function tfSideEmoji(d) {
+            if (!d || !d.direction) return '—';
+            return d.direction === 'BULLISH' ? '🐂' : '🐻';
+        }
+
+        function getAlignBarInfo(sym) {
+            const all = getAllEntries(sym);
+            if (!all.length) return { cls: 'align-bar-none', txt: '— No breakout signals' };
+
+            const moE = getLatestEntry(sym, '1MO');
+            const wE  = getLatestEntry(sym, '1W');
+            const moD = moE?.direction || 'NONE';
+            const wD  = wE?.direction  || 'NONE';
+
+            if (moD !== 'NONE' && moD === wD) {
+                const e = moD === 'BULLISH' ? '🐂' : '🐻';
+                return { cls: 'align-bar-god', txt: `✅ GOD-MODE: ${e} MO+W ${moD} (2/2)` };
             }
-
-            btn.textContent = 'INJECT 💥';
-            btn.style.pointerEvents = 'auto';
+            if (moD !== 'NONE' && wD === 'NONE') return { cls: moD === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear', txt: `⚡ PARTIAL: MO=${moD} (1/2)` };
+            if (wD !== 'NONE' && moD === 'NONE') return { cls: wD === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear', txt: `⚡ PARTIAL: W=${wD} (1/2)` };
+            if (moD !== 'NONE' && wD !== 'NONE' && moD !== wD) return { cls: 'align-bar-mixed', txt: `⚠️ CONFLICT: MO=${moD} W=${wD}` };
+            return { cls: 'align-bar-none', txt: '— No breakout signals' };
         }
 
-        function getCardClass(tfs) {
-            const mo = tfs['1MO'] || 'NONE';
-            const w  = tfs['1W']  || 'NONE';
-            if (mo === 'BULLISH' && w === 'BULLISH') return 'card-bull';
-            if (mo === 'BEARISH' && w === 'BEARISH') return 'card-bear';
-            if (mo === 'BULLISH' || w === 'BULLISH') return 'card-partial-bull';
-            if (mo === 'BEARISH' || w === 'BEARISH') return 'card-partial-bear';
-            return 'card-idle';
-        }
-
-        function getBadge(tfs) {
-            const mo = tfs['1MO'] || 'NONE';
-            const w  = tfs['1W']  || 'NONE';
-            if (mo === 'BULLISH' && w === 'BULLISH') return '<span class="card-badge-bull">🐂 GOD 2/2</span>';
-            if (mo === 'BEARISH' && w === 'BEARISH') return '<span class="card-badge-bear">🐻 GOD 2/2</span>';
-            if (mo === 'BULLISH' || w === 'BULLISH') return '<span class="card-badge-partial-bull">🐂 PARTIAL 1/2</span>';
-            if (mo === 'BEARISH' || w === 'BEARISH') return '<span class="card-badge-partial-bear">🐻 PARTIAL 1/2</span>';
-            return '<span class="card-badge-idle">— IDLE</span>';
-        }
-
-        function tfCellCls(state) {
-            if (state === 'BULLISH') return 'tf-cell-bull';
-            if (state === 'BEARISH') return 'tf-cell-bear';
-            return 'tf-cell-none';
-        }
-
-        function render(breakoutState, activityLog) {
-            const syms = Object.keys(breakoutState || {});
-            
-            let bulls = 0, bears = 0;
-            syms.forEach(sym => {
-                if(breakoutState[sym].direction === 'BULLISH') bulls++;
-                if(breakoutState[sym].direction === 'BEARISH') bears++;
+        // ── RENDER ──
+        function render() {
+            const grid = document.getElementById('coinGrid');
+            const syms = Object.keys(breakoutState).sort((a, b) => {
+                const pri = { bull:5, bear:5, mixed:2, idle:0 };
+                const pa = pri[getCardType(a)] || 0;
+                const pb = pri[getCardType(b)] || 0;
+                if (pa !== pb) return pb - pa;
+                const allA = getAllEntries(a);
+                const allB = getAllEntries(b);
+                const ta = allA.length ? Math.max(...allA.map(e => e.timestamp || 0)) : 0;
+                const tb = allB.length ? Math.max(...allB.map(e => e.timestamp || 0)) : 0;
+                return tb - ta;
             });
 
-            document.getElementById('coinCounter').textContent = syms.length;
-            document.getElementById('bullPill').textContent = `🐂 ${bulls} BULLISH`;
-            document.getElementById('bearPill').textContent = `🐻 ${bears} BEARISH`;
-            document.getElementById('totalPill').textContent = `💥 ${syms.length} TOTAL`;
+            let totalBull=0, totalBear=0, totalWeekly=0, totalMonthly=0, totalEntries=0;
+            syms.forEach(sym => {
+                getAllEntries(sym).forEach(e => {
+                    totalEntries++;
+                    if (e.direction === 'BULLISH') totalBull++;
+                    if (e.direction === 'BEARISH') totalBear++;
+                    if (e._tf === '1W') totalWeekly++;
+                    if (e._tf === '1MO') totalMonthly++;
+                });
+            });
 
-            const grid = document.getElementById('coinGrid');
+            document.getElementById('activeCount').textContent = syms.length;
+            document.getElementById('bullPill').textContent = `🐂 ${totalBull} BULL`;
+            document.getElementById('bearPill').textContent = `🐻 ${totalBear} BEAR`;
+            document.getElementById('weeklyPill').textContent = `📆 ${totalWeekly} WEEKLY`;
+            document.getElementById('monthlyPill').textContent = `📅 ${totalMonthly} MONTHLY`;
+            document.getElementById('totalPill').textContent = `💥 ${totalEntries} TOTAL`;
+
             if (!syms.length) {
-                grid.innerHTML = '<p style="font-family:\'JetBrains Mono\',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);grid-column:1/-1;text-align:center;padding:40px 0;">Awaiting Breakout signals...</p>';
-            } else {
-                grid.innerHTML = '';
-                // Sort newest first
-                syms.sort((a, b) => breakoutState[b].timestamp - breakoutState[a].timestamp).forEach(sym => {
-                    const data = breakoutState[sym];
-                    
-                    // Use new timeframes object, or fallback to the single chartTf for backwards compatibility
-                    const tfs = data.timeframes || { [data.chartTf]: data.direction };
-                    const cardCls = getCardClass(tfs);
-                    const badge = getBadge(tfs);
-                    
-                    let alignTag = `<div class="align-bar align-bar-none">⚠️ Storyline Unaligned</div>`;
-                    if(data.aligned) {
-                        const style = data.alignType === 'GOD' ? 'align-bar-god' : 'align-bar-partial';
-                        alignTag = `<div class="align-bar ${style}">✅ Aligned: ${data.alignType} (${data.alignCount}/2)</div>`;
+                grid.innerHTML = '<p class="empty-state">Awaiting breakout signals...</p>';
+                return;
+            }
+
+            grid.innerHTML = '';
+            syms.forEach(sym => {
+                const type = getCardType(sym);
+                const cardCls = type === 'bull' ? 'card-bull' : type === 'bear' ? 'card-bear' : type === 'mixed' ? 'card-mixed' : 'card-idle';
+
+                let badgeHTML;
+                if (type === 'bull') badgeHTML = '<span class="card-badge-bull">🐂 BULLISH</span>';
+                else if (type === 'bear') badgeHTML = '<span class="card-badge-bear">🐻 BEARISH</span>';
+                else if (type === 'mixed') badgeHTML = '<span class="card-badge-mixed">🔀 MIXED</span>';
+                else badgeHTML = '<span class="card-badge-idle">—</span>';
+
+                const allE = getAllEntries(sym);
+                let latestTs = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
+
+                let tfCells = '';
+                BREAKOUT_TFS.forEach(tf => {
+                    const d = getLatestEntry(sym, tf);
+                    const entries = getEntries(sym, tf);
+                    const cellCls = tfCellCls(d);
+                    const emoji = tfSideEmoji(d);
+                    const dirText = d?.direction || 'NONE';
+                    const tfTime = d?.timestamp ? fmtTime(d.timestamp) : '';
+                    const entryCount = entries.length;
+                    const alignInfo = d?.align_label || '';
+
+                    let countLine = '';
+                    if (entryCount > 1) {
+                        countLine = `<div style="color:rgba(203,213,225,0.45);font-size:0.38rem;margin-top:2px;">${entryCount} signals</div>`;
                     }
 
-                    const timeStr = new Date(data.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+                    let alignLine = '';
+                    if (alignInfo) {
+                        alignLine = `<div style="color:rgba(203,213,225,0.5);font-size:0.38rem;margin-top:2px;">📊 ${alignInfo}</div>`;
+                    }
 
-                    let tfCells = '';
-                    BREAKOUT_TFS.forEach(tf => {
-                        const state = tfs[tf] || 'NONE';
-                        const emoji = state === 'BULLISH' ? '🐂' : state === 'BEARISH' ? '🐻' : '—';
-                        tfCells += `
-                            <div class="tf-cell ${tfCellCls(state)}">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-                                    <span style="color:rgba(203,213,225,0.5);font-size:0.45rem;text-transform:uppercase;letter-spacing:.04em;">${TF_LABELS[tf]}</span>
-                                    <span style="font-size:0.7rem;">${emoji}</span>
-                                </div>
-                                <div style="color:rgba(203,213,225,0.7);font-size:0.55rem;font-weight:600;">${state}</div>
-                            </div>`;
-                    });
-
-                    grid.insertAdjacentHTML('beforeend', `
-                        <div class="coin-card ${cardCls}">
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                                <div>
-                                    <div class="card-symbol">${sym}</div>
-                                    <div class="card-time">🕐 ${timeStr}</div>
-                                </div>
-                                ${badge}
+                    tfCells += `
+                        <div class="tf-cell ${cellCls}">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                                <span style="color:rgba(203,213,225,0.5);font-size:0.42rem;text-transform:uppercase;letter-spacing:.04em;">${TF_LABELS[tf]}</span>
+                                <span style="font-size:0.65rem;">${emoji}</span>
                             </div>
-                            <div class="tf-row">${tfCells}</div>
-                            ${alignTag}
-                        </div>`);
+                            <div style="color:rgba(203,213,225,0.7);font-size:0.55rem;font-weight:600;">${dirText}</div>
+                            ${alignLine}
+                            ${countLine}
+                            ${tfTime ? `<div style="color:rgba(203,213,225,0.7);font-size:0.48rem;font-weight:600;margin-top:4px;font-family:'JetBrains Mono',monospace;">🕐 ${tfTime}</div>` : ''}
+                        </div>`;
                 });
-            }
 
-            const feed = document.getElementById('activityFeed');
-            const breakoutLogs = activityLog.filter(l => l.logAction === 'BREAKOUT');
-            
-            if (!breakoutLogs.length) {
-                feed.innerHTML = '<p style="font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting signals...</p>';
-            } else {
-                feed.innerHTML = breakoutLogs.slice(0, 80).map(e => {
-                    const cls = e.direction === 'BULLISH' ? 'log-card-bull' : 'log-card-bear';
-                    const tc = e.direction === 'BULLISH' ? 'rgba(52,211,153,0.8)' : 'rgba(248,113,113,0.8)';
-                    const icon = e.direction === 'BULLISH' ? '🐂' : '🐻';
-                    const timeStr = new Date(e.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-                    
-                    return `<div class="log-card ${cls}">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-                            <span class="log-sym">${icon} ${e.symbol} <span style="font-size:0.55rem;color:#cbd5e1;">(${e.chart_tf})</span></span>
-                            <span class="log-time" style="color:${tc};">${timeStr}</span>
+                const alignBar = getAlignBarInfo(sym);
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="coin-card ${cardCls}">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div>
+                                <div class="card-symbol">${sym}</div>
+                                <div class="card-time">🕐 ${latestTs ? fmtTime(latestTs) : 'N/A'}</div>
+                            </div>
+                            ${badgeHTML}
                         </div>
-                        <div class="log-msg">${e.message}</div>
-                    </div>`;
-                }).join('');
-            }
+                        <div class="tf-row">${tfCells}</div>
+                        <div class="align-bar ${alignBar.cls}">${alignBar.txt}</div>
+                    </div>`);
+            });
         }
 
-        fetch('/api/state').then(r => r.json()).then(data => render(data.breakoutState, data.activityLog || []));
+        // ── FEED ──
+        function rebuildFeed() {
+            const feed = document.getElementById('activityFeed');
+            if (!breakoutLog.length) {
+                feed.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting breakout signals...</p>`;
+                return;
+            }
+            feed.innerHTML = breakoutLog.slice(0, 100).map(e => {
+                const cls = e.direction === 'BULLISH' ? 'log-card-bull' : e.direction === 'BEARISH' ? 'log-card-bear' : 'log-card-none';
+                const tc = e.direction === 'BULLISH' ? 'rgba(52,211,153,0.8)' : e.direction === 'BEARISH' ? 'rgba(248,113,113,0.8)' : 'rgba(196,181,253,0.8)';
+                const icon = e.direction === 'BULLISH' ? '🐂' : e.direction === 'BEARISH' ? '🐻' : '💥';
+                return `<div class="${cls}">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                        <span class="log-sym">${icon} ${e.symbol}</span>
+                        <div style="display:flex;align-items:center;gap:4px;">
+                            ${e.tf ? `<span class="log-tf-tag">${TF_LABELS[e.tf] || e.tf}</span>` : ''}
+                            <span class="log-time" style="color:${tc};">${fmtTime(e.timestamp)}</span>
+                        </div>
+                    </div>
+                    <div class="log-msg">${e.message}</div>
+                </div>`;
+            }).join('');
+        }
 
-        const es = new EventSource('/api/stream');
+        // ── INIT ──
+        fetch('/api/breakout-state').then(r => r.json()).then(data => {
+            breakoutState = data.breakoutState || {};
+            breakoutLog = data.breakoutLog || [];
+            render();
+            rebuildFeed();
+        });
+
+        // ── SSE ──
+        const es = new EventSource('/api/breakout-stream');
+        const dot = document.getElementById('pulseDot');
+        const lbl = document.getElementById('liveLabel');
+        const bdg = document.getElementById('liveBadge');
+
+        es.onopen = () => { dot.className='pulse-dot'; lbl.textContent='LIVE'; lbl.style.color='#34d399'; bdg.className='live-badge'; };
+        es.onerror = () => { dot.className='pulse-dot offline'; lbl.textContent='RECONNECTING'; lbl.style.color='#f87171'; bdg.className='live-badge offline'; };
         es.onmessage = e => {
             const data = JSON.parse(e.data);
-            if (data.breakoutState) render(data.breakoutState, data.activityLog || []);
+            if (data.breakoutSound) { playSound(); return; }
+            if (data.breakoutState) breakoutState = data.breakoutState;
+            if (data.breakoutLog) breakoutLog = data.breakoutLog;
+            render();
+            rebuildFeed();
         };
     </script>
 </body>
