@@ -32,6 +32,8 @@
         .top-bar { position:relative;z-index:10;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(10,14,26,0.6);backdrop-filter:blur(20px); }
         .brand-name { font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#818cf8,#38bdf8,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
         .brand-sub { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.65);letter-spacing:0.12em;margin-top:2px; }
+        .btn-breakout { background:linear-gradient(135deg,rgba(217,70,239,0.25),rgba(192,38,211,0.15));border-color:rgba(217,70,239,0.5);color:#f0abfc; }
+.btn-breakout:hover { background:linear-gradient(135deg,rgba(217,70,239,0.4),rgba(192,38,211,0.25));color:#fae8ff; }
         .ctrl-btn { display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:10px;font-size:0.72rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;transition:all 0.2s ease;border:1px solid;backdrop-filter:blur(10px);font-family:'JetBrains Mono',monospace;text-decoration:none; }
         .ctrl-btn:hover { transform:translateY(-2px); }
         .btn-inject { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(14,165,233,0.15));border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
@@ -121,6 +123,7 @@
         .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:28px;width:100%;max-width:520px;position:relative;box-shadow:0 0 60px rgba(99,102,241,0.2);max-height:90vh;overflow-y:auto; }
         .modal-box.delete-theme { border-color:rgba(239,68,68,0.3); }
         .modal-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
+        <a href="/breakout" class="ctrl-btn btn-breakout" style="text-decoration:none;"><span>💥</span> BREAKOUT</a>
         .modal-sub { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
         .field-label { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(148,163,184,0.6);display:block;margin-bottom:5px; }
         .field-input { width:100%;padding:10px 14px;background:rgba(15,23,42,0.8);border:1px solid rgba(99,102,241,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;transition:all 0.2s;margin-bottom:14px; }
