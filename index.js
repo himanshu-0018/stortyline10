@@ -27,12 +27,15 @@ const TG_CUSTOM_ALIGNMENT = process.env.TG_CUSTOM_ALIGNMENT;
 // ═══ CRT TELEGRAM CHANNEL ═══
 const TG_CRT_CHANNEL = process.env.TG_CRT_CHANNEL;
 
+// ═══ BREAKOUT PAGE TELEGRAM CHANNEL ═══
+const TG_BREAKOUT_PAGE = process.env.TG_BREAKOUT_PAGE;
+
 const REDIS_STATE_KEY     = process.env.REDIS_KEY || 'godModeState_v4';
-const REDIS_BREAKOUT_KEY  = REDIS_STATE_KEY + '_breakout';
 const REDIS_LOG_KEY       = REDIS_STATE_KEY + '_activityLog';
 const REDIS_STATS_KEY     = REDIS_STATE_KEY + '_tradeStats';
 const REDIS_SETTINGS_KEY  = REDIS_STATE_KEY + '_settings';
 const REDIS_CRT_KEY       = REDIS_STATE_KEY + '_crt';
+const REDIS_BREAKOUT_KEY  = REDIS_STATE_KEY + '_breakout';
 
 // ═══ UPDATED: Only Monthly and Weekly for storyline ═══
 const ZONE_TIMEFRAMES     = ["1MO", "1W"];
@@ -54,22 +57,27 @@ const ALIGNMENT_COMBOS = [
 // ═══ UPDATED: CRT only Daily and Weekly ═══
 const CRT_VALID_TFS = ['1W', '1D'];
 
+// ═══ BREAKOUT PAGE TFs ═══
+const BREAKOUT_PAGE_TFS = ['1MO', '1W'];
+
 let marketState  = {};
-let breakoutState = {}; 
 let activityLog  = [];
 let tradeStats   = {};
 let appSettings  = { activeAlignments: [] };
 let crtState     = {};
 let crtLog       = [];
+let breakoutState = {};
+let breakoutLog   = [];
 let clients      = [];
 let statsClients = [];
 let crtClients   = [];
+let breakoutClients = [];
 
 // ══════════════════════════════════════════════
 // BROADCAST
 // ══════════════════════════════════════════════
 function broadcastAll(extras = {}) {
-    const data = JSON.stringify({ marketState, breakoutState, activityLog, settings: appSettings, ...extras });
+    const data = JSON.stringify({ marketState, activityLog, settings: appSettings, ...extras });
     clients.forEach(c => c.res.write(`data: ${data}\n\n`));
 }
 
@@ -91,6 +99,16 @@ function broadcastCRT() {
 function broadcastCRTSound(symbol, side) {
     const data = JSON.stringify({ crtSound: true, symbol, side });
     crtClients.forEach(c => c.res.write(`data: ${data}\n\n`));
+}
+
+function broadcastBreakout() {
+    const data = JSON.stringify({ breakoutState, breakoutLog });
+    breakoutClients.forEach(c => c.res.write(`data: ${data}\n\n`));
+}
+
+function broadcastBreakoutSound(symbol, direction) {
+    const data = JSON.stringify({ breakoutSound: true, symbol, direction });
+    breakoutClients.forEach(c => c.res.write(`data: ${data}\n\n`));
 }
 
 // ══════════════════════════════════════════════
@@ -190,6 +208,38 @@ function buildCRTTelegramMessage(kind, sym, tf, side, { rej, bo, ext, tgt, align
 }
 
 // ══════════════════════════════════════════════
+// BREAKOUT TELEGRAM MESSAGE BUILDER
+// ══════════════════════════════════════════════
+function buildBreakoutTelegramMessage(sym, moDir, wDir, storylineInfo) {
+    const moEmoji = moDir === 'BULLISH' ? '🐂' : moDir === 'BEARISH' ? '🐻' : '⚪';
+    const wEmoji  = wDir === 'BULLISH' ? '🐂' : wDir === 'BEARISH' ? '🐻' : '⚪';
+
+    let alignStatus = '';
+    if (moDir !== 'NONE' && moDir === wDir) {
+        alignStatus = `✅ GOD-MODE: ${moEmoji} MO+W ${moDir} (2/2)`;
+    } else if (moDir !== 'NONE' && wDir !== 'NONE' && moDir !== wDir) {
+        alignStatus = `⚠️ CONFLICT: MO=${moDir} W=${wDir}`;
+    } else if (moDir !== 'NONE') {
+        alignStatus = `⚡ PARTIAL: MO=${moDir} (1/2)`;
+    } else if (wDir !== 'NONE') {
+        alignStatus = `⚡ PARTIAL: W=${wDir} (1/2)`;
+    } else {
+        alignStatus = '— No breakout alignment';
+    }
+
+    let msg = `<b>💥 BREAKOUT UPDATE: ${sym}</b>\n\n`;
+    msg += `<b>Monthly:</b> ${moEmoji} ${moDir}\n`;
+    msg += `<b>Weekly:</b>  ${wEmoji} ${wDir}\n\n`;
+    msg += `<b>${alignStatus}</b>`;
+
+    if (storylineInfo) {
+        msg += `\n\n<b>📊 Storyline:</b>\n${storylineInfo}`;
+    }
+
+    return msg;
+}
+
+// ══════════════════════════════════════════════
 // ACTIVITY LOG
 // ══════════════════════════════════════════════
 async function pushLogEvent(symbol, type, message, extra = {}, timestamp = null) {
@@ -218,6 +268,20 @@ async function pushCRTLog(symbol, side, message, extra = {}) {
 }
 
 // ══════════════════════════════════════════════
+// BREAKOUT LOG
+// ══════════════════════════════════════════════
+async function pushBreakoutLog(symbol, direction, message, extra = {}) {
+    const ts = Date.now();
+    const isDup = breakoutLog.some(e =>
+        e.symbol === symbol && e.message === message && Math.abs((e.timestamp || 0) - ts) < 5000
+    );
+    if (isDup) return;
+    breakoutLog.unshift({ symbol, direction, message, timestamp: ts, ...extra });
+    if (breakoutLog.length > 200) breakoutLog = breakoutLog.slice(0, 200);
+    await redisClient.set(REDIS_BREAKOUT_KEY + '_log', JSON.stringify(breakoutLog));
+}
+
+// ══════════════════════════════════════════════
 // PRICE MATCH
 // ══════════════════════════════════════════════
 function priceMatch(a, b) {
@@ -239,7 +303,6 @@ function checkCRTAlignment(symbol, tf, side) {
     const wState  = storyline['1W']  || 'NONE';
 
     if (tf === '1D') {
-        // Daily CRT: at least one of Monthly or Weekly must align
         const moAligned = moState === side;
         const wAligned  = wState === side;
         const bothAligned = moAligned && wAligned;
@@ -251,12 +314,28 @@ function checkCRTAlignment(symbol, tf, side) {
     }
 
     if (tf === '1W') {
-        // Weekly CRT: Monthly must align
         if (moState === side) return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
         return { aligned: false, level: 'NONE', label: `MO not aligned for ${side}` };
     }
 
     return { aligned: false, level: 'NONE', label: 'Unknown TF' };
+}
+
+// ══════════════════════════════════════════════
+// BREAKOUT ALIGNMENT CHECK (against storyline)
+// ══════════════════════════════════════════════
+function checkBreakoutStorylineAlignment(symbol, direction) {
+    const storyline = marketState[symbol]?.timeframes || {};
+    const moStory = storyline['1MO'] || 'NONE';
+    const wStory  = storyline['1W']  || 'NONE';
+
+    const moAligned = moStory === direction;
+    const wAligned  = wStory === direction;
+
+    if (moAligned && wAligned) return { aligned: true, level: 'MO+W', label: `Storyline MO+W aligned ${direction}` };
+    if (moAligned) return { aligned: true, level: 'MO', label: `Storyline MO aligned ${direction}` };
+    if (wAligned)  return { aligned: true, level: 'W', label: `Storyline W aligned ${direction}` };
+    return { aligned: false, level: 'NONE', label: `Storyline not aligned for ${direction}` };
 }
 
 // ══════════════════════════════════════════════
@@ -429,6 +508,18 @@ function tfInfoString(sym) {
 }
 
 // ══════════════════════════════════════════════
+// BREAKOUT DIRECTION NORMALIZER
+// ══════════════════════════════════════════════
+function normalizeBreakoutDirection(dir) {
+    if (!dir) return 'NONE';
+    const upper = dir.toString().toUpperCase().trim();
+    if (upper === 'BULLISH' || upper === 'BULL' || upper === 'BUY' || upper === 'LONG' || upper === 'UP') return 'BULLISH';
+    if (upper === 'BEARISH' || upper === 'BEAR' || upper === 'SELL' || upper === 'SHORT' || upper === 'DOWN') return 'BEARISH';
+    if (upper === 'NONE' || upper === 'NEUTRAL' || upper === 'FLAT' || upper === '' || upper === '-') return 'NONE';
+    return 'NONE';
+}
+
+// ══════════════════════════════════════════════
 // CRT STATE MIGRATION — object → array per TF
 // ══════════════════════════════════════════════
 function migrateCRTState(state) {
@@ -452,12 +543,10 @@ function buildCRTStats() {
         overall:     { total: 0, tp: 0, inv: 0, active: 0 },
         daily:       { total: 0, tp: 0, inv: 0, active: 0 },
         weekly:      { total: 0, tp: 0, inv: 0, active: 0 },
-        // Daily CRT alignment breakdowns
         daily_mo_w:  { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — MO+W aligned' },
         daily_mo:    { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — MO only aligned' },
         daily_w:     { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — W only aligned' },
         daily_none:  { total: 0, tp: 0, inv: 0, active: 0, label: 'Daily CRT — No alignment' },
-        // Weekly CRT alignment breakdowns
         weekly_mo:   { total: 0, tp: 0, inv: 0, active: 0, label: 'Weekly CRT — MO aligned' },
         weekly_none: { total: 0, tp: 0, inv: 0, active: 0, label: 'Weekly CRT — No MO alignment' },
     };
@@ -472,19 +561,16 @@ function buildCRTStats() {
                 const bucket = tf === '1D' ? 'daily' : tf === '1W' ? 'weekly' : null;
                 if (!bucket) continue;
 
-                // Overall
                 stats.overall.total++;
                 if (s === 'TP_HIT') stats.overall.tp++;
                 if (s === 'INVALID') stats.overall.inv++;
                 if (s === 'ACTIVE') stats.overall.active++;
 
-                // Per TF
                 stats[bucket].total++;
                 if (s === 'TP_HIT') stats[bucket].tp++;
                 if (s === 'INVALID') stats[bucket].inv++;
                 if (s === 'ACTIVE') stats[bucket].active++;
 
-                // Alignment level stored on the entry
                 const alignLevel = entry.align_level || 'NONE';
 
                 if (tf === '1D') {
@@ -508,7 +594,6 @@ function buildCRTStats() {
         }
     }
 
-    // Calculate hit rates
     for (const key in stats) {
         const b = stats[key];
         const resolved = b.tp + b.inv;
@@ -516,6 +601,119 @@ function buildCRTStats() {
     }
 
     return stats;
+}
+
+// ══════════════════════════════════════════════
+// SAVE BREAKOUT STATE
+// ══════════════════════════════════════════════
+async function saveBreakoutState() {
+    await redisClient.set(REDIS_BREAKOUT_KEY, JSON.stringify(breakoutState));
+}
+
+// ══════════════════════════════════════════════
+// PROCESS BREAKOUT WEBHOOK (shared logic)
+// ══════════════════════════════════════════════
+async function processBreakoutUpdate(sym, moDir, wDir, source = 'WEBHOOK') {
+    console.log(`\n[BREAKOUT ${source}] ${sym} | MO: ${moDir} | W: ${wDir}`);
+
+    if (!breakoutState[sym]) breakoutState[sym] = {};
+
+    const now = Date.now();
+    let changed = false;
+    let soundDirection = null;
+
+    // ── Process Monthly Breakout ──
+    if (moDir !== 'NONE') {
+        if (!Array.isArray(breakoutState[sym]['1MO'])) {
+            breakoutState[sym]['1MO'] = breakoutState[sym]['1MO'] ? [breakoutState[sym]['1MO']] : [];
+        }
+
+        const existingMO = breakoutState[sym]['1MO'];
+        const lastMO = existingMO.length ? existingMO[existingMO.length - 1] : null;
+        const isDupMO = lastMO && lastMO.direction === moDir && (now - (lastMO.timestamp || 0)) < 60000;
+
+        if (!isDupMO) {
+            const storyAlign = checkBreakoutStorylineAlignment(sym, moDir);
+            const newEntry = {
+                id: `${sym}_1MO_${now}`,
+                direction: moDir,
+                timestamp: now,
+                align_level: storyAlign.level,
+                align_label: storyAlign.label,
+                aligned: storyAlign.aligned
+            };
+            existingMO.push(newEntry);
+            if (existingMO.length > 20) breakoutState[sym]['1MO'] = existingMO.slice(-20);
+
+            const emoji = moDir === 'BULLISH' ? '🐂' : '🐻';
+            const alignTag = storyAlign.aligned ? `✅ ${storyAlign.label}` : `⚠️ ${storyAlign.label}`;
+            await pushBreakoutLog(sym, moDir, `${emoji} MONTHLY BREAKOUT: ${moDir} | ${alignTag}`, { tf: '1MO', align_level: storyAlign.level });
+            changed = true;
+            soundDirection = moDir;
+            console.log(`  ✅ MO Breakout: ${sym} ${moDir} | Align: ${storyAlign.level}`);
+        }
+    }
+
+    // ── Process Weekly Breakout ──
+    if (wDir !== 'NONE') {
+        if (!Array.isArray(breakoutState[sym]['1W'])) {
+            breakoutState[sym]['1W'] = breakoutState[sym]['1W'] ? [breakoutState[sym]['1W']] : [];
+        }
+
+        const existingW = breakoutState[sym]['1W'];
+        const lastW = existingW.length ? existingW[existingW.length - 1] : null;
+        const isDupW = lastW && lastW.direction === wDir && (now - (lastW.timestamp || 0)) < 60000;
+
+        if (!isDupW) {
+            const storyAlign = checkBreakoutStorylineAlignment(sym, wDir);
+            const newEntry = {
+                id: `${sym}_1W_${now}`,
+                direction: wDir,
+                timestamp: now,
+                align_level: storyAlign.level,
+                align_label: storyAlign.label,
+                aligned: storyAlign.aligned
+            };
+            existingW.push(newEntry);
+            if (existingW.length > 20) breakoutState[sym]['1W'] = existingW.slice(-20);
+
+            const emoji = wDir === 'BULLISH' ? '🐂' : '🐻';
+            const alignTag = storyAlign.aligned ? `✅ ${storyAlign.label}` : `⚠️ ${storyAlign.label}`;
+            await pushBreakoutLog(sym, wDir, `${emoji} WEEKLY BREAKOUT: ${wDir} | ${alignTag}`, { tf: '1W', align_level: storyAlign.level });
+            changed = true;
+            soundDirection = soundDirection || wDir;
+            console.log(`  ✅ W Breakout: ${sym} ${wDir} | Align: ${storyAlign.level}`);
+        }
+    }
+
+    if (changed) {
+        await saveBreakoutState();
+
+        // Build storyline info for TG message
+        let storylineInfo = null;
+        if (marketState[sym]) {
+            storylineInfo = tfInfoString(sym);
+        }
+
+        const tgMsg = buildBreakoutTelegramMessage(sym, moDir, wDir, storylineInfo);
+        if (TG_BREAKOUT_PAGE) await sendTelegram(TG_BREAKOUT_PAGE, tgMsg);
+
+        // Also push to main activity log
+        const mainLogDir = moDir !== 'NONE' ? moDir : wDir;
+        const tfList = [];
+        if (moDir !== 'NONE') tfList.push(`MO:${moDir}`);
+        if (wDir !== 'NONE') tfList.push(`W:${wDir}`);
+        await pushLogEvent(sym, mainLogDir, `💥 BREAKOUT: ${tfList.join(' + ')}`, { logAction: 'BREAKOUT_PAGE' });
+
+        broadcastBreakout();
+        broadcastAll();
+
+        if (soundDirection) {
+            broadcastBreakoutSound(sym, soundDirection);
+        }
+    }
+
+    return changed;
 }
 
 // ══════════════════════════════════════════════
@@ -571,13 +769,6 @@ if (savedStats) {
     console.log(`📊 Stats for ${Object.keys(tradeStats).length} symbols`);
 }
 
-const savedBreakout = await redisClient.get(REDIS_BREAKOUT_KEY);
-if (savedBreakout) {
-    breakoutState = JSON.parse(savedBreakout);
-    console.log(`💥 Restored ${Object.keys(breakoutState).length} breakout states`);
-}
-
-
 const savedSettings = await redisClient.get(REDIS_SETTINGS_KEY);
 if (savedSettings) {
     appSettings = JSON.parse(savedSettings);
@@ -599,6 +790,30 @@ const savedCRTLog = await redisClient.get(REDIS_CRT_KEY + '_log');
 if (savedCRTLog) {
     crtLog = JSON.parse(savedCRTLog);
     console.log(`📡 CRT log: ${crtLog.length} entries`);
+}
+
+// ═══ LOAD BREAKOUT STATE ═══
+const savedBreakout = await redisClient.get(REDIS_BREAKOUT_KEY);
+if (savedBreakout) {
+    breakoutState = JSON.parse(savedBreakout);
+    // Migrate any non-array entries
+    for (const sym in breakoutState) {
+        for (const tf in breakoutState[sym]) {
+            if (breakoutState[sym][tf] && !Array.isArray(breakoutState[sym][tf])) {
+                breakoutState[sym][tf] = [breakoutState[sym][tf]];
+                console.log(`🔄 Migrated Breakout ${sym} ${tf} to array format`);
+            }
+        }
+    }
+    console.log(`💥 Breakout state loaded: ${Object.keys(breakoutState).length} symbols`);
+} else {
+    console.log('🆕 No Breakout state found');
+}
+
+const savedBreakoutLog = await redisClient.get(REDIS_BREAKOUT_KEY + '_log');
+if (savedBreakoutLog) {
+    breakoutLog = JSON.parse(savedBreakoutLog);
+    console.log(`📡 Breakout log: ${breakoutLog.length} entries`);
 }
 
 // ══════════════════════════════════════════════
@@ -696,10 +911,13 @@ if (savedCRTLog) {
 // ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
-app.get('/api/state', (req, res) => res.json({ marketState, breakoutState, activityLog, settings: appSettings }));
+app.get('/api/state',     (req, res) => res.json({ marketState, activityLog, settings: appSettings }));
 app.get('/api/stats',     (req, res) => res.json({ tradeStats: buildEnrichedStats(), alignmentCombos: ALIGNMENT_COMBOS }));
 app.get('/api/crt-state', (req, res) => res.json({ crtState, crtLog, crtStats: buildCRTStats() }));
 app.get('/api/crt-stats', (req, res) => res.json({ crtStats: buildCRTStats() }));
+
+// ═══ BREAKOUT API ROUTES ═══
+app.get('/api/breakout-state', (req, res) => res.json({ breakoutState, breakoutLog }));
 
 app.get('/api/settings', (req, res) => {
     res.json({ settings: appSettings, alignmentCombos: ALIGNMENT_COMBOS });
@@ -752,6 +970,19 @@ app.get('/api/crt-stream', (req, res) => {
     req.on('close', () => { clearInterval(ka); crtClients = crtClients.filter(c => c.id !== id); });
 });
 
+// ═══ BREAKOUT SSE STREAM ═══
+app.get('/api/breakout-stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+    const id = Date.now();
+    breakoutClients.push({ id, res });
+    const ka = setInterval(() => res.write(': keepalive\n\n'), 15000);
+    req.on('close', () => { clearInterval(ka); breakoutClients = breakoutClients.filter(c => c.id !== id); });
+});
+
 app.post('/api/delete', async (req, res) => {
     const { symbol, action } = req.body;
     if (!symbol || action !== 'DELETE') return res.status(400).send("Invalid");
@@ -795,16 +1026,77 @@ app.post('/api/delete-crt', async (req, res) => {
     res.send("Cleared");
 });
 
+// ═══ BREAKOUT DELETE ═══
+app.post('/api/delete-breakout', async (req, res) => {
+    const { symbol } = req.body;
+    if (!symbol) return res.status(400).send("Invalid");
+    const sym = symbol.toUpperCase().trim();
+    if (sym === "ALL") {
+        breakoutState = {};
+        breakoutLog   = [];
+    } else {
+        if (breakoutState[sym]) delete breakoutState[sym];
+        breakoutLog = breakoutLog.filter(e => e.symbol !== sym);
+    }
+    await saveBreakoutState();
+    await redisClient.set(REDIS_BREAKOUT_KEY + '_log', JSON.stringify(breakoutLog));
+    broadcastBreakout();
+    res.send("Cleared");
+});
+
+// ═══ BREAKOUT INJECT (from UI) ═══
+app.post('/api/breakout-inject', async (req, res) => {
+    const { symbol, tf, direction } = req.body;
+    if (!symbol || !tf || !direction) return res.status(400).send("Invalid");
+
+    const sym = symbol.toUpperCase().trim();
+    const normTf = normalizeTf(tf);
+    const dir = normalizeBreakoutDirection(direction);
+
+    if (!BREAKOUT_PAGE_TFS.includes(normTf)) return res.status(400).send("Invalid TF — only 1MO and 1W accepted");
+    if (dir === 'NONE') return res.status(400).send("Direction must be BULLISH or BEARISH");
+
+    const moDir = normTf === '1MO' ? dir : 'NONE';
+    const wDir  = normTf === '1W'  ? dir : 'NONE';
+
+    await processBreakoutUpdate(sym, moDir, wDir, 'INJECT');
+    res.send("OK");
+});
+
 // ══════════════════════════════════════════════
 // MAIN WEBHOOK
 // ══════════════════════════════════════════════
 app.post('/webhook', async (req, res) => {
     const payload = req.body;
 
-    const isStoryline = payload.state !== undefined && payload.tf !== undefined && payload.coin === undefined && payload.action === undefined && payload.kind === undefined;
+    const isStoryline = payload.state !== undefined && payload.tf !== undefined && payload.coin === undefined && payload.action === undefined && payload.kind === undefined && payload.weekly_breakout === undefined;
     const isBreakout  = payload.kind === "BREAKOUT";
     const isCRT       = payload.kind === "CRT" || payload.kind === "CRT_TARGET" || payload.kind === "CRT_INVALID";
-    const isPineEntry = payload.coin !== undefined && payload.action !== undefined && payload.kind === undefined;
+    const isPineEntry = payload.coin !== undefined && payload.action !== undefined && payload.kind === undefined && payload.weekly_breakout === undefined;
+    const isBreakoutPage = payload.weekly_breakout !== undefined || payload.monthly_breakout !== undefined;
+
+    // ════════════════════════════════════════
+    // BREAKOUT PAGE WEBHOOK
+    // Format: {"coin":"BTCUSDT","weekly_breakout":"BULLISH","monthly_breakout":"BEARISH"}
+    // ════════════════════════════════════════
+    if (isBreakoutPage) {
+        const sym  = (payload.coin || '').toUpperCase().trim();
+        const wDir = normalizeBreakoutDirection(payload.weekly_breakout);
+        const moDir = normalizeBreakoutDirection(payload.monthly_breakout);
+
+        if (!sym) {
+            console.log(`[BREAKOUT PAGE] Invalid payload — missing coin`);
+            return res.status(400).send("Invalid Breakout Payload — missing coin");
+        }
+
+        if (moDir === 'NONE' && wDir === 'NONE') {
+            console.log(`[BREAKOUT PAGE] ${sym} — both directions NONE, skipping`);
+            return res.status(200).send("OK — No breakout direction");
+        }
+
+        await processBreakoutUpdate(sym, moDir, wDir, 'WEBHOOK');
+        return res.status(200).send("OK");
+    }
 
     // ════════════════════════════════════════
     // STORYLINE
@@ -867,7 +1159,7 @@ app.post('/webhook', async (req, res) => {
     }
 
     // ════════════════════════════════════════
-    // BREAKOUT ALERT
+    // BREAKOUT ALERT (original kind=BREAKOUT)
     // ════════════════════════════════════════
     if (isBreakout) {
         const sym       = (payload.symbol    || '').toUpperCase().trim();
@@ -894,24 +1186,7 @@ app.post('/webhook', async (req, res) => {
         const alignLabel = align.type === 'GOD' ? `GOD-MODE (2/2)` : `PARTIAL (${align.count}/2)`;
         const chartTfStr = chartTf || payload.chart_tf || '?';
 
-// --- NEW: Multi-TF Breakout State ---
-        if (!breakoutState[sym]) {
-            breakoutState[sym] = { timeframes: {}, timestamp: 0 };
-        }
-        breakoutState[sym].timeframes[chartTfStr] = direction; // Saves both MO and W safely
-        breakoutState[sym].direction = direction; // Fallback
-        breakoutState[sym].chartTf = chartTfStr;
-        breakoutState[sym].timestamp = Date.now();
-        breakoutState[sym].aligned = align.aligned;
-        breakoutState[sym].alignType = align.type;
-        breakoutState[sym].alignCount = align.count;
-        
-        await redisClient.set(REDIS_BREAKOUT_KEY, JSON.stringify(breakoutState));
-        // ------------------------------------
-
         let tgMsg = `<b>${dirEmoji} BREAKOUT: ${sym}</b>\n\n`;
-
-        
         tgMsg += `<b>Direction:</b> ${direction}\n`;
         tgMsg += `<b>Chart TF:</b> ${chartTfStr}\n`;
         tgMsg += `\n${alignEmoji} <b>${alignLabel}</b>\n`;
@@ -965,14 +1240,12 @@ app.post('/webhook', async (req, res) => {
 
         if (!crtState[sym]) crtState[sym] = {};
 
-        // ── Ensure array structure (safety guard) ──
         if (!Array.isArray(crtState[sym][tf])) {
             crtState[sym][tf] = crtState[sym][tf] ? [crtState[sym][tf]] : [];
         }
 
         const dirEmoji = side === 'BULLISH' ? '🐂' : '🐻';
 
-        // ── CRT FORMED → check alignment, push new entry ──
         if (payload.kind === 'CRT') {
             const alignCheck = checkCRTAlignment(sym, tf, side);
 
@@ -1004,7 +1277,6 @@ app.post('/webhook', async (req, res) => {
             console.log(`  ✅ CRT ACTIVE: ${sym} ${tf} ${side} | Alignment: ${alignCheck.level} (${alignCheck.aligned ? 'ALIGNED' : 'NOT ALIGNED'}) | Total entries: ${crtState[sym][tf].length}`);
         }
 
-        // ── CRT_TARGET → only update if ACTIVE entry exists for this side ──
         if (payload.kind === 'CRT_TARGET') {
             const entries = crtState[sym][tf];
             let target = null;
@@ -1036,7 +1308,6 @@ app.post('/webhook', async (req, res) => {
             console.log(`  🎯 CRT TP HIT: ${sym} ${tf} ${side}`);
         }
 
-        // ── CRT_INVALID → only update if ACTIVE entry exists for this side ──
         if (payload.kind === 'CRT_INVALID') {
             const entries = crtState[sym][tf];
             let target = null;
@@ -1259,9 +1530,9 @@ app.post('/webhook', async (req, res) => {
 // ══════════════════════════════════════════════
 // PAGE ROUTES
 // ══════════════════════════════════════════════
-app.get('/',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'stats.html')));
-app.get('/crt',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'crt.html')));
+app.get('/',         (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/stats',    (req, res) => res.sendFile(path.join(__dirname, 'public', 'stats.html')));
+app.get('/crt',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'crt.html')));
 app.get('/breakout', (req, res) => res.sendFile(path.join(__dirname, 'public', 'breakout.html')));
 
 // ══════════════════════════════════════════════
@@ -1272,9 +1543,12 @@ app.listen(PORT, () => {
     console.log(`📊 Alignment: ${GOD_THRESHOLD}/2 = GOD, ${PARTIAL_THRESHOLD}/2 = PARTIAL`);
     console.log(`📡 Storyline TFs: ${ZONE_TIMEFRAMES.join(', ')}`);
     console.log(`📡 CRT TFs: ${CRT_VALID_TFS.join(', ')}`);
+    console.log(`📡 Breakout TFs: ${BREAKOUT_PAGE_TFS.join(', ')}`);
     console.log(`📡 Entry TFs: ${ENTRY_TFS.join(', ')}`);
     console.log(`📡 Combos: ${ALIGNMENT_COMBOS.length} tracked`);
     console.log(`📡 CRT Channel:        ${TG_CRT_CHANNEL       || 'NOT SET'}`);
+    console.log(`📡 Breakout Channel:    ${TG_BREAKOUT_PAGE     || 'NOT SET'}`);
     console.log(`⚙️ Active Alignments:  ${appSettings.activeAlignments.length > 0 ? appSettings.activeAlignments.join(', ') : 'NONE'}`);
     console.log(`🔄 CRT symbols loaded: ${Object.keys(crtState).length}`);
+    console.log(`💥 Breakout symbols:   ${Object.keys(breakoutState).length}`);
 });
