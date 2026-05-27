@@ -80,7 +80,7 @@
 
         /* MODAL */
         .modal-backdrop { position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:16px; }
-        .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(217,70,239,0.3);border-radius:20px;padding:28px;width:100%;max-width:420px;box-shadow:0 0 60px rgba(217,70,239,0.2); }
+        .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(217,70,239,0.3);border-radius:20px;padding:28px;width:100%;max-width:540px;box-shadow:0 0 60px rgba(217,70,239,0.2); }
         .modal-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
         .modal-sub { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
         .field-label { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;text-transform:uppercase;color:rgba(148,163,184,0.6);display:block;margin-bottom:5px; }
@@ -89,6 +89,22 @@
         
         .btn-cancel { flex:1;padding:11px;border-radius:10px;border:1px solid rgba(71,85,105,0.5);color:#94a3b8;background:rgba(15,23,42,0.5);font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s; }
         .btn-inject-modal { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(217,70,239,0.3),rgba(192,38,211,0.2));border:1px solid rgba(217,70,239,0.5);color:#f0abfc;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
+        
+        .inject-tf-block { padding:12px 14px;border-radius:12px;margin-bottom:10px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between; }
+        .inject-tf-title { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#e879f9;letter-spacing:0.08em; }
+        .inject-state-select { padding:5px 10px;border-radius:8px;background:rgba(15,23,42,0.8);border:1px solid rgba(217,70,239,0.3);color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.75rem;cursor:pointer;outline:none; }
+        .quick-fill-row { display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap; }
+        .quick-btn { padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid; }
+        .quick-btn-bull { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
+        .quick-btn-bull:hover { background:rgba(16,185,129,0.3); }
+        .quick-btn-bear { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171; }
+        .quick-btn-bear:hover { background:rgba(239,68,68,0.3); }
+        .quick-btn-none { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
+        .quick-btn-none:hover { background:rgba(71,85,105,0.3); }
+        .inject-progress { font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);text-align:center;margin-top:8px;display:none; }
+        .inject-progress.active { display:block; }
+        .inject-progress .done { color:#34d399; }
+        .inject-progress .fail { color:#f87171; }
     </style>
 </head>
 <body>
@@ -143,30 +159,24 @@
     </div>
 
     <div class="modal-backdrop" id="modal">
-        <div class="modal-box">
+        <div class="modal-box" style="max-width:540px;">
             <div class="modal-title">💥 Inject Breakout</div>
-            <div class="modal-sub">Simulate a TradingView breakout payload.</div>
+            <div class="modal-sub">Simulate multi-timeframe Breakout payloads.</div>
             
             <label class="field-label">Symbol</label>
             <input type="text" id="injSymbol" class="field-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;">
             
-            <label class="field-label">Direction</label>
-            <select id="injDir" class="field-select">
-                <option value="BULLISH">🟢 BULLISH</option>
-                <option value="BEARISH">🔴 BEARISH</option>
-            </select>
-
-            <label class="field-label">Chart Timeframe</label>
-            <select id="injTf" class="field-select">
-                <option value="1M">1M</option>
-                <option value="3M">3M</option>
-                <option value="5M">5M</option>
-                <option value="15M">15M</option>
-                <option value="1H">1H</option>
-                <option value="4H">4H</option>
-                <option value="1D">1D</option>
-            </select>
-
+            <div class="quick-fill-row">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.4);align-self:center;margin-right:4px;">QUICK FILL:</span>
+                <button class="quick-btn quick-btn-bull" onclick="quickFillAll('BULLISH')">🐂 ALL BULLISH</button>
+                <button class="quick-btn quick-btn-bear" onclick="quickFillAll('BEARISH')">🐻 ALL BEARISH</button>
+                <button class="quick-btn quick-btn-none" onclick="quickFillAll('NONE')">— ALL NONE</button>
+            </div>
+            
+            <div id="tfBlocks"></div>
+            
+            <div class="inject-progress" id="injProgress"></div>
+            
             <div style="display:flex;gap:10px;margin-top:16px;">
                 <button onclick="closeModal()" class="btn-cancel">CANCEL</button>
                 <button onclick="doInject()" id="injBtn" class="btn-inject-modal">INJECT 💥</button>
@@ -175,30 +185,87 @@
     </div>
 
     <script>
+        const BREAKOUT_TFS = ['1MO', '1W'];
+        const TF_LABELS = { '1MO':'MONTHLY', '1W':'WEEKLY' };
+
+        // Build the dropdowns dynamically
+        (function buildTfBlocks() {
+            const container = document.getElementById('tfBlocks');
+            container.innerHTML = BREAKOUT_TFS.map(tf => `
+                <div class="inject-tf-block">
+                    <span class="inject-tf-title">${TF_LABELS[tf]}</span>
+                    <select id="inj_${tf}" class="inject-state-select">
+                        <option value="NONE">⚪ NONE</option>
+                        <option value="BULLISH">🟢 BULLISH</option>
+                        <option value="BEARISH">🔴 BEARISH</option>
+                    </select>
+                </div>`).join('');
+        })();
+
         const openModal = () => document.getElementById('modal').style.display = 'flex';
-        const closeModal = () => document.getElementById('modal').style.display = 'none';
+        const closeModal = () => {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('injSymbol').value = '';
+            BREAKOUT_TFS.forEach(tf => { const el = document.getElementById('inj_'+tf); if(el) el.value='NONE'; });
+            const prog = document.getElementById('injProgress');
+            if (prog) { prog.innerHTML=''; prog.classList.remove('active'); }
+        };
         document.getElementById('modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+
+        function quickFillAll(state) { BREAKOUT_TFS.forEach(tf => { const el = document.getElementById('inj_'+tf); if(el) el.value=state; }); }
 
         async function doInject() {
             const sym = document.getElementById('injSymbol').value.toUpperCase().trim();
-            const dir = document.getElementById('injDir').value;
-            const tf = document.getElementById('injTf').value;
-            if (!sym) return alert("Enter a symbol.");
-
             const btn = document.getElementById('injBtn');
-            btn.textContent = 'INJECTING...'; btn.style.pointerEvents = 'none';
+            const prog = document.getElementById('injProgress');
 
-            try {
-                await fetch('/webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ kind: 'BREAKOUT', symbol: sym, direction: dir, chart_tf: tf })
-                });
-                closeModal();
-            } catch (e) {
-                alert("Inject failed.");
+            if (!sym) return alert('Please enter a symbol.');
+
+            // Gather only the timeframes that are NOT set to NONE
+            const tfs = BREAKOUT_TFS.map(tf => ({ 
+                tf, direction: document.getElementById('inj_'+tf)?.value || 'NONE' 
+            })).filter(t => t.direction !== 'NONE');
+
+            if (!tfs.length) return alert('Set at least one breakout direction.');
+
+            btn.textContent = 'INJECTING...';
+            btn.style.pointerEvents = 'none';
+            prog.innerHTML = '';
+            prog.classList.add('active');
+
+            let success = 0, fail = 0;
+
+            // Loop and send webhook payload sequentially
+            for (const t of tfs) {
+                try {
+                    const r = await fetch('/webhook', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ kind: 'BREAKOUT', symbol: sym, direction: t.direction, chart_tf: t.tf })
+                    });
+                    if (r.ok) { 
+                        success++; 
+                        prog.innerHTML += `<span class="done">✅ ${t.tf} → ${t.direction}</span><br>`; 
+                    } else { 
+                        fail++; 
+                        prog.innerHTML += `<span class="fail">❌ ${t.tf} failed (${r.status})</span><br>`; 
+                    }
+                } catch {
+                    fail++; 
+                    prog.innerHTML += `<span class="fail">❌ ${t.tf} error</span><br>`;
+                }
+                await new Promise(r => setTimeout(r, 250)); // Tiny delay to prevent spamming
             }
-            btn.textContent = 'INJECT 💥'; btn.style.pointerEvents = 'auto';
+
+            if (fail === 0) {
+                prog.innerHTML += `<br><span class="done">🎯 All breakouts injected for ${sym}!</span>`;
+                setTimeout(() => closeModal(), 1200);
+            } else {
+                prog.innerHTML += `<br><span class="fail">⚠️ ${fail} failed, ${success} succeeded</span>`;
+            }
+
+            btn.textContent = 'INJECT 💥';
+            btn.style.pointerEvents = 'auto';
         }
 
         function render(breakoutState, activityLog) {
