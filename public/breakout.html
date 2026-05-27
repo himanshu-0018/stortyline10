@@ -48,23 +48,47 @@
         .coin-section::-webkit-scrollbar-thumb { background:rgba(217,70,239,0.3);border-radius:4px; }
         .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px; }
 
+        /* CARDS */
         .coin-card { border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:default; }
         .coin-card::before { content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none; }
         .coin-card:hover { transform:translateY(-4px) scale(1.01); }
         
+        .card-idle { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border:1px solid rgba(255,255,255,0.07);box-shadow:0 4px 20px rgba(0,0,0,0.3);opacity:0.6;filter:saturate(0.7); }
+        .card-idle:hover { opacity:0.85;filter:saturate(1); }
         .card-bull { background:linear-gradient(135deg,rgba(5,46,22,0.9) 0%,rgba(6,78,59,0.75) 50%,rgba(15,30,50,0.85) 100%);border:1px solid rgba(16,185,129,0.4);box-shadow:0 0 30px rgba(16,185,129,0.12),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(52,211,153,0.15); }
+        .card-bull::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#10b981,#34d399,#10b981,transparent);animation:shimmer 3s ease-in-out infinite; }
         .card-bear { background:linear-gradient(135deg,rgba(69,10,10,0.9) 0%,rgba(127,29,29,0.75) 50%,rgba(15,20,45,0.85) 100%);border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 30px rgba(239,68,68,0.12),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(248,113,113,0.15); }
-        
+        .card-bear::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ef4444,#f87171,#ef4444,transparent);animation:shimmer 3s ease-in-out infinite; }
+        .card-partial-bull { background:linear-gradient(135deg,rgba(6,55,30,0.88) 0%,rgba(8,95,70,0.62) 50%,rgba(15,30,50,0.82) 100%);border:1px solid rgba(52,211,153,0.35);box-shadow:0 0 26px rgba(52,211,153,0.10),0 8px 32px rgba(0,0,0,0.4); }
+        .card-partial-bull::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#34d399,#6ee7b7,#34d399,transparent);animation:shimmer 3s ease-in-out infinite; }
+        .card-partial-bear { background:linear-gradient(135deg,rgba(80,18,18,0.88) 0%,rgba(140,45,45,0.62) 50%,rgba(20,22,50,0.82) 100%);border:1px solid rgba(248,113,113,0.35);box-shadow:0 0 26px rgba(248,113,113,0.10),0 8px 32px rgba(0,0,0,0.4); }
+        .card-partial-bear::after { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#f87171,#fca5a5,#f87171,transparent);animation:shimmer 3s ease-in-out infinite; }
+        @keyframes shimmer { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
         .card-symbol { font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:#f1f5f9;letter-spacing:0.02em;line-height:1; }
         .card-time { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.5);letter-spacing:0.06em;margin-top:4px; }
         
-        .badge-tf { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:4px 10px;border-radius:6px;background:linear-gradient(135deg,rgba(217,70,239,0.2),rgba(192,38,211,0.1));border:1px solid rgba(217,70,239,0.4);color:#f0abfc; }
+        /* BADGES */
+        .card-badge-bull { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(52,211,153,0.15));border:1px solid rgba(52,211,153,0.4);color:#6ee7b7; }
+        .card-badge-bear { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(248,113,113,0.15));border:1px solid rgba(248,113,113,0.4);color:#fca5a5; }
+        .card-badge-partial-bull { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(52,211,153,0.25),rgba(110,231,183,0.12));border:1px solid rgba(110,231,183,0.35);color:#a7f3d0; }
+        .card-badge-partial-bear { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(248,113,113,0.25),rgba(252,165,165,0.12));border:1px solid rgba(252,165,165,0.35);color:#fecaca; }
+        .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
 
+        /* TF ROW */
+        .tf-row { display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px; }
+        .tf-cell { padding:10px 6px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;text-align:center;}
+        .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
+        .tf-cell-bear { background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.25); }
+        .tf-cell-none { background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2); }
+
+        /* ALIGN BAR */
         .align-bar { margin-top:12px;padding:8px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;display:flex;align-items:center;gap:8px; }
         .align-bar-god { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
         .align-bar-partial { background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fbbf24; }
         .align-bar-none { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
 
+        /* FEED */
         .feed-panel { width:280px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(8,12,22,0.85);backdrop-filter:blur(24px); }
         .feed-header { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(217,70,239,0.15),rgba(192,38,211,0.08));display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
         .feed-title { font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#e879f9;letter-spacing:0.1em; }
@@ -268,6 +292,32 @@
             btn.style.pointerEvents = 'auto';
         }
 
+        function getCardClass(tfs) {
+            const mo = tfs['1MO'] || 'NONE';
+            const w  = tfs['1W']  || 'NONE';
+            if (mo === 'BULLISH' && w === 'BULLISH') return 'card-bull';
+            if (mo === 'BEARISH' && w === 'BEARISH') return 'card-bear';
+            if (mo === 'BULLISH' || w === 'BULLISH') return 'card-partial-bull';
+            if (mo === 'BEARISH' || w === 'BEARISH') return 'card-partial-bear';
+            return 'card-idle';
+        }
+
+        function getBadge(tfs) {
+            const mo = tfs['1MO'] || 'NONE';
+            const w  = tfs['1W']  || 'NONE';
+            if (mo === 'BULLISH' && w === 'BULLISH') return '<span class="card-badge-bull">🐂 GOD 2/2</span>';
+            if (mo === 'BEARISH' && w === 'BEARISH') return '<span class="card-badge-bear">🐻 GOD 2/2</span>';
+            if (mo === 'BULLISH' || w === 'BULLISH') return '<span class="card-badge-partial-bull">🐂 PARTIAL 1/2</span>';
+            if (mo === 'BEARISH' || w === 'BEARISH') return '<span class="card-badge-partial-bear">🐻 PARTIAL 1/2</span>';
+            return '<span class="card-badge-idle">— IDLE</span>';
+        }
+
+        function tfCellCls(state) {
+            if (state === 'BULLISH') return 'tf-cell-bull';
+            if (state === 'BEARISH') return 'tf-cell-bear';
+            return 'tf-cell-none';
+        }
+
         function render(breakoutState, activityLog) {
             const syms = Object.keys(breakoutState || {});
             
@@ -290,8 +340,11 @@
                 // Sort newest first
                 syms.sort((a, b) => breakoutState[b].timestamp - breakoutState[a].timestamp).forEach(sym => {
                     const data = breakoutState[sym];
-                    const cardCls = data.direction === 'BULLISH' ? 'card-bull' : 'card-bear';
-                    const emoji = data.direction === 'BULLISH' ? '🐂 BULLISH' : '🐻 BEARISH';
+                    
+                    // Use new timeframes object, or fallback to the single chartTf for backwards compatibility
+                    const tfs = data.timeframes || { [data.chartTf]: data.direction };
+                    const cardCls = getCardClass(tfs);
+                    const badge = getBadge(tfs);
                     
                     let alignTag = `<div class="align-bar align-bar-none">⚠️ Storyline Unaligned</div>`;
                     if(data.aligned) {
@@ -301,6 +354,20 @@
 
                     const timeStr = new Date(data.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
+                    let tfCells = '';
+                    BREAKOUT_TFS.forEach(tf => {
+                        const state = tfs[tf] || 'NONE';
+                        const emoji = state === 'BULLISH' ? '🐂' : state === 'BEARISH' ? '🐻' : '—';
+                        tfCells += `
+                            <div class="tf-cell ${tfCellCls(state)}">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                                    <span style="color:rgba(203,213,225,0.5);font-size:0.45rem;text-transform:uppercase;letter-spacing:.04em;">${TF_LABELS[tf]}</span>
+                                    <span style="font-size:0.7rem;">${emoji}</span>
+                                </div>
+                                <div style="color:rgba(203,213,225,0.7);font-size:0.55rem;font-weight:600;">${state}</div>
+                            </div>`;
+                    });
+
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="coin-card ${cardCls}">
                             <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -308,11 +375,9 @@
                                     <div class="card-symbol">${sym}</div>
                                     <div class="card-time">🕐 ${timeStr}</div>
                                 </div>
-                                <span class="badge-tf">${data.chartTf || 'UNK'}</span>
+                                ${badge}
                             </div>
-                            <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;">
-                                ${emoji}
-                            </div>
+                            <div class="tf-row">${tfCells}</div>
                             ${alignTag}
                         </div>`);
                 });
