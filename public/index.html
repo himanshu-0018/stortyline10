@@ -122,9 +122,8 @@
         .modal-backdrop { position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:16px; }
         .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:28px;width:100%;max-width:520px;position:relative;box-shadow:0 0 60px rgba(99,102,241,0.2);max-height:90vh;overflow-y:auto; }
         .modal-box.delete-theme { border-color:rgba(239,68,68,0.3); }
-        .modal-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
-        <a href="/breakout" class="ctrl-btn btn-breakout" style="text-decoration:none;"><span>💥</span> BREAKOUT</a>
-        .modal-sub { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
+.modal-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
+.modal-sub { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
         .field-label { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(148,163,184,0.6);display:block;margin-bottom:5px; }
         .field-input { width:100%;padding:10px 14px;background:rgba(15,23,42,0.8);border:1px solid rgba(99,102,241,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;transition:all 0.2s;margin-bottom:14px; }
         .field-input:focus { border-color:rgba(99,102,241,0.6);box-shadow:0 0 0 3px rgba(99,102,241,0.1); }
@@ -173,7 +172,6 @@
         </div>
     </div>
 
-    <!-- TOP BAR -->
     <div class="top-bar">
         <div style="display:flex;align-items:center;gap:14px;">
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">⚡</div>
@@ -183,6 +181,8 @@
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <a href="/breakout" class="ctrl-btn btn-breakout" style="text-decoration:none;"><span>💥</span> BREAKOUT</a>
+            
             <button onclick="openModal()" class="ctrl-btn btn-inject"><span>⚡</span> INJECT</button>
             <a href="/stats" class="ctrl-btn btn-stats" style="text-decoration:none;"><span>📊</span> STATISTICS</a>
             <a href="/crt" class="ctrl-btn btn-crt" style="text-decoration:none;"><span>🔄</span> CRT</a>
