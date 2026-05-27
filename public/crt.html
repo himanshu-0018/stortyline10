@@ -61,6 +61,9 @@
         .sp-filter { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s; }
         .sp-filter:hover { background:rgba(168,85,247,0.2);border-color:rgba(168,85,247,0.4);color:#c4b5fd; }
         .active-filter { background:rgba(168,85,247,0.25)!important;border-color:rgba(168,85,247,0.5)!important;color:#c4b5fd!important; }
+        .sp-profile { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s; }
+        .sp-profile:hover { background:rgba(245,158,11,0.2);border-color:rgba(245,158,11,0.4);color:#fbbf24; }
+        .active-profile { background:rgba(245,158,11,0.25)!important;border-color:rgba(245,158,11,0.5)!important;color:#fbbf24!important; }
         .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
 
         .main-layout { position:relative;z-index:10;display:flex;gap:16px;padding:16px 24px;flex:1;overflow:hidden;height:calc(100vh - 130px); }
@@ -128,7 +131,6 @@
         .hitrate-value-warn { color:#fbbf24; }
         .hitrate-value-bad { color:#f87171; }
         .hitrate-value-neutral { color:#64748b; }
-        .hitrate-value-purple { color:#c4b5fd; }
         .hitrate-section-label { font-family:'JetBrains Mono',monospace;font-size:0.50rem;font-weight:700;color:rgba(148,163,184,0.4);letter-spacing:0.1em;text-transform:uppercase;grid-column:1/-1;padding:8px 0 2px 0;border-top:1px solid rgba(255,255,255,0.05);margin-top:4px; }
 
         .feed-panel { width:280px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(8,12,22,0.85);backdrop-filter:blur(24px); }
@@ -176,7 +178,7 @@
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
             <div>
                 <div class="brand-name">CRT DASHBOARD</div>
-                <div class="brand-sub">CANDLE RANGE THEORY · 1W · 1D · STORYLINE ALIGNED</div>
+                <div class="brand-sub" id="brandSub">CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H</div>
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -197,6 +199,12 @@
     </div>
 
     <div class="stats-bar">
+        <!-- Profile Toggle -->
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Profile</span>
+        <button id="profileHTF" onclick="setProfile('HTF')" class="stats-pill sp-profile active-profile" style="cursor:pointer;">📊 HTF BO</button>
+        <button id="profileLTF" onclick="setProfile('LTF')" class="stats-pill sp-profile" style="cursor:pointer;">🔬 LTF BO</button>
+        <div class="divider-v"></div>
+        <!-- CRT Stats -->
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">CRT Scan</span>
         <div class="divider-v"></div>
         <span id="bullPill" class="stats-pill sp-bull">🐂 0 BULL</span>
@@ -208,6 +216,7 @@
         <div class="divider-v"></div>
         <span id="totalPill" class="stats-pill sp-total">🔄 0 TOTAL</span>
         <div class="divider-v"></div>
+        <!-- BO Filter -->
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">BO Filter</span>
         <button id="filterAll" onclick="setFilter('ALL')" class="stats-pill sp-filter active-filter" style="cursor:pointer;">📊 ALL</button>
         <button id="filterWBO" onclick="setFilter('W_BO')" class="stats-pill sp-filter" style="cursor:pointer;">📆 W BO</button>
@@ -219,7 +228,7 @@
     <!-- HIT RATE PANEL -->
     <div class="hitrate-panel" id="hitratePanel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#fbbf24;letter-spacing:0.1em;">📊 CRT HIT RATE ANALYSIS</span>
+            <span id="hitrateTitle" style="font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;color:#fbbf24;letter-spacing:0.1em;">📊 CRT HIT RATE — HTF BREAKOUT</span>
             <span style="font-family:'JetBrains Mono',monospace;font-size:0.45rem;color:rgba(148,163,184,0.35);letter-spacing:0.08em;">RESOLVED TRADES ONLY (TP + INV)</span>
         </div>
         <div class="hitrate-grid" id="hitrateGrid">
@@ -235,7 +244,7 @@
         </div>
         <div class="feed-panel">
             <div class="feed-header">
-                <span class="feed-title">📡 CRT FEED</span>
+                <span class="feed-title" id="feedTitle">📡 CRT FEED — HTF</span>
                 <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(251,191,36,0.5);letter-spacing:0.08em;">NEWEST FIRST</span>
             </div>
             <div class="feed-body" id="activityFeed">
@@ -246,11 +255,18 @@
 
     <script>
         const CRT_TFS = ['1W', '1D'];
+        const PROFILE_LABELS = {
+            HTF: { title: 'HTF BREAKOUT', sub: 'CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H', desc: 'W→Daily BO, D→4H BO' },
+            LTF: { title: 'LTF BREAKOUT', sub: 'CANDLE RANGE THEORY · LTF BREAKOUT · W→4H, D→1H', desc: 'W→4H BO, D→1H BO' }
+        };
+
         let crtState = {};
         let crtLog = [];
         let crtStats = {};
         let breakoutState = {};
         let activeFilter = 'ALL';
+        let activeProfile = 'HTF';
+        let crtEventSource = null;
 
         const moneySound = new Audio('/money.mp3');
         moneySound.volume = 0.85;
@@ -266,8 +282,66 @@
         function playSound() { if (!audioOn) return; moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
 
         async function clearAllCRT() {
-            if (!confirm('Clear all CRT data?')) return;
-            await fetch('/api/delete-crt', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:'ALL'}) });
+            if (!confirm(`Clear all CRT data for ${activeProfile} profile?`)) return;
+            await fetch('/api/delete-crt', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:'ALL', profile: activeProfile}) });
+        }
+
+        // ── PROFILE SWITCH ──
+        function setProfile(p) {
+            if (p === activeProfile) return;
+            activeProfile = p;
+            document.querySelectorAll('.sp-profile').forEach(el => el.classList.remove('active-profile'));
+            document.getElementById('profile' + p).classList.add('active-profile');
+
+            const labels = PROFILE_LABELS[p];
+            document.getElementById('brandSub').textContent = labels.sub;
+            document.getElementById('hitrateTitle').textContent = `📊 CRT HIT RATE — ${labels.title}`;
+            document.getElementById('feedTitle').textContent = `📡 CRT FEED — ${p}`;
+
+            // Reload data for new profile
+            loadProfileData();
+            reconnectSSE();
+        }
+
+        function loadProfileData() {
+            Promise.all([
+                fetch(`/api/crt-state?profile=${activeProfile}`).then(r => r.json()),
+                fetch('/api/breakout-state').then(r => r.json())
+            ]).then(([crtData, boData]) => {
+                crtState = crtData.crtState || {};
+                crtLog = crtData.crtLog || [];
+                crtStats = crtData.crtStats || {};
+                breakoutState = boData.breakoutState || {};
+                render();
+                rebuildFeed();
+                renderHitRates();
+            });
+        }
+
+        function reconnectSSE() {
+            if (crtEventSource) {
+                crtEventSource.close();
+                crtEventSource = null;
+            }
+            crtEventSource = new EventSource(`/api/crt-stream?profile=${activeProfile}`);
+            crtEventSource.onopen = () => {
+                dot.className='pulse-dot'; lbl.textContent='LIVE'; lbl.style.color='#34d399'; bdg.className='live-badge';
+            };
+            crtEventSource.onerror = () => {
+                dot.className='pulse-dot offline'; lbl.textContent='RECONNECTING'; lbl.style.color='#f87171'; bdg.className='live-badge offline';
+            };
+            crtEventSource.onmessage = e => {
+                const data = JSON.parse(e.data);
+                if (data.crtSound) { playSound(); return; }
+                if (data.crtState) crtState = data.crtState;
+                if (data.crtLog) crtLog = data.crtLog;
+                render();
+                rebuildFeed();
+                fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(d => {
+                    crtStats = d.crtStats || {};
+                    renderHitRates();
+                }).catch(() => {});
+            };
         }
 
         // ── FILTER FUNCTIONS ──
@@ -289,8 +363,8 @@
 
         function passesFilter(sym) {
             if (activeFilter === 'ALL') return true;
-            const wBO  = getBreakoutDir(sym, '1W');
-            const mBO  = getBreakoutDir(sym, '1MO');
+            const wBO = getBreakoutDir(sym, '1W');
+            const mBO = getBreakoutDir(sym, '1MO');
             const hasW = wBO !== 'NONE';
             const hasM = mBO !== 'NONE';
             if (activeFilter === 'W_BO') return hasW;
@@ -370,8 +444,8 @@
         }
 
         function statusBadgeHTML(status) {
-            if (status === 'ACTIVE')  return '<span class="status-badge status-active">ACTIVE</span>';
-            if (status === 'TP_HIT')  return '<span class="status-badge status-tp">🎯 TP HIT</span>';
+            if (status === 'ACTIVE') return '<span class="status-badge status-active">ACTIVE</span>';
+            if (status === 'TP_HIT') return '<span class="status-badge status-tp">🎯 TP HIT</span>';
             if (status === 'INVALID') return '<span class="status-badge status-invalid">❌ INVALID</span>';
             return '<span class="status-badge status-none">—</span>';
         }
@@ -380,8 +454,8 @@
             if (!entry || !entry.align_level) return '';
             const level = entry.align_level;
             if (level === 'MO+W') return '<span class="align-tag align-tag-mow">MO+W ✅</span>';
-            if (level === 'MO')   return '<span class="align-tag align-tag-mo">MO ✅</span>';
-            if (level === 'W')    return '<span class="align-tag align-tag-w">W ✅</span>';
+            if (level === 'MO') return '<span class="align-tag align-tag-mo">MO ✅</span>';
+            if (level === 'W') return '<span class="align-tag align-tag-w">W ✅</span>';
             return '<span class="align-tag align-tag-none">NO ALIGN</span>';
         }
 
@@ -394,14 +468,8 @@
             if (v >= 40) return 'hitrate-card-warn';
             return 'hitrate-card-bad';
         }
-        function getHRValueClass(rate, isPurple) {
-            if (isPurple) {
-                if (rate === '—') return 'hitrate-value-neutral';
-                const v = parseFloat(rate);
-                if (v >= 60) return 'hitrate-value-good';
-                if (v >= 40) return 'hitrate-value-warn';
-                return 'hitrate-value-bad';
-            }
+
+        function getHRValueClass(rate) {
             if (rate === '—') return 'hitrate-value-neutral';
             const v = parseFloat(rate);
             if (v >= 60) return 'hitrate-value-good';
@@ -416,12 +484,12 @@
                 return;
             }
 
-            // Build breakout hit rate stats from crtState + breakoutState
+            // Build breakout hit rate stats
             const boStats = {
-                bo_w:    { total: 0, tp: 0, inv: 0, active: 0 },
-                bo_m:    { total: 0, tp: 0, inv: 0, active: 0 },
-                bo_both: { total: 0, tp: 0, inv: 0, active: 0 },
-                bo_none: { total: 0, tp: 0, inv: 0, active: 0 },
+                bo_w: { total:0, tp:0, inv:0, active:0 },
+                bo_m: { total:0, tp:0, inv:0, active:0 },
+                bo_both: { total:0, tp:0, inv:0, active:0 },
+                bo_none: { total:0, tp:0, inv:0, active:0 },
             };
 
             for (const sym in crtState) {
@@ -437,8 +505,7 @@
                 else boKey = 'bo_none';
 
                 CRT_TFS.forEach(tf => {
-                    const entries = getTFEntries(sym, tf);
-                    entries.forEach(e => {
+                    getTFEntries(sym, tf).forEach(e => {
                         if (!e || !e.side) return;
                         boStats[boKey].total++;
                         if (e.status === 'TP_HIT') boStats[boKey].tp++;
@@ -450,7 +517,6 @@
                             if (e.status === 'TP_HIT') boStats['bo_w'].tp++;
                             if (e.status === 'INVALID') boStats['bo_w'].inv++;
                             if (e.status === 'ACTIVE') boStats['bo_w'].active++;
-
                             boStats['bo_m'].total++;
                             if (e.status === 'TP_HIT') boStats['bo_m'].tp++;
                             if (e.status === 'INVALID') boStats['bo_m'].inv++;
@@ -467,58 +533,50 @@
             }
 
             const storylineCards = [
-                { key: 'overall',     label: 'OVERALL',                 icon: '📊' },
-                { key: 'daily',       label: 'DAILY CRT',              icon: '📅' },
-                { key: 'weekly',      label: 'WEEKLY CRT',             icon: '📆' },
-                { key: 'daily_mo_w',  label: 'DAILY — MO+W ALIGNED',   icon: '✅' },
-                { key: 'daily_mo',    label: 'DAILY — MO ONLY',        icon: '🟡' },
-                { key: 'daily_w',     label: 'DAILY — W ONLY',         icon: '🔵' },
-                { key: 'daily_none',  label: 'DAILY — NO ALIGN',       icon: '⚠️' },
-                { key: 'weekly_mo',   label: 'WEEKLY — MO ALIGNED',    icon: '✅' },
-                { key: 'weekly_none', label: 'WEEKLY — NO MO ALIGN',   icon: '⚠️' },
+                { key:'overall', label:'OVERALL', icon:'📊' },
+                { key:'daily', label:'DAILY CRT', icon:'📅' },
+                { key:'weekly', label:'WEEKLY CRT', icon:'📆' },
+                { key:'daily_mo_w', label:'DAILY — MO+W ALIGNED', icon:'✅' },
+                { key:'daily_mo', label:'DAILY — MO ONLY', icon:'🟡' },
+                { key:'daily_w', label:'DAILY — W ONLY', icon:'🔵' },
+                { key:'daily_none', label:'DAILY — NO ALIGN', icon:'⚠️' },
+                { key:'weekly_mo', label:'WEEKLY — MO ALIGNED', icon:'✅' },
+                { key:'weekly_none', label:'WEEKLY — NO MO ALIGN', icon:'⚠️' },
             ];
 
             const breakoutCards = [
-                { key: 'bo_w',        label: 'WITH W BREAKOUT',         icon: '📆💥', bo: true },
-                { key: 'bo_m',        label: 'WITH M BREAKOUT',         icon: '📅💥', bo: true },
-                { key: 'bo_both',     label: 'WITH W+M BREAKOUT',       icon: '✅💥', bo: true },
-                { key: 'bo_none',     label: 'NO BREAKOUT',             icon: '⚪', bo: true },
+                { key:'bo_w', label:'WITH W BREAKOUT', icon:'📆💥', bo:true },
+                { key:'bo_m', label:'WITH M BREAKOUT', icon:'📅💥', bo:true },
+                { key:'bo_both', label:'WITH W+M BREAKOUT', icon:'✅💥', bo:true },
+                { key:'bo_none', label:'NO BREAKOUT', icon:'⚪', bo:true },
             ];
 
             let html = '';
 
-            // Storyline section
-            html += '<div class="hitrate-section-label">📊 STORYLINE ALIGNMENT</div>';
+            html += `<div class="hitrate-section-label">📊 STORYLINE ALIGNMENT — ${activeProfile}</div>`;
             html += storylineCards.map(c => {
                 const s = crtStats[c.key];
                 if (!s) return '';
                 const rate = s.hit_rate;
                 const resolved = s.tp + s.inv;
-                const cardCls = getHRCardClass(rate, false);
-                const valCls = getHRValueClass(rate, false);
-                return `
-                    <div class="hitrate-card ${cardCls}">
-                        <div class="hitrate-label">${c.icon} ${c.label}</div>
-                        <div class="hitrate-value ${valCls}">${rate === '—' ? '—' : rate + '%'}</div>
-                        <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
-                    </div>`;
+                return `<div class="hitrate-card ${getHRCardClass(rate, false)}">
+                    <div class="hitrate-label">${c.icon} ${c.label}</div>
+                    <div class="hitrate-value ${getHRValueClass(rate)}">${rate === '—' ? '—' : rate + '%'}</div>
+                    <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
+                </div>`;
             }).join('');
 
-            // Breakout section
-            html += '<div class="hitrate-section-label">💥 BREAKOUT ALIGNMENT</div>';
+            html += `<div class="hitrate-section-label">💥 BREAKOUT ALIGNMENT — ${activeProfile}</div>`;
             html += breakoutCards.map(c => {
                 const s = boStats[c.key];
                 if (!s) return '';
                 const rate = s.hit_rate;
                 const resolved = s.tp + s.inv;
-                const cardCls = getHRCardClass(rate, true);
-                const valCls = getHRValueClass(rate, true);
-                return `
-                    <div class="hitrate-card ${cardCls}">
-                        <div class="hitrate-label">${c.icon} ${c.label}</div>
-                        <div class="hitrate-value ${valCls}">${rate === '—' ? '—' : rate + '%'}</div>
-                        <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
-                    </div>`;
+                return `<div class="hitrate-card ${getHRCardClass(rate, true)}">
+                    <div class="hitrate-label">${c.icon} ${c.label}</div>
+                    <div class="hitrate-value ${getHRValueClass(rate)}">${rate === '—' ? '—' : rate + '%'}</div>
+                    <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
+                </div>`;
             }).join('');
 
             grid.innerHTML = html;
@@ -563,6 +621,7 @@
 
             if (!syms.length) {
                 grid.innerHTML = `<p class="empty-state">${activeFilter === 'ALL' ? 'Awaiting CRT signals...' : 'No coins match this breakout filter.'}</p>`;
+                renderHitRates();
                 return;
             }
 
@@ -580,7 +639,7 @@
                 const allE = getAllEntries(sym);
                 let latestTs = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
 
-                // Build breakout info line
+                // Breakout info line
                 const wBO = getBreakoutDir(sym, '1W');
                 const mBO = getBreakoutDir(sym, '1MO');
                 let boLine = '';
@@ -612,8 +671,8 @@
                     if (entryCount > 1) {
                         const bits = [];
                         if (tfActive > 0) bits.push(`${tfActive}🔵`);
-                        if (tfTP > 0)     bits.push(`${tfTP}🎯`);
-                        if (tfInv > 0)    bits.push(`${tfInv}❌`);
+                        if (tfTP > 0) bits.push(`${tfTP}🎯`);
+                        if (tfInv > 0) bits.push(`${tfInv}❌`);
                         countLine = `<div style="color:rgba(203,213,225,0.45);font-size:0.38rem;margin-top:2px;">${entryCount} signals · ${bits.join(' ')}</div>`;
                     }
 
@@ -650,7 +709,6 @@
                     </div>`);
             });
 
-            // Also refresh hit rates when render is called (filter may have changed)
             renderHitRates();
         }
 
@@ -686,47 +744,20 @@
         }
 
         // ── INIT ──
-        Promise.all([
-            fetch('/api/crt-state').then(r => r.json()),
-            fetch('/api/breakout-state').then(r => r.json())
-        ]).then(([crtData, boData]) => {
-            crtState = crtData.crtState || {};
-            crtLog = crtData.crtLog || [];
-            crtStats = crtData.crtStats || {};
-            breakoutState = boData.breakoutState || {};
-            render();
-            rebuildFeed();
-            renderHitRates();
-        });
-
-        // Periodically refresh hit rates
-        setInterval(() => {
-            fetch('/api/crt-stats').then(r => r.json()).then(data => {
-                crtStats = data.crtStats || {};
-                renderHitRates();
-            }).catch(() => {});
-        }, 30000);
-
-        // ── SSE (CRT) ──
-        const es = new EventSource('/api/crt-stream');
         const dot = document.getElementById('pulseDot');
         const lbl = document.getElementById('liveLabel');
         const bdg = document.getElementById('liveBadge');
 
-        es.onopen = () => { dot.className='pulse-dot';lbl.textContent='LIVE';lbl.style.color='#34d399';bdg.className='live-badge'; };
-        es.onerror = () => { dot.className='pulse-dot offline';lbl.textContent='RECONNECTING';lbl.style.color='#f87171';bdg.className='live-badge offline'; };
-        es.onmessage = e => {
-            const data = JSON.parse(e.data);
-            if (data.crtSound) { playSound(); return; }
-            if (data.crtState) crtState = data.crtState;
-            if (data.crtLog) crtLog = data.crtLog;
-            render();
-            rebuildFeed();
-            fetch('/api/crt-stats').then(r => r.json()).then(d => {
-                crtStats = d.crtStats || {};
+        loadProfileData();
+        reconnectSSE();
+
+        // Periodically refresh hit rates
+        setInterval(() => {
+            fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(data => {
+                crtStats = data.crtStats || {};
                 renderHitRates();
             }).catch(() => {});
-        };
+        }, 30000);
 
         // ── SSE (Breakout — for filter updates) ──
         const boEs = new EventSource('/api/breakout-stream');
