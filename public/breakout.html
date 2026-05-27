@@ -405,23 +405,32 @@
                 return tb - ta;
             });
 
-            let totalBull=0, totalBear=0, totalWeekly=0, totalMonthly=0, totalEntries=0;
-            syms.forEach(sym => {
-                getAllEntries(sym).forEach(e => {
-                    totalEntries++;
-                    if (e.direction === 'BULLISH') totalBull++;
-                    if (e.direction === 'BEARISH') totalBear++;
-                    if (e._tf === '1W') totalWeekly++;
-                    if (e._tf === '1MO') totalMonthly++;
-                });
-            });
+let totalBull=0, totalBear=0, totalWeekly=0, totalMonthly=0;
+syms.forEach(sym => {
+    const moE = getLatestEntry(sym, '1MO');
+    const wE  = getLatestEntry(sym, '1W');
+    const moD = moE?.direction || 'NONE';
+    const wD  = wE?.direction  || 'NONE';
+
+    // Count coins by dominant direction
+    if (moD === 'BULLISH' && wD === 'BULLISH') totalBull++;
+    else if (moD === 'BEARISH' && wD === 'BEARISH') totalBear++;
+    else {
+        if (moD === 'BULLISH' || wD === 'BULLISH') totalBull++;
+        if (moD === 'BEARISH' || wD === 'BEARISH') totalBear++;
+    }
+
+    // Count coins that have a breakout on each TF
+    if (wD !== 'NONE') totalWeekly++;
+    if (moD !== 'NONE') totalMonthly++;
+});
 
             document.getElementById('activeCount').textContent = syms.length;
             document.getElementById('bullPill').textContent = `🐂 ${totalBull} BULL`;
             document.getElementById('bearPill').textContent = `🐻 ${totalBear} BEAR`;
             document.getElementById('weeklyPill').textContent = `📆 ${totalWeekly} WEEKLY`;
             document.getElementById('monthlyPill').textContent = `📅 ${totalMonthly} MONTHLY`;
-            document.getElementById('totalPill').textContent = `💥 ${totalEntries} TOTAL`;
+            document.getElementById('totalPill').textContent = `💥 ${syms.length} TOTAL`;
 
             if (!syms.length) {
                 grid.innerHTML = '<p class="empty-state">Awaiting breakout signals...</p>';
