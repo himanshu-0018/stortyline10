@@ -894,14 +894,18 @@ app.post('/webhook', async (req, res) => {
         const alignLabel = align.type === 'GOD' ? `GOD-MODE (2/2)` : `PARTIAL (${align.count}/2)`;
         const chartTfStr = chartTf || payload.chart_tf || '?';
 
-        breakoutState[sym] = {
-            direction,
-            chartTf: chartTfStr,
-            timestamp: Date.now(),
-            aligned: align.aligned,
-            alignType: align.type,
-            alignCount: align.count
-        };
+// --- NEW: Multi-TF Breakout State ---
+        if (!breakoutState[sym]) {
+            breakoutState[sym] = { timeframes: {}, timestamp: 0 };
+        }
+        breakoutState[sym].timeframes[chartTfStr] = direction; // Saves both MO and W safely
+        breakoutState[sym].direction = direction; // Fallback
+        breakoutState[sym].chartTf = chartTfStr;
+        breakoutState[sym].timestamp = Date.now();
+        breakoutState[sym].aligned = align.aligned;
+        breakoutState[sym].alignType = align.type;
+        breakoutState[sym].alignCount = align.count;
+        
         await redisClient.set(REDIS_BREAKOUT_KEY, JSON.stringify(breakoutState));
         // ------------------------------------
 
