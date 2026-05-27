@@ -28,6 +28,7 @@ const TG_CUSTOM_ALIGNMENT = process.env.TG_CUSTOM_ALIGNMENT;
 const TG_CRT_CHANNEL = process.env.TG_CRT_CHANNEL;
 
 const REDIS_STATE_KEY     = process.env.REDIS_KEY || 'godModeState_v4';
+const REDIS_BREAKOUT_KEY  = REDIS_STATE_KEY + '_breakout';
 const REDIS_LOG_KEY       = REDIS_STATE_KEY + '_activityLog';
 const REDIS_STATS_KEY     = REDIS_STATE_KEY + '_tradeStats';
 const REDIS_SETTINGS_KEY  = REDIS_STATE_KEY + '_settings';
@@ -54,6 +55,7 @@ const ALIGNMENT_COMBOS = [
 const CRT_VALID_TFS = ['1W', '1D'];
 
 let marketState  = {};
+let breakoutState = {}; 
 let activityLog  = [];
 let tradeStats   = {};
 let appSettings  = { activeAlignments: [] };
@@ -67,7 +69,7 @@ let crtClients   = [];
 // BROADCAST
 // ══════════════════════════════════════════════
 function broadcastAll(extras = {}) {
-    const data = JSON.stringify({ marketState, activityLog, settings: appSettings, ...extras });
+    const data = JSON.stringify({ marketState, breakoutState, activityLog, settings: appSettings, ...extras });
     clients.forEach(c => c.res.write(`data: ${data}\n\n`));
 }
 
@@ -569,6 +571,13 @@ if (savedStats) {
     console.log(`📊 Stats for ${Object.keys(tradeStats).length} symbols`);
 }
 
+const savedBreakout = await redisClient.get(REDIS_BREAKOUT_KEY);
+if (savedBreakout) {
+    breakoutState = JSON.parse(savedBreakout);
+    console.log(`💥 Restored ${Object.keys(breakoutState).length} breakout states`);
+}
+
+
 const savedSettings = await redisClient.get(REDIS_SETTINGS_KEY);
 if (savedSettings) {
     appSettings = JSON.parse(savedSettings);
@@ -687,7 +696,7 @@ if (savedCRTLog) {
 // ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
-app.get('/api/state',     (req, res) => res.json({ marketState, activityLog, settings: appSettings }));
+app.get('/api/state', (req, res) => res.json({ marketState, breakoutState, activityLog, settings: appSettings }));
 app.get('/api/stats',     (req, res) => res.json({ tradeStats: buildEnrichedStats(), alignmentCombos: ALIGNMENT_COMBOS }));
 app.get('/api/crt-state', (req, res) => res.json({ crtState, crtLog, crtStats: buildCRTStats() }));
 app.get('/api/crt-stats', (req, res) => res.json({ crtStats: buildCRTStats() }));
@@ -885,7 +894,20 @@ app.post('/webhook', async (req, res) => {
         const alignLabel = align.type === 'GOD' ? `GOD-MODE (2/2)` : `PARTIAL (${align.count}/2)`;
         const chartTfStr = chartTf || payload.chart_tf || '?';
 
+        breakoutState[sym] = {
+            direction,
+            chartTf: chartTfStr,
+            timestamp: Date.now(),
+            aligned: align.aligned,
+            alignType: align.type,
+            alignCount: align.count
+        };
+        await redisClient.set(REDIS_BREAKOUT_KEY, JSON.stringify(breakoutState));
+        // ------------------------------------
+
         let tgMsg = `<b>${dirEmoji} BREAKOUT: ${sym}</b>\n\n`;
+
+        
         tgMsg += `<b>Direction:</b> ${direction}\n`;
         tgMsg += `<b>Chart TF:</b> ${chartTfStr}\n`;
         tgMsg += `\n${alignEmoji} <b>${alignLabel}</b>\n`;
@@ -1236,6 +1258,7 @@ app.post('/webhook', async (req, res) => {
 app.get('/',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'stats.html')));
 app.get('/crt',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'crt.html')));
+app.get('/breakout', (req, res) => res.sendFile(path.join(__dirname, 'public', 'breakout.html')));
 
 // ══════════════════════════════════════════════
 // START
