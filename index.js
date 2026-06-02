@@ -946,6 +946,39 @@ app.get('/api/breakout-stream',(req,res)=>{res.setHeader('Content-Type','text/ev
 app.post('/api/delete',async(req,res)=>{const{symbol,action}=req.body;if(!symbol||action!=='DELETE')return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(!marketState[sym])return res.status(404).send("Not found");delete marketState[sym];await redisClient.set(REDIS_STATE_KEY,JSON.stringify(marketState));await pushLogEvent(sym,'SYSTEM','🗑️ Purged');broadcastAll();res.send("Purged");});
 app.post('/api/delete-stats',async(req,res)=>{const{symbol}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(sym==="ALL")tradeStats={};else{if(!tradeStats[sym])return res.status(404).send("Not found");delete tradeStats[sym];}await saveStats();broadcastStats();res.send("Cleared");});
 app.post('/api/delete-crt',async(req,res)=>{const{symbol,profile:rp}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();const p=normalizeBoProfile(rp);let cs=getCRTState(p);let cl=getCRTLog(p);if(sym==="ALL"){cs={};cl=[];}else{if(cs[sym])delete cs[sym];cl=cl.filter(e=>e.symbol!==sym);}setCRTState(p,cs);setCRTLog(p,cl);await saveCRTState(p);await redisClient.set(getCRTRedisKey(p)+'_log',JSON.stringify(cl));broadcastCRT(p);res.send("Cleared");});
+// ══════════════════════════════════════════════
+// PURGE SINGLE CRT COIN (removes from state + log + stats recalculate)
+// ══════════════════════════════════════════════
+app.post('/api/purge-crt', async (req, res) => {
+    const { symbol, profile: rp } = req.body;
+    if (!symbol) return res.status(400).send("Invalid");
+    const sym = symbol.toUpperCase().trim();
+    const p = normalizeBoProfile(rp);
+    let cs = getCRTState(p);
+    let cl = getCRTLog(p);
+
+    // Remove from CRT state
+    if (cs[sym]) {
+        delete cs[sym];
+    } else {
+        return res.status(404).send("Symbol not found");
+    }
+
+    // Remove from CRT log
+    cl = cl.filter(e => e.symbol !== sym);
+
+    // Save
+    setCRTState(p, cs);
+    setCRTLog(p, cl);
+    await saveCRTState(p);
+    await redisClient.set(getCRTRedisKey(p) + '_log', JSON.stringify(cl));
+
+    // Broadcast updates
+    broadcastCRT(p);
+
+    console.log(`[PURGE CRT] ${sym} purged from ${p} profile`);
+    res.json({ ok: true, purged: sym, profile: p });
+});
 app.post('/api/delete-breakout',async(req,res)=>{const{symbol}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(sym==="ALL"){breakoutState={};breakoutLog=[];}else{if(breakoutState[sym])delete breakoutState[sym];breakoutLog=breakoutLog.filter(e=>e.symbol!==sym);}await saveBreakoutState();await redisClient.set(REDIS_BREAKOUT_KEY+'_log',JSON.stringify(breakoutLog));broadcastBreakout();res.send("Cleared");});
 app.post('/api/breakout-inject',async(req,res)=>{const{symbol,tf,direction}=req.body;if(!symbol||!tf||!direction)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();const nt=normalizeTf(tf);const dir=normalizeBreakoutDirection(direction);if(!BREAKOUT_PAGE_TFS.includes(nt))return res.status(400).send("Invalid TF");if(dir==='NONE')return res.status(400).send("Direction required");await processBreakoutUpdate(sym,nt==='1MO'?dir:'NONE',nt==='1W'?dir:'NONE','INJECT');res.send("OK");});
 
