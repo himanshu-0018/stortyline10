@@ -156,6 +156,93 @@
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
+        /* PURGE MODAL */
+.purge-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+.purge-overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.purge-modal {
+    background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,20,50,0.95));
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 20px; padding: 28px 32px;
+    max-width: 380px; width: 90%;
+    box-shadow: 0 0 60px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.6);
+    animation: modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    text-align: center;
+}
+@keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.purge-modal-icon {
+    font-size: 2.5rem; margin-bottom: 12px;
+    animation: shake 0.5s ease-in-out;
+}
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+}
+
+.purge-modal-title {
+    font-family: 'Orbitron', sans-serif; font-size: 0.85rem;
+    font-weight: 900; color: #f87171; letter-spacing: 0.08em;
+    margin-bottom: 8px;
+}
+.purge-modal-sym {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;
+    font-weight: 800; color: #fbbf24; margin-bottom: 14px;
+}
+.purge-modal-desc {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    color: rgba(203,213,225,0.6); line-height: 1.6; margin-bottom: 20px;
+}
+.purge-modal-desc b { color: #f87171; }
+
+.purge-modal-btns {
+    display: flex; gap: 10px; justify-content: center;
+}
+.purge-btn-cancel {
+    padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; font-weight: 700; cursor: pointer;
+    background: rgba(71,85,105,0.3); border: 1px solid rgba(71,85,105,0.5);
+    color: #94a3b8; transition: all 0.2s;
+}
+.purge-btn-cancel:hover {
+    background: rgba(71,85,105,0.5); color: #cbd5e1;
+    transform: translateY(-1px);
+}
+.purge-btn-confirm {
+    padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; font-weight: 700; cursor: pointer;
+    background: linear-gradient(135deg, rgba(239,68,68,0.4), rgba(153,27,27,0.3));
+    border: 1px solid rgba(239,68,68,0.6); color: #fca5a5;
+    transition: all 0.2s;
+}
+.purge-btn-confirm:hover {
+    background: linear-gradient(135deg, rgba(239,68,68,0.6), rgba(153,27,27,0.5));
+    color: #fee2e2; transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(239,68,68,0.3);
+}
+
+/* PURGE BUTTON ON CARD */
+.purge-card-btn {
+    position: absolute; top: 8px; right: 8px; z-index: 5;
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+    color: rgba(239,68,68,0.4); font-size: 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; opacity: 0;
+}
+.coin-card:hover .purge-card-btn { opacity: 1; }
+.purge-card-btn:hover {
+    background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.6);
+    color: #f87171; transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(239,68,68,0.3);
+}
     </style>
 </head>
 <body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
@@ -172,7 +259,25 @@
             <div class="cbar r" style="height:47%;animation-delay:.5s"></div><div class="cbar g" style="height:90%;animation-delay:.9s"></div>
         </div>
     </div>
-
+<!-- PURGE MODAL -->
+<div class="purge-overlay" id="purgeOverlay" onclick="closePurgeModal(event)">
+    <div class="purge-modal" onclick="event.stopPropagation()">
+        <div class="purge-modal-icon">🗑️</div>
+        <div class="purge-modal-title">PURGE COIN</div>
+        <div class="purge-modal-sym" id="purgeSymbol">—</div>
+        <div class="purge-modal-desc">
+            This will <b>permanently remove</b> all CRT data for this coin:<br><br>
+            ✦ All CRT entries (Active, TP, Invalid)<br>
+            ✦ All log entries for this coin<br>
+            ✦ Removed from overall statistics<br><br>
+            This action <b>cannot be undone</b>.
+        </div>
+        <div class="purge-modal-btns">
+            <button class="purge-btn-cancel" onclick="closePurgeModal()">CANCEL</button>
+            <button class="purge-btn-confirm" id="purgeConfirmBtn" onclick="confirmPurge()">🗑️ PURGE</button>
+        </div>
+    </div>
+</div>
     <div class="top-bar">
         <div style="display:flex;align-items:center;gap:14px;">
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
@@ -285,6 +390,62 @@
             if (!confirm(`Clear all CRT data for ${activeProfile} profile?`)) return;
             await fetch('/api/delete-crt', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:'ALL', profile: activeProfile}) });
         }
+
+        // ── PURGE SYSTEM ──
+let pendingPurgeSymbol = null;
+
+function openPurgeModal(sym) {
+    pendingPurgeSymbol = sym;
+    document.getElementById('purgeSymbol').textContent = sym;
+    document.getElementById('purgeOverlay').classList.add('show');
+}
+
+function closePurgeModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('purgeOverlay').classList.remove('show');
+    pendingPurgeSymbol = null;
+}
+
+async function confirmPurge() {
+    if (!pendingPurgeSymbol) return;
+    const sym = pendingPurgeSymbol;
+    const btn = document.getElementById('purgeConfirmBtn');
+    btn.textContent = '⏳ PURGING...';
+    btn.style.pointerEvents = 'none';
+
+    try {
+        const resp = await fetch('/api/purge-crt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol: sym, profile: activeProfile })
+        });
+
+        if (resp.ok) {
+            // Remove locally for instant UI update
+            if (crtState[sym]) delete crtState[sym];
+            crtLog = crtLog.filter(e => e.symbol !== sym);
+            render();
+            rebuildFeed();
+
+            // Refresh stats
+            fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(data => {
+                crtStats = data.crtStats || {};
+                renderHitRates();
+            }).catch(() => {});
+        }
+    } catch (err) {
+        console.error('Purge failed:', err);
+    }
+
+    closePurgeModal();
+    btn.textContent = '🗑️ PURGE';
+    btn.style.pointerEvents = 'auto';
+}
+
+// ESC key to close modal
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePurgeModal();
+});
 
         // ── PROFILE SWITCH ──
         function setProfile(p) {
@@ -683,8 +844,9 @@
 
                 const alignBar = getAlignBarInfo(sym);
 
-                grid.insertAdjacentHTML('beforeend', `
-                    <div class="coin-card ${cardCls}">
+             grid.insertAdjacentHTML('beforeend', `
+    <div class="coin-card ${cardCls}" style="position:relative;">
+        <button class="purge-card-btn" onclick="event.stopPropagation();openPurgeModal('${sym}')" title="Purge ${sym}">✕</button>
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                             <div>
                                 <div class="card-symbol">${sym}</div>
