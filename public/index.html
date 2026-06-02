@@ -40,7 +40,6 @@
         .btn-stats:hover { background:linear-gradient(135deg,rgba(245,158,11,0.4),rgba(251,191,36,0.25));color:#fde68a; }
         .btn-crt { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
         .btn-crt:hover { background:linear-gradient(135deg,rgba(245,158,11,0.4),rgba(251,191,36,0.25));color:#fde68a; }
-
         .btn-delete { background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(153,27,27,0.15));border-color:rgba(239,68,68,0.5);color:#fca5a5; }
         .btn-delete:hover { background:linear-gradient(135deg,rgba(239,68,68,0.4),rgba(153,27,27,0.25));color:#fee2e2; }
         .btn-sound { background:rgba(30,41,59,0.7);border-color:rgba(71,85,105,0.5);color:#94a3b8; }
@@ -93,7 +92,7 @@
         .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
         .card-time { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.5);letter-spacing:0.06em;margin-top:4px; }
 
-        .tf-row { display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px; }
+        .tf-row { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px; }
         .tf-cell { padding:10px 6px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.55rem; }
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
         .tf-cell-bear { background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.25); }
@@ -134,9 +133,21 @@
         .btn-delete-modal { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(153,27,27,0.2));border:1px solid rgba(239,68,68,0.5);color:#fca5a5;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
         .btn-delete-modal:hover { background:linear-gradient(135deg,rgba(239,68,68,0.5),rgba(153,27,27,0.35));color:#fee2e2; }
 
-        .inject-tf-block { padding:12px 14px;border-radius:12px;margin-bottom:10px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between; }
-        .inject-tf-title { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#a5b4fc;letter-spacing:0.08em; }
-        .inject-state-select { padding:5px 10px;border-radius:8px;background:rgba(15,23,42,0.8);border:1px solid rgba(99,102,241,0.3);color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.75rem;cursor:pointer;outline:none; }
+        /* ── INJECT TF BLOCK: 3 direct-click buttons ── */
+        .inject-tf-block { padding:12px 14px;border-radius:12px;margin-bottom:10px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06); }
+        .inject-tf-title { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#a5b4fc;letter-spacing:0.08em;margin-bottom:8px;display:block; }
+        .inject-btn-row { display:flex;gap:6px; }
+        .inject-state-btn { flex:1;padding:8px 4px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;text-align:center;border:2px solid; }
+        .isb-none { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
+        .isb-none.active { background:rgba(71,85,105,0.4);border-color:rgba(148,163,184,0.8);color:#e2e8f0;box-shadow:0 0 12px rgba(148,163,184,0.2); }
+        .isb-none:hover { background:rgba(71,85,105,0.3);border-color:rgba(148,163,184,0.6); }
+        .isb-bull { background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:#6ee7b7; }
+        .isb-bull.active { background:rgba(16,185,129,0.35);border-color:rgba(52,211,153,0.8);color:#a7f3d0;box-shadow:0 0 12px rgba(16,185,129,0.3); }
+        .isb-bull:hover { background:rgba(16,185,129,0.25);border-color:rgba(52,211,153,0.6); }
+        .isb-bear { background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5; }
+        .isb-bear.active { background:rgba(239,68,68,0.35);border-color:rgba(248,113,113,0.8);color:#fee2e2;box-shadow:0 0 12px rgba(239,68,68,0.3); }
+        .isb-bear:hover { background:rgba(239,68,68,0.25);border-color:rgba(248,113,113,0.6); }
+
         .quick-fill-row { display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap; }
         .quick-btn { padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid; }
         .quick-btn-bull { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
@@ -177,14 +188,12 @@
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">⚡</div>
             <div>
                 <div class="brand-name">GOD-MODE TERMINAL</div>
-                <div class="brand-sub">STORYLINE ENGINE · v7 · MONTHLY + WEEKLY · 2/2=GOD · 1/2=PARTIAL</div>
+                <div class="brand-sub">STORYLINE ENGINE · v7 · MO + W + D · 3/3=GOD · 2/3=STRONG · 1/3=PARTIAL</div>
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <button onclick="openModal()" class="ctrl-btn btn-inject"><span>⚡</span> INJECT</button>
-            
             <a href="/crt" class="ctrl-btn btn-crt" style="text-decoration:none;"><span>🔄</span> CRT</a>
-        
             <button onclick="openDeleteModal()" class="ctrl-btn btn-delete"><span>🗑️</span> PURGE</button>
             <button id="audioBtn" onclick="toggleAudio()" class="ctrl-btn btn-sound">
                 <span id="audioIco">🔇</span><span id="audioTxt">SOUND OFF</span>
@@ -234,7 +243,7 @@
     <div class="modal-backdrop" id="modal">
         <div class="modal-box" style="max-width:540px;">
             <div class="modal-title">⚡ Storyline Inject</div>
-            <div class="modal-sub">Set Monthly + Weekly storyline for a coin.</div>
+            <div class="modal-sub">Set Monthly + Weekly + Daily storyline for a coin. Click a state directly.</div>
             <label class="field-label">Symbol</label>
             <input type="text" id="injSymbol" class="field-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;">
             <div class="quick-fill-row">
@@ -267,8 +276,11 @@
     </div>
 
     <script>
-        const ALL_TFS = ['1MO', '1W'];
-        const TF_LABELS = { '1MO':'MONTHLY', '1W':'WEEKLY' };
+        const ALL_TFS = ['1MO', '1W', '1D'];
+        const TF_LABELS = { '1MO':'MONTHLY', '1W':'WEEKLY', '1D':'DAILY' };
+
+        // Track selected inject state per TF
+        const injStates = { '1MO':'NONE', '1W':'NONE', '1D':'NONE' };
 
         const moneySound = new Audio('/money.mp3');
         moneySound.volume = 0.85;
@@ -283,36 +295,47 @@
         }
         function playEntrySound() { if (!audioOn) return; moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
 
-        // ── INJECT MODAL ──
+        // ── BUILD INJECT TF BLOCKS (direct-click buttons) ──
         (function buildTfBlocks() {
             const container = document.getElementById('tfBlocks');
             container.innerHTML = ALL_TFS.map(tf => `
                 <div class="inject-tf-block">
                     <span class="inject-tf-title">${TF_LABELS[tf]}</span>
-                    <select id="inj_${tf}" class="inject-state-select">
-                        <option value="NONE">⚪ NONE</option>
-                        <option value="BULLISH">🟢 BULLISH</option>
-                        <option value="BEARISH">🔴 BEARISH</option>
-                    </select>
+                    <div class="inject-btn-row">
+                        <button type="button" class="inject-state-btn isb-none active" data-tf="${tf}" data-val="NONE" onclick="setInjState('${tf}','NONE')">⚪ NONE</button>
+                        <button type="button" class="inject-state-btn isb-bull" data-tf="${tf}" data-val="BULLISH" onclick="setInjState('${tf}','BULLISH')">🟢 BULL</button>
+                        <button type="button" class="inject-state-btn isb-bear" data-tf="${tf}" data-val="BEARISH" onclick="setInjState('${tf}','BEARISH')">🔴 BEAR</button>
+                    </div>
                 </div>`).join('');
         })();
+
+        function setInjState(tf, state) {
+            injStates[tf] = state;
+            // Update button visuals
+            document.querySelectorAll(`.inject-state-btn[data-tf="${tf}"]`).forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-val') === state);
+            });
+        }
+
+        function quickFillAll(state) {
+            ALL_TFS.forEach(tf => setInjState(tf, state));
+        }
 
         const openModal = () => { document.getElementById('modal').style.display='flex'; };
         const closeModal = () => {
             document.getElementById('modal').style.display='none';
             document.getElementById('injSymbol').value='';
-            ALL_TFS.forEach(tf => { const el = document.getElementById('inj_'+tf); if(el) el.value='NONE'; });
+            ALL_TFS.forEach(tf => setInjState(tf, 'NONE'));
             const prog = document.getElementById('injProgress'); prog.innerHTML=''; prog.classList.remove('active');
         };
         document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
-        function quickFillAll(state) { ALL_TFS.forEach(tf => { const el = document.getElementById('inj_'+tf); if(el) el.value=state; }); }
 
         async function doInject() {
             const sym = document.getElementById('injSymbol').value.toUpperCase().trim();
             const btn = document.getElementById('injBtn');
             const prog = document.getElementById('injProgress');
             if (!sym) return alert('Please enter a symbol.');
-            const tfs = ALL_TFS.map(tf => ({ tf, state: document.getElementById('inj_'+tf)?.value||'NONE' })).filter(t=>t.state);
+            const tfs = ALL_TFS.map(tf => ({ tf, state: injStates[tf] })).filter(t => t.state);
             if (!tfs.length) return alert('Set at least one timeframe state.');
             btn.textContent='INJECTING...'; btn.style.pointerEvents='none'; prog.innerHTML=''; prog.classList.add('active');
             let success=0, fail=0;
@@ -357,10 +380,15 @@
             const tfs = data?.timeframes || {};
             const mo = tfs['1MO'] || 'NONE';
             const w  = tfs['1W']  || 'NONE';
-            if (mo === 'BULLISH' && w === 'BULLISH') return 'card-bull';
-            if (mo === 'BEARISH' && w === 'BEARISH') return 'card-bear';
-            if (mo === 'BULLISH' || w === 'BULLISH') return 'card-partial-bull';
-            if (mo === 'BEARISH' || w === 'BEARISH') return 'card-partial-bear';
+            const d  = tfs['1D']  || 'NONE';
+            const states = [mo, w, d].filter(s => s !== 'NONE');
+            if (states.length === 0) return 'card-idle';
+            if (states.length === 3 && states.every(s => s === 'BULLISH')) return 'card-bull';
+            if (states.length === 3 && states.every(s => s === 'BEARISH')) return 'card-bear';
+            const bullCount = [mo,w,d].filter(s => s === 'BULLISH').length;
+            const bearCount = [mo,w,d].filter(s => s === 'BEARISH').length;
+            if (bullCount > 0 && bearCount === 0) return 'card-partial-bull';
+            if (bearCount > 0 && bullCount === 0) return 'card-partial-bear';
             return 'card-idle';
         }
 
@@ -368,10 +396,16 @@
             const tfs = data?.timeframes || {};
             const mo = tfs['1MO'] || 'NONE';
             const w  = tfs['1W']  || 'NONE';
-            if (mo === 'BULLISH' && w === 'BULLISH') return '<span class="card-badge-bull">🐂 GOD 2/2</span>';
-            if (mo === 'BEARISH' && w === 'BEARISH') return '<span class="card-badge-bear">🐻 GOD 2/2</span>';
-            if (mo === 'BULLISH' || w === 'BULLISH') return '<span class="card-badge-partial-bull">🐂 PARTIAL 1/2</span>';
-            if (mo === 'BEARISH' || w === 'BEARISH') return '<span class="card-badge-partial-bear">🐻 PARTIAL 1/2</span>';
+            const d  = tfs['1D']  || 'NONE';
+            const states = [mo, w, d];
+            const bullCount = states.filter(s => s === 'BULLISH').length;
+            const bearCount = states.filter(s => s === 'BEARISH').length;
+            if (bullCount === 3) return '<span class="card-badge-bull">🐂 GOD 3/3</span>';
+            if (bearCount === 3) return '<span class="card-badge-bear">🐻 GOD 3/3</span>';
+            if (bullCount === 2) return '<span class="card-badge-partial-bull">🐂 STRONG 2/3</span>';
+            if (bearCount === 2) return '<span class="card-badge-partial-bear">🐻 STRONG 2/3</span>';
+            if (bullCount === 1) return '<span class="card-badge-partial-bull">🐂 PARTIAL 1/3</span>';
+            if (bearCount === 1) return '<span class="card-badge-partial-bear">🐻 PARTIAL 1/3</span>';
             return '<span class="card-badge-idle">— IDLE</span>';
         }
 
@@ -379,13 +413,34 @@
             const tfs = data?.timeframes || {};
             const mo = tfs['1MO'] || 'NONE';
             const w  = tfs['1W']  || 'NONE';
-            if (mo !== 'NONE' && mo === w) {
-                const e = mo === 'BULLISH' ? '🐂' : '🐻';
-                return { cls: 'align-bar-god', txt: `✅ GOD-MODE: ${e} MO+W ${mo} (2/2)` };
+            const d  = tfs['1D']  || 'NONE';
+            const states = [mo, w, d];
+            const bullCount = states.filter(s => s === 'BULLISH').length;
+            const bearCount = states.filter(s => s === 'BEARISH').length;
+            const maxCount = Math.max(bullCount, bearCount);
+            const dominant = bullCount >= bearCount ? 'BULLISH' : 'BEARISH';
+            const e = dominant === 'BULLISH' ? '🐂' : '🐻';
+
+            if (maxCount === 3) {
+                return { cls: 'align-bar-god', txt: `✅ GOD-MODE: ${e} MO+W+D ${dominant} (3/3)` };
             }
-            if (mo !== 'NONE' && w === 'NONE') return { cls: mo === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear', txt: `⚡ PARTIAL: MO=${mo} (1/2)` };
-            if (w !== 'NONE' && mo === 'NONE') return { cls: w === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear', txt: `⚡ PARTIAL: W=${w} (1/2)` };
-            if (mo !== 'NONE' && w !== 'NONE' && mo !== w) return { cls: 'align-bar-none', txt: `⚠️ CONFLICT: MO=${mo} W=${w}` };
+            if (maxCount === 2) {
+                const parts = [];
+                if (mo === dominant) parts.push('MO');
+                if (w === dominant) parts.push('W');
+                if (d === dominant) parts.push('D');
+                const cls = dominant === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear';
+                return { cls, txt: `⚡ STRONG: ${parts.join('+')}=${dominant} (2/3)` };
+            }
+            if (maxCount === 1) {
+                const parts = [];
+                if (mo !== 'NONE') parts.push(`MO=${mo}`);
+                if (w !== 'NONE') parts.push(`W=${w}`);
+                if (d !== 'NONE') parts.push(`D=${d}`);
+                const dir = mo !== 'NONE' ? mo : w !== 'NONE' ? w : d;
+                const cls = dir === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear';
+                return { cls, txt: `⚡ PARTIAL: ${parts.join(' ')} (1/3)` };
+            }
             return { cls: 'align-bar-none', txt: '— No storyline set' };
         }
 
@@ -397,17 +452,19 @@
 
         function render(marketState, activityLog) {
             const syms = Object.keys(marketState).sort((a, b) => {
-                const pri = { 'card-bull':5, 'card-bear':5, 'card-partial-bull':3, 'card-partial-bear':3, 'card-idle':0 };
+                const pri = { 'card-bull':6, 'card-bear':6, 'card-partial-bull':3, 'card-partial-bear':3, 'card-idle':0 };
                 return (pri[getCardClass(marketState[b])]||0) - (pri[getCardClass(marketState[a])]||0);
             });
 
             let godBull=0, godBear=0, partial=0, idle=0;
             syms.forEach(sym => {
                 const tfs = marketState[sym]?.timeframes || {};
-                const mo = tfs['1MO']||'NONE', w = tfs['1W']||'NONE';
-                if (mo === 'BULLISH' && w === 'BULLISH') godBull++;
-                else if (mo === 'BEARISH' && w === 'BEARISH') godBear++;
-                else if (mo !== 'NONE' || w !== 'NONE') partial++;
+                const mo = tfs['1MO']||'NONE', w = tfs['1W']||'NONE', d = tfs['1D']||'NONE';
+                const bullC = [mo,w,d].filter(s=>s==='BULLISH').length;
+                const bearC = [mo,w,d].filter(s=>s==='BEARISH').length;
+                if (bullC === 3) godBull++;
+                else if (bearC === 3) godBear++;
+                else if (bullC > 0 || bearC > 0) partial++;
                 else idle++;
             });
 
