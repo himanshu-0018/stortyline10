@@ -566,7 +566,21 @@
                 </div>`;
             }).join('');
 
-            
+            html += `<div class="hitrate-section-label">💥 BREAKOUT ALIGNMENT — ${activeProfile}</div>`;
+            html += breakoutCards.map(c => {
+                const s = boStats[c.key];
+                if (!s) return '';
+                const rate = s.hit_rate;
+                const resolved = s.tp + s.inv;
+                return `<div class="hitrate-card ${getHRCardClass(rate, true)}">
+                    <div class="hitrate-label">${c.icon} ${c.label}</div>
+                    <div class="hitrate-value ${getHRValueClass(rate)}">${rate === '—' ? '—' : rate + '%'}</div>
+                    <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
+                </div>`;
+            }).join('');
+
+            grid.innerHTML = html;
+        }
 
         // ── RENDER ──
         function render() {
