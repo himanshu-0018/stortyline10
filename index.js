@@ -42,8 +42,12 @@ const REDIS_BREAKOUT_KEY  = REDIS_STATE_KEY + '_breakout';
 const REDIS_BOT_SESSIONS  = REDIS_STATE_KEY + '_bot_sessions';
 const REDIS_CRT_KEY_LEGACY = REDIS_STATE_KEY + '_crt';
 
-const ZONE_TIMEFRAMES   = ["1MO", "1W"];
-const GOD_THRESHOLD     = 2;
+// ══════════════════════════════════════════════
+// UPDATED: 3 storyline timeframes (MO + W + D)
+// ══════════════════════════════════════════════
+const ZONE_TIMEFRAMES   = ["1MO", "1W", "1D"];
+const GOD_THRESHOLD     = 3;
+const STRONG_THRESHOLD  = 2;
 const PARTIAL_THRESHOLD = 1;
 const ENTRY_TFS         = ["1M", "3M", "5M"];
 
@@ -54,14 +58,20 @@ const TG_CHANNEL_MAP = {
 };
 
 const ALIGNMENT_COMBOS = [
-    { id: "MO_W", label: "MO+W", tfs: ["1MO","1W"] },
+    { id: "MO_W_D", label: "MO+W+D", tfs: ["1MO","1W","1D"] },
+    { id: "MO_W",   label: "MO+W",   tfs: ["1MO","1W"] },
+    { id: "MO_D",   label: "MO+D",   tfs: ["1MO","1D"] },
+    { id: "W_D",    label: "W+D",    tfs: ["1W","1D"] },
 ];
 
-const CRT_VALID_TFS     = ['1W', '1D'];
+// ══════════════════════════════════════════════
+// UPDATED: CRT now includes 4H (1H breakout)
+// ══════════════════════════════════════════════
+const CRT_VALID_TFS     = ['1W', '1D', '4H'];
 const VALID_BO_PROFILES = ['HTF', 'LTF'];
 const BREAKOUT_PAGE_TFS = ['1MO', '1W'];
 const BO_PROFILE_LABELS = {
-    HTF: 'HTF Breakout (W→D, D→4H)',
+    HTF: 'HTF Breakout (W→D, D→4H, 4H→1H)',
     LTF: 'LTF Breakout (W→4H, D→1H)'
 };
 
@@ -227,9 +237,15 @@ function statusIcon(s) {
 function dirIcon(side)  { return side === 'BULLISH' ? '🐂' : '🐻'; }
 function dirBar(side)   { return side === 'BULLISH' ? '🟩🟩🟩🟩🟩' : '🟥🟥🟥🟥🟥'; }
 function alignBadge(lv) {
-    if (lv === 'MO+W') return '✅ MO+W Aligned';
-    if (lv === 'MO')   return '⚡ MO Aligned';
-    if (lv === 'W')    return '⚡ W Aligned';
+    if (lv === 'MO+W+D') return '✅ MO+W+D Aligned (GOD)';
+    if (lv === 'MO+W')   return '⚡ MO+W Aligned';
+    if (lv === 'MO+D')   return '⚡ MO+D Aligned';
+    if (lv === 'W+D')    return '⚡ W+D Aligned';
+    if (lv === 'D+W+MO') return '✅ D+W+MO Aligned';
+    if (lv === 'D+W')    return '⚡ D+W Aligned';
+    if (lv === 'D')      return '⚡ D Aligned';
+    if (lv === 'MO')     return '⚡ MO Aligned';
+    if (lv === 'W')      return '⚡ W Aligned';
     return '⚪ No Alignment';
 }
 function timeStr(ts) {
@@ -252,15 +268,16 @@ function progressBar(tp, inv) {
 }
 
 // ══════════════════════════════════════════════
-// KEYBOARDS
+// KEYBOARDS (updated with 4H CRT)
 // ══════════════════════════════════════════════
 function mainMenuKeyboard() {
     return { inline_keyboard: [
         [{ text: '📅 Daily CRT',    callback_data: 'DAILY_CRT'   },
          { text: '📆 Weekly CRT',   callback_data: 'WEEKLY_CRT'  }],
-        [{ text: '🟢 Active CRTs',  callback_data: 'ACTIVE_CRT'  },
-         { text: '📊 CRT Stats',    callback_data: 'CRT_STATS'   }],
-        [{ text: '🔄 Refresh',      callback_data: 'MAIN_REFRESH'}],
+        [{ text: '⏰ 4H CRT',      callback_data: 'FOURHOUR_CRT'},
+         { text: '🟢 Active CRTs',  callback_data: 'ACTIVE_CRT'  }],
+        [{ text: '📊 CRT Stats',    callback_data: 'CRT_STATS'   },
+         { text: '🔄 Refresh',      callback_data: 'MAIN_REFRESH'}],
     ]};
 }
 function subKeyboard(refreshCb) {
@@ -271,13 +288,47 @@ function subKeyboard(refreshCb) {
 }
 
 // ══════════════════════════════════════════════
-// BOT MESSAGE BUILDERS — CRT ONLY
+// CRT ALIGNMENT CHECK (updated for 3 TFs + 4H)
+// ══════════════════════════════════════════════
+function checkCRTAlignment(symbol, tf, side) {
+    const sl = marketState[symbol]?.timeframes || {};
+    const mo = sl['1MO'] || 'NONE';
+    const w  = sl['1W']  || 'NONE';
+    const d  = sl['1D']  || 'NONE';
+
+    if (tf === '1D') {
+        // Daily CRT alignment: check MO and W
+        if (mo === side && w === side) return { aligned: true, level: 'MO+W', label: `MO+W aligned ${side}` };
+        if (mo === side)               return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
+        if (w === side)                return { aligned: true, level: 'W', label: `W aligned ${side}` };
+        return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
+    }
+
+    if (tf === '1W') {
+        // Weekly CRT alignment: check MO only
+        if (mo === side) return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
+        return { aligned: false, level: 'NONE', label: `MO not aligned for ${side}` };
+    }
+
+    if (tf === '4H') {
+        // 4H CRT alignment: check D, W, MO
+        if (d === side && w === side && mo === side) return { aligned: true, level: 'D+W+MO', label: `D+W+MO aligned ${side}` };
+        if (d === side && w === side)                return { aligned: true, level: 'D+W', label: `D+W aligned ${side}` };
+        if (d === side)                              return { aligned: true, level: 'D', label: `D aligned ${side}` };
+        return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
+    }
+
+    return { aligned: false, level: 'NONE', label: 'Unknown TF' };
+}
+
+// ══════════════════════════════════════════════
+// BOT MESSAGE BUILDERS (updated with 4H CRT)
 // ══════════════════════════════════════════════
 function buildMainMenuMsg() {
-    // Count active HTF CRTs
-    let totalActive = 0, dailyActive = 0, weeklyActive = 0;
+    let totalActive = 0, dailyActive = 0, weeklyActive = 0, fourHActive = 0;
     let dailyMoW = 0, dailyMo = 0, dailyW = 0;
     let weeklyMo = 0;
+    let fourH_DWM = 0, fourH_DW = 0, fourH_D = 0;
 
     for (const sym in crtStateHTF) {
         for (const tf in crtStateHTF[sym]) {
@@ -296,12 +347,17 @@ function buildMainMenuMsg() {
                         weeklyActive++;
                         if (e.align_level === 'MO') weeklyMo++;
                     }
+                    if (tf === '4H') {
+                        fourHActive++;
+                        if (e.align_level === 'D+W+MO') fourH_DWM++;
+                        else if (e.align_level === 'D+W') fourH_DW++;
+                        else if (e.align_level === 'D') fourH_D++;
+                    }
                 }
             }
         }
     }
 
-    // CRT stats for win rate
     const stats  = buildCRTStats('HTF');
     const recent = crtLogHTF.slice(0, 4);
 
@@ -323,6 +379,9 @@ function buildMainMenuMsg() {
         `║  📆 Weekly:  <b>${weeklyActive}</b>`,
         `║    ⚡ MO:   <b>${weeklyMo}</b>`,
         `║`,
+        `║  ⏰ 4H:     <b>${fourHActive}</b>`,
+        `║    ✅ D+W+MO: <b>${fourH_DWM}</b>   ⚡D+W: <b>${fourH_DW}</b>   ⚡D: <b>${fourH_D}</b>`,
+        `║`,
         B_MID,
         `║`,
         `║  📈 <b>WIN RATES</b>`,
@@ -330,6 +389,7 @@ function buildMainMenuMsg() {
         `║  Overall  ${progressBar(stats.overall.tp, stats.overall.inv)}`,
         `║  Daily    ${progressBar(stats.daily.tp,   stats.daily.inv)}`,
         `║  Weekly   ${progressBar(stats.weekly.tp,  stats.weekly.inv)}`,
+        `║  4H       ${progressBar(stats.fourh.tp,   stats.fourh.inv)}`,
         `║`,
         B_MID,
         `║`,
@@ -340,7 +400,7 @@ function buildMainMenuMsg() {
             return recent.map(e => {
                 const t = shortTime(e.timestamp);
                 const d = dirIcon(e.side);
-                const a = e.align_level === 'MO+W' ? '✅' : e.align_level !== 'NONE' ? '⚡' : '⚪';
+                const a = e.align_level === 'MO+W' || e.align_level === 'D+W+MO' ? '✅' : e.align_level !== 'NONE' ? '⚡' : '⚪';
                 return `║  ${t}  ${d} <b>${e.symbol}</b>  ${a} ${e.align_level || '—'}`;
             });
         })(),
@@ -378,14 +438,7 @@ function buildDailyCRTMsg() {
     ];
 
     if (total === 0) {
-        lines.push(
-            B_THIN,
-            ``,
-            `   📭 <i>No aligned Daily CRTs</i>`,
-            `   <i>Waiting for MO / W signals...</i>`,
-            ``,
-            B_THIN,
-        );
+        lines.push(B_THIN, ``, `   📭 <i>No aligned Daily CRTs</i>`, `   <i>Waiting for MO / W signals...</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
@@ -394,14 +447,11 @@ function buildDailyCRTMsg() {
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
         for (const { sym, e } of items) {
-            lines.push(
-                ``,
-                `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+            lines.push(``, `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
                 `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
                 `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
                 `  ┃  Status: <b>${e.status}</b>`,
-                `  ┗  🕐 ${timeStr(e.timestamp)}`,
-            );
+                `  ┗  🕐 ${timeStr(e.timestamp)}`);
         }
         lines.push(``);
     }
@@ -437,14 +487,7 @@ function buildWeeklyCRTMsg() {
     ];
 
     if (items.length === 0) {
-        lines.push(
-            B_THIN,
-            ``,
-            `   📭 <i>No MO-aligned Weekly CRTs</i>`,
-            `   <i>Waiting for Monthly alignment...</i>`,
-            ``,
-            B_THIN,
-        );
+        lines.push(B_THIN, ``, `   📭 <i>No MO-aligned Weekly CRTs</i>`, `   <i>Waiting for Monthly alignment...</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
@@ -452,17 +495,67 @@ function buildWeeklyCRTMsg() {
     lines.push(B_THIN);
 
     for (const { sym, e } of items) {
-        lines.push(
-            ``,
-            `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+        lines.push(``, `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
             `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
             `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
             `  ┃  Status: <b>${e.status}</b>`,
-            `  ┗  🕐 ${timeStr(e.timestamp)}`,
-        );
+            `  ┗  🕐 ${timeStr(e.timestamp)}`);
     }
 
     lines.push(``, B_DASH);
+    return lines.join('\n');
+}
+
+// ── 4H CRT: aligned only (D, D+W, D+W+MO) ──
+function buildFourHourCRTMsg() {
+    const grouped = { 'D+W+MO': [], 'D+W': [], 'D': [] };
+
+    for (const sym in crtStateHTF) {
+        const arr = Array.isArray(crtStateHTF[sym]?.['4H'])
+            ? crtStateHTF[sym]['4H'] : [];
+        for (const e of arr) {
+            if (!e?.side) continue;
+            if (grouped[e.align_level]) grouped[e.align_level].push({ sym, e });
+        }
+    }
+
+    const total = grouped['D+W+MO'].length + grouped['D+W'].length + grouped['D'].length;
+
+    const lines = [
+        B_TOP,
+        `║  ⏰ <b>4H CRT  —  HTF</b>`,
+        `║  Aligned Signals Only (1H BO)`,
+        B_MID,
+        `║  🕐 <i>${nowUTC()}</i>`,
+        `║  📊 Aligned Total: <b>${total}</b>`,
+        B_BOT,
+        ``,
+    ];
+
+    if (total === 0) {
+        lines.push(B_THIN, ``, `   📭 <i>No aligned 4H CRTs</i>`, `   <i>Waiting for D / W / MO alignment...</i>`, ``, B_THIN);
+        return lines.join('\n');
+    }
+
+    function renderGroup(label, emoji, items) {
+        if (items.length === 0) return;
+        lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
+        lines.push(B_THIN);
+        for (const { sym, e } of items) {
+            lines.push(``, `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+                `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
+                `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
+                `  ┃  Status: <b>${e.status}</b>`,
+                `  ┗  🕐 ${timeStr(e.timestamp)}`);
+        }
+        lines.push(``);
+    }
+
+    renderGroup('D + W + MO  ALIGNED', '✅', grouped['D+W+MO']);
+    renderGroup('D + W  ALIGNED',      '⚡', grouped['D+W']);
+    renderGroup('D  ALIGNED',          '⚡', grouped['D']);
+
+    lines.push(B_DASH);
     return lines.join('\n');
 }
 
@@ -490,37 +583,26 @@ function buildActiveCRTMsg() {
     ];
 
     if (items.length === 0) {
-        lines.push(
-            B_THIN,
-            ``,
-            `   📭 <i>No active CRTs right now</i>`,
-            `   <i>New signals will appear here live</i>`,
-            ``,
-            B_THIN,
-        );
+        lines.push(B_THIN, ``, `   📭 <i>No active CRTs right now</i>`, `   <i>New signals will appear here live</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
     for (const { sym, tf, e } of items) {
-        const tfLabel = tf === '1D' ? '📅 Daily' : '📆 Weekly';
-        lines.push(
-            B_THIN,
-            ``,
+        const tfLabel = tf === '1D' ? '📅 Daily' : tf === '1W' ? '📆 Weekly' : '⏰ 4H';
+        lines.push(B_THIN, ``,
             `  🟢 <b>${sym}</b>   [${tfLabel}]   ${dirIcon(e.side)} ${dirBar(e.side)}`,
             `  ┃  ${alignBadge(e.align_level)}`,
             `  ┃`,
             `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
             `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
-            `  ┗  🕐 ${timeStr(e.timestamp)}`,
-            ``,
-        );
+            `  ┗  🕐 ${timeStr(e.timestamp)}`, ``);
     }
 
     lines.push(B_DASH);
     return lines.join('\n');
 }
 
-// ── CRT Stats ──
+// ── CRT Stats (updated with 4H) ──
 function buildStatsMsg() {
     const s  = buildCRTStats('HTF');
     const ts = nowUTC();
@@ -567,22 +649,36 @@ function buildStatsMsg() {
         ``,
         block('⚪  No Alignment', s.weekly_none),
         ``,
+        B_THIN,
+        ``,
+        `⏰ <b>4H CRT</b>`,
+        ``,
+        block('All 4H',               s.fourh),
+        ``,
+        block('✅  D+W+MO Aligned',   s.fourh_dwm),
+        ``,
+        block('⚡  D+W Aligned',      s.fourh_dw),
+        ``,
+        block('⚡  D Aligned',        s.fourh_d),
+        ``,
+        block('⚪  No Alignment',     s.fourh_none),
+        ``,
         B_DASH,
     ].join('\n');
 }
 
 // ══════════════════════════════════════════════
-// BOT PUSH NOTIFICATION  (HTF aligned only)
+// BOT PUSH NOTIFICATION (updated: includes 4H aligned)
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, { rej, bo, ext, tgt }) {
-    // Filter rules
+    // Filter rules — only send if aligned
     if (tf === '1D' && !['MO+W','MO','W'].includes(alignLevel)) return;
     if (tf === '1W' && alignLevel !== 'MO') return;
+    if (tf === '4H' && !['D+W+MO','D+W','D'].includes(alignLevel)) return;
     if (Object.keys(botSessions).length === 0) return;
 
-    const tfLabel = tf === '1D' ? '📅 DAILY' : '📆 WEEKLY';
+    const tfLabel = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
 
-    // Accent bar per kind
     const accentBar = kind === 'CRT'
         ? '🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩'
         : kind === 'CRT_TARGET'
@@ -626,18 +722,19 @@ async function autoRefreshBotPanels() {
         if (!sess?.lastMsgId) continue;
         try {
             let text = null, kb = null;
-            if      (sess.view === 'MAIN')   { text = buildMainMenuMsg();  kb = mainMenuKeyboard();       }
-            else if (sess.view === 'DAILY')  { text = buildDailyCRTMsg();  kb = subKeyboard('DAILY_CRT'); }
-            else if (sess.view === 'WEEKLY') { text = buildWeeklyCRTMsg(); kb = subKeyboard('WEEKLY_CRT');}
-            else if (sess.view === 'ACTIVE') { text = buildActiveCRTMsg(); kb = subKeyboard('ACTIVE_CRT');}
-            else if (sess.view === 'STATS')  { text = buildStatsMsg();     kb = subKeyboard('CRT_STATS'); }
+            if      (sess.view === 'MAIN')     { text = buildMainMenuMsg();     kb = mainMenuKeyboard();            }
+            else if (sess.view === 'DAILY')    { text = buildDailyCRTMsg();     kb = subKeyboard('DAILY_CRT');      }
+            else if (sess.view === 'WEEKLY')   { text = buildWeeklyCRTMsg();    kb = subKeyboard('WEEKLY_CRT');     }
+            else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg();  kb = subKeyboard('FOURHOUR_CRT');   }
+            else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();    kb = subKeyboard('ACTIVE_CRT');     }
+            else if (sess.view === 'STATS')    { text = buildStatsMsg();        kb = subKeyboard('CRT_STATS');      }
             if (text) await botEditMessage(chatId, sess.lastMsgId, text, kb);
         } catch(e) { /* message may be deleted — ignore */ }
     }
 }
 
 // ══════════════════════════════════════════════
-// BOT COMMAND & CALLBACK HANDLER
+// BOT COMMAND & CALLBACK HANDLER (updated with 4H)
 // ══════════════════════════════════════════════
 async function handleBotUpdate(update) {
 
@@ -648,14 +745,12 @@ async function handleBotUpdate(update) {
 
         if (!isBotAllowed(chatId)) {
             await botSendMessage(chatId,
-                `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`
-            );
+                `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
             return;
         }
 
         const sess = getSession(chatId);
 
-        // Delete old panel to keep chat clean
         if (sess.lastMsgId) {
             await botDeleteMessage(chatId, sess.lastMsgId);
             sess.lastMsgId = null;
@@ -675,6 +770,10 @@ async function handleBotUpdate(update) {
             sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
             sess.view = 'WEEKLY';
 
+        } else if (cmd === '/4h' || cmd === '/fourhour') {
+            sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
+            sess.view = 'FOURHOUR';
+
         } else if (cmd === '/active') {
             sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
             sess.view = 'ACTIVE';
@@ -690,18 +789,20 @@ async function handleBotUpdate(update) {
                 `║  Command Reference`,
                 B_BOT,
                 ``,
-                `  /start    🏠 Main terminal`,
-                `  /daily    📅 Daily CRTs (aligned)`,
-                `  /weekly   📆 Weekly CRTs (MO)`,
-                `  /active   🟢 Active positions`,
-                `  /stats    📊 Performance stats`,
-                `  /help     ❓ This help`,
+                `  /start      🏠 Main terminal`,
+                `  /daily      📅 Daily CRTs (aligned)`,
+                `  /weekly     📆 Weekly CRTs (MO)`,
+                `  /4h         ⏰ 4H CRTs (aligned)`,
+                `  /active     🟢 Active positions`,
+                `  /stats      📊 Performance stats`,
+                `  /help       ❓ This help`,
                 ``,
                 B_THIN,
                 ``,
                 `  <b>🔔 Auto-Notifications:</b>`,
                 `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
                 `  📆 Weekly →  MO aligned ⚡ only`,
+                `  ⏰ 4H     →  D ⚡  D+W ⚡  D+W+MO ✅`,
                 ``,
                 `  <b>📡 Live Auto-Refresh:</b>`,
                 `  Panels update automatically`,
@@ -712,9 +813,7 @@ async function handleBotUpdate(update) {
             sess.view = 'HELP';
 
         } else {
-            sess.lastMsgId = await botSendMessage(chatId,
-                `❓ Unknown command.\n\nType /help or /start`
-            );
+            sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`);
         }
 
         await saveBotSessions();
@@ -748,6 +847,10 @@ async function handleBotUpdate(update) {
         } else if (data === 'WEEKLY_CRT') {
             await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
             sess.view = 'WEEKLY';
+
+        } else if (data === 'FOURHOUR_CRT') {
+            await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
+            sess.view = 'FOURHOUR';
 
         } else if (data === 'ACTIVE_CRT') {
             await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
@@ -795,7 +898,7 @@ async function pollOnce() {
 }
 
 // ══════════════════════════════════════════════
-// CRT TELEGRAM MESSAGE BUILDER (original)
+// CRT TELEGRAM MESSAGE BUILDER (original channel messages)
 // ══════════════════════════════════════════════
 function buildCRTTelegramMessage(kind, sym, tf, side, profile, { rej, bo, ext, tgt, alignInfo }) {
     const d = side === 'BULLISH' ? '🐂' : '🐻';
@@ -858,12 +961,7 @@ async function pushBreakoutLog(symbol, direction, message, extra={}) {
 // ══════════════════════════════════════════════
 function priceMatch(a,b){const fa=parseFloat(a),fb=parseFloat(b);if(isNaN(fa)||isNaN(fb))return false;return Math.abs(fa-fb)<=Math.max(Math.abs(fa),Math.abs(fb))*0.0005;}
 function makeTradeId(s,t){return `${s}_${t}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;}
-function checkCRTAlignment(symbol,tf,side){
-    const sl=marketState[symbol]?.timeframes||{};const mo=sl['1MO']||'NONE';const w=sl['1W']||'NONE';
-    if(tf==='1D'){if(mo===side&&w===side)return{aligned:true,level:'MO+W',label:`MO+W aligned ${side}`};if(mo===side)return{aligned:true,level:'MO',label:`MO aligned ${side}`};if(w===side)return{aligned:true,level:'W',label:`W aligned ${side}`};return{aligned:false,level:'NONE',label:`No storyline aligned for ${side}`};}
-    if(tf==='1W'){if(mo===side)return{aligned:true,level:'MO',label:`MO aligned ${side}`};return{aligned:false,level:'NONE',label:`MO not aligned for ${side}`};}
-    return{aligned:false,level:'NONE',label:'Unknown TF'};
-}
+
 function checkBreakoutStorylineAlignment(symbol,direction){
     const sl=marketState[symbol]?.timeframes||{};const mo=sl['1MO']||'NONE';const w=sl['1W']||'NONE';
     if(mo===direction&&w===direction)return{aligned:true,level:'MO+W',label:`Storyline MO+W aligned ${direction}`};
@@ -871,40 +969,242 @@ function checkBreakoutStorylineAlignment(symbol,direction){
     if(w===direction)return{aligned:true,level:'W',label:`Storyline W aligned ${direction}`};
     return{aligned:false,level:'NONE',label:`Storyline not aligned for ${direction}`};
 }
-function getMatchedCombos(symbol,direction){if(!marketState[symbol])return[];const tfs=marketState[symbol].timeframes||{};return ALIGNMENT_COMBOS.filter(c=>c.tfs.every(tf=>tfs[tf]===direction)).map(c=>c.id);}
-function checkDirectionAlignment(symbol,direction){if(!marketState[symbol])return{aligned:false,reason:"Not tracked"};const tfs=marketState[symbol].timeframes||{};let count=0;ZONE_TIMEFRAMES.forEach(tf=>{if(tfs[tf]===direction)count++;});if(count<PARTIAL_THRESHOLD)return{aligned:false,reason:`Only ${count}`};return{aligned:true,type:count>=GOD_THRESHOLD?'GOD':'PARTIAL',count,combos:getMatchedCombos(symbol,direction)};}
-function checkCustomAlignment(symbol,direction){if(!marketState[symbol]||appSettings.activeAlignments.length===0)return false;const tfs=marketState[symbol].timeframes||{};for(const id of appSettings.activeAlignments){const c=ALIGNMENT_COMBOS.find(x=>x.id===id);if(c&&c.tfs.every(tf=>tfs[tf]===direction))return true;}return false;}
-function recalculateAlignment(symbol){if(!marketState[symbol])return{dominantState:"NONE",bullCount:0,bearCount:0,alignCount:0,partialState:"NONE",partialCount:0};const tfs=marketState[symbol].timeframes||{};let bc=0,brc=0;ZONE_TIMEFRAMES.forEach(tf=>{if(tfs[tf]==="BULLISH")bc++;if(tfs[tf]==="BEARISH")brc++;});let ds="NONE";if(bc>=GOD_THRESHOLD)ds="BULLISH";if(brc>=GOD_THRESHOLD)ds="BEARISH";let ps="NONE",pc=0;if(ds==="NONE"){if(bc>=PARTIAL_THRESHOLD){ps="BULLISH";pc=bc;}else if(brc>=PARTIAL_THRESHOLD){ps="BEARISH";pc=brc;}}marketState[symbol].alignCount=Math.max(bc,brc);marketState[symbol].partialState=ps;marketState[symbol].partialCount=pc;return{dominantState:ds,bullCount:bc,bearCount:brc,alignCount:Math.max(bc,brc),partialState:ps,partialCount:pc};}
-function getDirectionAlignCount(symbol,direction){if(!marketState[symbol])return 0;const tfs=marketState[symbol].timeframes||{};let c=0;ZONE_TIMEFRAMES.forEach(tf=>{if(tfs[tf]===direction)c++;});return c;}
+
+function getMatchedCombos(symbol,direction){
+    if(!marketState[symbol])return[];
+    const tfs=marketState[symbol].timeframes||{};
+    return ALIGNMENT_COMBOS.filter(c=>c.tfs.every(tf=>tfs[tf]===direction)).map(c=>c.id);
+}
+
+function checkDirectionAlignment(symbol,direction){
+    if(!marketState[symbol])return{aligned:false,reason:"Not tracked"};
+    const tfs=marketState[symbol].timeframes||{};
+    let count=0;
+    ZONE_TIMEFRAMES.forEach(tf=>{if(tfs[tf]===direction)count++;});
+    if(count<PARTIAL_THRESHOLD)return{aligned:false,reason:`Only ${count}`};
+    let type = 'PARTIAL';
+    if (count >= GOD_THRESHOLD) type = 'GOD';
+    else if (count >= STRONG_THRESHOLD) type = 'STRONG';
+    return{aligned:true,type,count,combos:getMatchedCombos(symbol,direction)};
+}
+
+function checkCustomAlignment(symbol,direction){
+    if(!marketState[symbol]||appSettings.activeAlignments.length===0)return false;
+    const tfs=marketState[symbol].timeframes||{};
+    for(const id of appSettings.activeAlignments){
+        const c=ALIGNMENT_COMBOS.find(x=>x.id===id);
+        if(c&&c.tfs.every(tf=>tfs[tf]===direction))return true;
+    }
+    return false;
+}
+
+function recalculateAlignment(symbol){
+    if(!marketState[symbol])return{dominantState:"NONE",bullCount:0,bearCount:0,alignCount:0,partialState:"NONE",partialCount:0};
+    const tfs=marketState[symbol].timeframes||{};
+    let bc=0,brc=0;
+    ZONE_TIMEFRAMES.forEach(tf=>{
+        if(tfs[tf]==="BULLISH")bc++;
+        if(tfs[tf]==="BEARISH")brc++;
+    });
+    let ds="NONE";
+    if(bc>=GOD_THRESHOLD)ds="BULLISH";
+    if(brc>=GOD_THRESHOLD)ds="BEARISH";
+    let ps="NONE",pc=0;
+    if(ds==="NONE"){
+        if(bc>=PARTIAL_THRESHOLD){ps="BULLISH";pc=bc;}
+        else if(brc>=PARTIAL_THRESHOLD){ps="BEARISH";pc=brc;}
+    }
+    marketState[symbol].alignCount=Math.max(bc,brc);
+    marketState[symbol].partialState=ps;
+    marketState[symbol].partialCount=pc;
+    return{dominantState:ds,bullCount:bc,bearCount:brc,alignCount:Math.max(bc,brc),partialState:ps,partialCount:pc};
+}
+
+function getDirectionAlignCount(symbol,direction){
+    if(!marketState[symbol])return 0;
+    const tfs=marketState[symbol].timeframes||{};
+    let c=0;ZONE_TIMEFRAMES.forEach(tf=>{if(tfs[tf]===direction)c++;});
+    return c;
+}
+
 function ensureStats(s,t){if(!tradeStats[s])tradeStats[s]={};if(!tradeStats[s][t])tradeStats[s][t]={total_signals:0,trades:[]};return tradeStats[s][t];}
 function buildEnrichedStats(){const e={};for(const s in tradeStats){e[s]={};for(const t in tradeStats[s])e[s][t]={total_signals:tradeStats[s][t].total_signals||0,trades:tradeStats[s][t].trades};}return e;}
 async function saveStats(){await redisClient.set(REDIS_STATS_KEY,JSON.stringify(tradeStats));}
-function findBestTrade(stats,{direction,entry,allowedStatuses}){const trades=stats.trades;let cands=[];if(entry!==undefined&&entry!==null){for(let i=0;i<trades.length;i++){const t=trades[i];if(t.direction===direction&&allowedStatuses.includes(t.status)&&priceMatch(t.entry,entry))cands.push({trade:t,index:i});}}if(cands.length===0){for(let i=0;i<trades.length;i++){const t=trades[i];if(t.direction===direction&&allowedStatuses.includes(t.status))cands.push({trade:t,index:i});}}if(cands.length===0)return null;cands.sort((a,b)=>a.index-b.index);return cands[0];}
-async function invalidatePendingTrades(symbol){let tc=0;for(const tf of ENTRY_TFS){const stats=tradeStats[symbol]?.[tf];if(!stats?.trades?.length)continue;for(const trade of stats.trades){if(trade.status!=='PENDING')continue;const count=getDirectionAlignCount(symbol,trade.direction);if(count<PARTIAL_THRESHOLD){trade.status='CANCELLED';trade.cancelled_time=Date.now();trade.cancelled_reason=`Alignment dropped to ${count}/${ZONE_TIMEFRAMES.length}`;if(stats.total_signals>0)stats.total_signals--;let del=false;if(trade.telegram_chat_id&&trade.telegram_message_id){del=await deleteTelegramMessage(trade.telegram_chat_id,trade.telegram_message_id);trade.telegram_deleted=del;}await pushLogEvent(symbol,'CANCEL',`❌ CANCELLED: ${trade.direction} ${tf} @ ${trade.entry}`,{entry_tf:tf,direction:trade.direction});tc++;}}}if(tc>0){await saveStats();broadcastStats();}return tc;}
-function normalizeTf(tf){if(!tf)return null;const map={"1":"1M","1M":"1M","1MIN":"1M","3":"3M","3M":"3M","3MIN":"3M","5":"5M","5M":"5M","5MIN":"5M","15":"15M","15M":"15M","15MIN":"15M","30":"30M","30M":"30M","30MIN":"30M","60":"1H","1H":"1H","1HR":"1H","240":"4H","4H":"4H","1D":"1D","D":"1D","1W":"1W","W":"1W","WEEKLY":"1W","1MO":"1MO","MO":"1MO","M":"1MO","MONTHLY":"1MO","1MONTH":"1MO"};return map[tf.toString().toUpperCase().trim()]||tf.toString().toUpperCase().trim();}
-function tfInfoString(sym){const tfs=marketState[sym]?.timeframes||{};return ZONE_TIMEFRAMES.map(tf=>`${tf}: ${tfs[tf]||'?'}`).join('\n');}
-function normalizeBreakoutDirection(dir){if(!dir)return'NONE';const u=dir.toString().toUpperCase().trim();if(['BULLISH','BULL','BUY','LONG','UP'].includes(u))return'BULLISH';if(['BEARISH','BEAR','SELL','SHORT','DOWN'].includes(u))return'BEARISH';return'NONE';}
+
+function findBestTrade(stats,{direction,entry,allowedStatuses}){
+    const trades=stats.trades;let cands=[];
+    if(entry!==undefined&&entry!==null){
+        for(let i=0;i<trades.length;i++){const t=trades[i];if(t.direction===direction&&allowedStatuses.includes(t.status)&&priceMatch(t.entry,entry))cands.push({trade:t,index:i});}
+    }
+    if(cands.length===0){
+        for(let i=0;i<trades.length;i++){const t=trades[i];if(t.direction===direction&&allowedStatuses.includes(t.status))cands.push({trade:t,index:i});}
+    }
+    if(cands.length===0)return null;
+    cands.sort((a,b)=>a.index-b.index);
+    return cands[0];
+}
+
+async function invalidatePendingTrades(symbol){
+    let tc=0;
+    for(const tf of ENTRY_TFS){
+        const stats=tradeStats[symbol]?.[tf];
+        if(!stats?.trades?.length)continue;
+        for(const trade of stats.trades){
+            if(trade.status!=='PENDING')continue;
+            const count=getDirectionAlignCount(symbol,trade.direction);
+            if(count<PARTIAL_THRESHOLD){
+                trade.status='CANCELLED';trade.cancelled_time=Date.now();trade.cancelled_reason=`Alignment dropped to ${count}/${ZONE_TIMEFRAMES.length}`;
+                if(stats.total_signals>0)stats.total_signals--;
+                let del=false;
+                if(trade.telegram_chat_id&&trade.telegram_message_id){del=await deleteTelegramMessage(trade.telegram_chat_id,trade.telegram_message_id);trade.telegram_deleted=del;}
+                await pushLogEvent(symbol,'CANCEL',`❌ CANCELLED: ${trade.direction} ${tf} @ ${trade.entry}`,{entry_tf:tf,direction:trade.direction});
+                tc++;
+            }
+        }
+    }
+    if(tc>0){await saveStats();broadcastStats();}
+    return tc;
+}
+
+function normalizeTf(tf){
+    if(!tf)return null;
+    const map={"1":"1M","1M":"1M","1MIN":"1M","3":"3M","3M":"3M","3MIN":"3M","5":"5M","5M":"5M","5MIN":"5M","15":"15M","15M":"15M","15MIN":"15M","30":"30M","30M":"30M","30MIN":"30M","60":"1H","1H":"1H","1HR":"1H","240":"4H","4H":"4H","1D":"1D","D":"1D","1W":"1W","W":"1W","WEEKLY":"1W","1MO":"1MO","MO":"1MO","M":"1MO","MONTHLY":"1MO","1MONTH":"1MO"};
+    return map[tf.toString().toUpperCase().trim()]||tf.toString().toUpperCase().trim();
+}
+
+function tfInfoString(sym){
+    const tfs=marketState[sym]?.timeframes||{};
+    return ZONE_TIMEFRAMES.map(tf=>`${tf}: ${tfs[tf]||'?'}`).join('\n');
+}
+
+function normalizeBreakoutDirection(dir){
+    if(!dir)return'NONE';const u=dir.toString().toUpperCase().trim();
+    if(['BULLISH','BULL','BUY','LONG','UP'].includes(u))return'BULLISH';
+    if(['BEARISH','BEAR','SELL','SHORT','DOWN'].includes(u))return'BEARISH';
+    return'NONE';
+}
 function normalizeBoProfile(p){if(!p)return'HTF';const u=p.toString().toUpperCase().trim();if(VALID_BO_PROFILES.includes(u))return u;return'HTF';}
-function migrateCRTState(state){for(const s in state)for(const t in state[s]){const e=state[s][t];if(e&&!Array.isArray(e))state[s][t]=[e];}return state;}
+
+function migrateCRTState(state){
+    for(const s in state)for(const t in state[s]){const e=state[s][t];if(e&&!Array.isArray(e))state[s][t]=[e];}
+    return state;
+}
+
+// ══════════════════════════════════════════════
+// BUILD CRT STATS (updated with 4H)
+// ══════════════════════════════════════════════
 function buildCRTStats(profile){
     const cs=getCRTState(profile);
-    const stats={overall:{total:0,tp:0,inv:0,active:0},daily:{total:0,tp:0,inv:0,active:0},weekly:{total:0,tp:0,inv:0,active:0},daily_mo_w:{total:0,tp:0,inv:0,active:0},daily_mo:{total:0,tp:0,inv:0,active:0},daily_w:{total:0,tp:0,inv:0,active:0},daily_none:{total:0,tp:0,inv:0,active:0},weekly_mo:{total:0,tp:0,inv:0,active:0},weekly_none:{total:0,tp:0,inv:0,active:0}};
-    for(const sym in cs){for(const tf in cs[sym]){const entries=Array.isArray(cs[sym][tf])?cs[sym][tf]:[cs[sym][tf]];for(const entry of entries){if(!entry||!entry.side)continue;const s=entry.status;const bucket=tf==='1D'?'daily':tf==='1W'?'weekly':null;if(!bucket)continue;
-    stats.overall.total++;if(s==='TP_HIT')stats.overall.tp++;if(s==='INVALID')stats.overall.inv++;if(s==='ACTIVE')stats.overall.active++;
-    stats[bucket].total++;if(s==='TP_HIT')stats[bucket].tp++;if(s==='INVALID')stats[bucket].inv++;if(s==='ACTIVE')stats[bucket].active++;
-    const lv=entry.align_level||'NONE';if(tf==='1D'){const key=lv==='MO+W'?'daily_mo_w':lv==='MO'?'daily_mo':lv==='W'?'daily_w':'daily_none';stats[key].total++;if(s==='TP_HIT')stats[key].tp++;if(s==='INVALID')stats[key].inv++;if(s==='ACTIVE')stats[key].active++;}
-    if(tf==='1W'){const key=lv==='MO'?'weekly_mo':'weekly_none';stats[key].total++;if(s==='TP_HIT')stats[key].tp++;if(s==='INVALID')stats[key].inv++;if(s==='ACTIVE')stats[key].active++;}}}}
-    for(const k in stats){const b=stats[k];const r=b.tp+b.inv;b.hit_rate=r>0?((b.tp/r)*100).toFixed(1):'—';}
+    const stats={
+        overall:{total:0,tp:0,inv:0,active:0},
+        daily:{total:0,tp:0,inv:0,active:0},
+        weekly:{total:0,tp:0,inv:0,active:0},
+        fourh:{total:0,tp:0,inv:0,active:0},
+        daily_mo_w:{total:0,tp:0,inv:0,active:0},
+        daily_mo:{total:0,tp:0,inv:0,active:0},
+        daily_w:{total:0,tp:0,inv:0,active:0},
+        daily_none:{total:0,tp:0,inv:0,active:0},
+        weekly_mo:{total:0,tp:0,inv:0,active:0},
+        weekly_none:{total:0,tp:0,inv:0,active:0},
+        fourh_dwm:{total:0,tp:0,inv:0,active:0},
+        fourh_dw:{total:0,tp:0,inv:0,active:0},
+        fourh_d:{total:0,tp:0,inv:0,active:0},
+        fourh_none:{total:0,tp:0,inv:0,active:0},
+    };
+
+    for(const sym in cs){
+        for(const tf in cs[sym]){
+            const entries=Array.isArray(cs[sym][tf])?cs[sym][tf]:[cs[sym][tf]];
+            for(const entry of entries){
+                if(!entry||!entry.side)continue;
+                const s=entry.status;
+                const bucket = tf==='1D' ? 'daily' : tf==='1W' ? 'weekly' : tf==='4H' ? 'fourh' : null;
+                if(!bucket)continue;
+
+                stats.overall.total++;
+                if(s==='TP_HIT')stats.overall.tp++;
+                if(s==='INVALID')stats.overall.inv++;
+                if(s==='ACTIVE')stats.overall.active++;
+
+                stats[bucket].total++;
+                if(s==='TP_HIT')stats[bucket].tp++;
+                if(s==='INVALID')stats[bucket].inv++;
+                if(s==='ACTIVE')stats[bucket].active++;
+
+                const lv=entry.align_level||'NONE';
+
+                if(tf==='1D'){
+                    const key=lv==='MO+W'?'daily_mo_w':lv==='MO'?'daily_mo':lv==='W'?'daily_w':'daily_none';
+                    stats[key].total++;
+                    if(s==='TP_HIT')stats[key].tp++;
+                    if(s==='INVALID')stats[key].inv++;
+                    if(s==='ACTIVE')stats[key].active++;
+                }
+
+                if(tf==='1W'){
+                    const key=lv==='MO'?'weekly_mo':'weekly_none';
+                    stats[key].total++;
+                    if(s==='TP_HIT')stats[key].tp++;
+                    if(s==='INVALID')stats[key].inv++;
+                    if(s==='ACTIVE')stats[key].active++;
+                }
+
+                if(tf==='4H'){
+                    const key=lv==='D+W+MO'?'fourh_dwm':lv==='D+W'?'fourh_dw':lv==='D'?'fourh_d':'fourh_none';
+                    stats[key].total++;
+                    if(s==='TP_HIT')stats[key].tp++;
+                    if(s==='INVALID')stats[key].inv++;
+                    if(s==='ACTIVE')stats[key].active++;
+                }
+            }
+        }
+    }
+
+    for(const k in stats){
+        const b=stats[k];
+        const r=b.tp+b.inv;
+        b.hit_rate=r>0?((b.tp/r)*100).toFixed(1):'—';
+    }
     return stats;
 }
+
 async function saveBreakoutState(){await redisClient.set(REDIS_BREAKOUT_KEY,JSON.stringify(breakoutState));}
 async function saveCRTState(profile){await redisClient.set(getCRTRedisKey(profile),JSON.stringify(getCRTState(profile)));}
+
 async function processBreakoutUpdate(sym,moDir,wDir,source='WEBHOOK'){
     console.log(`\n[BREAKOUT ${source}] ${sym} | MO:${moDir} | W:${wDir}`);
     if(!breakoutState[sym])breakoutState[sym]={};const now=Date.now();let changed=false,sd=null;
-    if(moDir!=='NONE'){if(!Array.isArray(breakoutState[sym]['1MO']))breakoutState[sym]['1MO']=breakoutState[sym]['1MO']?[breakoutState[sym]['1MO']]:[];const ex=breakoutState[sym]['1MO'];const last=ex.length?ex[ex.length-1]:null;if(!(last&&last.direction===moDir&&(now-(last.timestamp||0))<60000)){const sa=checkBreakoutStorylineAlignment(sym,moDir);ex.push({id:`${sym}_1MO_${now}`,direction:moDir,timestamp:now,align_level:sa.level,align_label:sa.label,aligned:sa.aligned});if(ex.length>20)breakoutState[sym]['1MO']=ex.slice(-20);await pushBreakoutLog(sym,moDir,`${moDir==='BULLISH'?'🐂':'🐻'} MONTHLY BREAKOUT: ${moDir} | ${sa.aligned?'✅':'⚠️'} ${sa.label}`,{tf:'1MO',align_level:sa.level});changed=true;sd=moDir;}}
-    if(wDir!=='NONE'){if(!Array.isArray(breakoutState[sym]['1W']))breakoutState[sym]['1W']=breakoutState[sym]['1W']?[breakoutState[sym]['1W']]:[];const ex=breakoutState[sym]['1W'];const last=ex.length?ex[ex.length-1]:null;if(!(last&&last.direction===wDir&&(now-(last.timestamp||0))<60000)){const sa=checkBreakoutStorylineAlignment(sym,wDir);ex.push({id:`${sym}_1W_${now}`,direction:wDir,timestamp:now,align_level:sa.level,align_label:sa.label,aligned:sa.aligned});if(ex.length>20)breakoutState[sym]['1W']=ex.slice(-20);await pushBreakoutLog(sym,wDir,`${wDir==='BULLISH'?'🐂':'🐻'} WEEKLY BREAKOUT: ${wDir} | ${sa.aligned?'✅':'⚠️'} ${sa.label}`,{tf:'1W',align_level:sa.level});changed=true;sd=sd||wDir;}}
-    if(changed){await saveBreakoutState();const tgMsg=buildBreakoutTelegramMessage(sym,moDir,wDir,marketState[sym]?tfInfoString(sym):null);if(TG_BREAKOUT_PAGE)await sendTelegram(TG_BREAKOUT_PAGE,tgMsg);const tfl=[];if(moDir!=='NONE')tfl.push(`MO:${moDir}`);if(wDir!=='NONE')tfl.push(`W:${wDir}`);await pushLogEvent(sym,moDir!=='NONE'?moDir:wDir,`💥 BREAKOUT: ${tfl.join(' + ')}`,{logAction:'BREAKOUT_PAGE'});broadcastBreakout();broadcastAll();if(sd)broadcastBreakoutSound(sym,sd);}
+    if(moDir!=='NONE'){
+        if(!Array.isArray(breakoutState[sym]['1MO']))breakoutState[sym]['1MO']=breakoutState[sym]['1MO']?[breakoutState[sym]['1MO']]:[];
+        const ex=breakoutState[sym]['1MO'];const last=ex.length?ex[ex.length-1]:null;
+        if(!(last&&last.direction===moDir&&(now-(last.timestamp||0))<60000)){
+            const sa=checkBreakoutStorylineAlignment(sym,moDir);
+            ex.push({id:`${sym}_1MO_${now}`,direction:moDir,timestamp:now,align_level:sa.level,align_label:sa.label,aligned:sa.aligned});
+            if(ex.length>20)breakoutState[sym]['1MO']=ex.slice(-20);
+            await pushBreakoutLog(sym,moDir,`${moDir==='BULLISH'?'🐂':'🐻'} MONTHLY BREAKOUT: ${moDir} | ${sa.aligned?'✅':'⚠️'} ${sa.label}`,{tf:'1MO',align_level:sa.level});
+            changed=true;sd=moDir;
+        }
+    }
+    if(wDir!=='NONE'){
+        if(!Array.isArray(breakoutState[sym]['1W']))breakoutState[sym]['1W']=breakoutState[sym]['1W']?[breakoutState[sym]['1W']]:[];
+        const ex=breakoutState[sym]['1W'];const last=ex.length?ex[ex.length-1]:null;
+        if(!(last&&last.direction===wDir&&(now-(last.timestamp||0))<60000)){
+            const sa=checkBreakoutStorylineAlignment(sym,wDir);
+            ex.push({id:`${sym}_1W_${now}`,direction:wDir,timestamp:now,align_level:sa.level,align_label:sa.label,aligned:sa.aligned});
+            if(ex.length>20)breakoutState[sym]['1W']=ex.slice(-20);
+            await pushBreakoutLog(sym,wDir,`${wDir==='BULLISH'?'🐂':'🐻'} WEEKLY BREAKOUT: ${wDir} | ${sa.aligned?'✅':'⚠️'} ${sa.label}`,{tf:'1W',align_level:sa.level});
+            changed=true;sd=sd||wDir;
+        }
+    }
+    if(changed){
+        await saveBreakoutState();
+        const tgMsg=buildBreakoutTelegramMessage(sym,moDir,wDir,marketState[sym]?tfInfoString(sym):null);
+        if(TG_BREAKOUT_PAGE)await sendTelegram(TG_BREAKOUT_PAGE,tgMsg);
+        const tfl=[];if(moDir!=='NONE')tfl.push(`MO:${moDir}`);if(wDir!=='NONE')tfl.push(`W:${wDir}`);
+        await pushLogEvent(sym,moDir!=='NONE'?moDir:wDir,`💥 BREAKOUT: ${tfl.join(' + ')}`,{logAction:'BREAKOUT_PAGE'});
+        broadcastBreakout();broadcastAll();
+        if(sd)broadcastBreakoutSound(sym,sd);
+    }
     return changed;
 }
 
@@ -917,15 +1217,54 @@ await redisClient.connect();
 console.log('✅ Redis connected');
 
 const savedState=await redisClient.get(REDIS_STATE_KEY);
-if(savedState){marketState=JSON.parse(savedState);console.log(`💾 Restored ${Object.keys(marketState).length} symbols`);for(const sym in marketState){if(!marketState[sym].timeframes)marketState[sym].timeframes={};ZONE_TIMEFRAMES.forEach(tf=>{if(!marketState[sym].timeframes[tf])marketState[sym].timeframes[tf]="NONE";});const{dominantState}=recalculateAlignment(sym);marketState[sym].lastAlertedState=dominantState!=="NONE"?dominantState:"NONE";if(dominantState!=="NONE"&&!marketState[sym].lastGodModeStartTime)marketState[sym].lastGodModeStartTime=Date.now();}await redisClient.set(REDIS_STATE_KEY,JSON.stringify(marketState));}else console.log('🆕 No saved state');
+if(savedState){
+    marketState=JSON.parse(savedState);
+    console.log(`💾 Restored ${Object.keys(marketState).length} symbols`);
+    for(const sym in marketState){
+        if(!marketState[sym].timeframes)marketState[sym].timeframes={};
+        ZONE_TIMEFRAMES.forEach(tf=>{
+            if(!marketState[sym].timeframes[tf])marketState[sym].timeframes[tf]="NONE";
+        });
+        const{dominantState}=recalculateAlignment(sym);
+        marketState[sym].lastAlertedState=dominantState!=="NONE"?dominantState:"NONE";
+        if(dominantState!=="NONE"&&!marketState[sym].lastGodModeStartTime)marketState[sym].lastGodModeStartTime=Date.now();
+    }
+    await redisClient.set(REDIS_STATE_KEY,JSON.stringify(marketState));
+}else console.log('🆕 No saved state');
+
 const savedLog=await redisClient.get(REDIS_LOG_KEY);if(savedLog){activityLog=JSON.parse(savedLog);console.log(`📋 ${activityLog.length} log entries`);}
-const savedStats=await redisClient.get(REDIS_STATS_KEY);if(savedStats){tradeStats=JSON.parse(savedStats);for(const sym in tradeStats)for(const tf in tradeStats[sym]){const s=tradeStats[sym][tf];if(!s.trades)s.trades=[];s.trades.forEach(t=>{if(!t.id)t.id=makeTradeId(sym,tf);if(!t.alignment)t.alignment='NONE';if(!t.entry_tf)t.entry_tf=tf;if(!t.align_combos)t.align_combos=[];if(!t.align_count)t.align_count=0;if(t.status==='SIGNAL')t.status='PENDING';});}console.log(`📊 Stats: ${Object.keys(tradeStats).length} symbols`);}
+const savedStats=await redisClient.get(REDIS_STATS_KEY);
+if(savedStats){
+    tradeStats=JSON.parse(savedStats);
+    for(const sym in tradeStats)for(const tf in tradeStats[sym]){
+        const s=tradeStats[sym][tf];
+        if(!s.trades)s.trades=[];
+        s.trades.forEach(t=>{
+            if(!t.id)t.id=makeTradeId(sym,tf);if(!t.alignment)t.alignment='NONE';if(!t.entry_tf)t.entry_tf=tf;
+            if(!t.align_combos)t.align_combos=[];if(!t.align_count)t.align_count=0;if(t.status==='SIGNAL')t.status='PENDING';
+        });
+    }
+    console.log(`📊 Stats: ${Object.keys(tradeStats).length} symbols`);
+}
 const savedSettings=await redisClient.get(REDIS_SETTINGS_KEY);if(savedSettings){appSettings=JSON.parse(savedSettings);console.log(`⚙️ Settings loaded`);}
-const savedCRTHTF=await redisClient.get(REDIS_CRT_HTF_KEY);if(savedCRTHTF){crtStateHTF=migrateCRTState(JSON.parse(savedCRTHTF));console.log(`🔄 CRT HTF: ${Object.keys(crtStateHTF).length}`);}else{const l=await redisClient.get(REDIS_CRT_KEY_LEGACY);if(l){crtStateHTF=migrateCRTState(JSON.parse(l));await redisClient.set(REDIS_CRT_HTF_KEY,JSON.stringify(crtStateHTF));console.log(`🔄 CRT HTF migrated`);}else console.log('🆕 No CRT HTF');}
-const savedCRTHTFLog=await redisClient.get(REDIS_CRT_HTF_KEY+'_log');if(savedCRTHTFLog){crtLogHTF=JSON.parse(savedCRTHTFLog);console.log(`📡 CRT HTF log: ${crtLogHTF.length}`);}else{const ll=await redisClient.get(REDIS_CRT_KEY_LEGACY+'_log');if(ll){crtLogHTF=JSON.parse(ll);await redisClient.set(REDIS_CRT_HTF_KEY+'_log',JSON.stringify(crtLogHTF));}}
+const savedCRTHTF=await redisClient.get(REDIS_CRT_HTF_KEY);
+if(savedCRTHTF){crtStateHTF=migrateCRTState(JSON.parse(savedCRTHTF));console.log(`🔄 CRT HTF: ${Object.keys(crtStateHTF).length}`);}
+else{
+    const l=await redisClient.get(REDIS_CRT_KEY_LEGACY);
+    if(l){crtStateHTF=migrateCRTState(JSON.parse(l));await redisClient.set(REDIS_CRT_HTF_KEY,JSON.stringify(crtStateHTF));console.log(`🔄 CRT HTF migrated`);}
+    else console.log('🆕 No CRT HTF');
+}
+const savedCRTHTFLog=await redisClient.get(REDIS_CRT_HTF_KEY+'_log');
+if(savedCRTHTFLog){crtLogHTF=JSON.parse(savedCRTHTFLog);console.log(`📡 CRT HTF log: ${crtLogHTF.length}`);}
+else{const ll=await redisClient.get(REDIS_CRT_KEY_LEGACY+'_log');if(ll){crtLogHTF=JSON.parse(ll);await redisClient.set(REDIS_CRT_HTF_KEY+'_log',JSON.stringify(crtLogHTF));}}
 const savedCRTLTF=await redisClient.get(REDIS_CRT_LTF_KEY);if(savedCRTLTF){crtStateLTF=migrateCRTState(JSON.parse(savedCRTLTF));console.log(`🔬 CRT LTF: ${Object.keys(crtStateLTF).length}`);}else console.log('🆕 No CRT LTF');
 const savedCRTLTFLog=await redisClient.get(REDIS_CRT_LTF_KEY+'_log');if(savedCRTLTFLog){crtLogLTF=JSON.parse(savedCRTLTFLog);console.log(`📡 CRT LTF log: ${crtLogLTF.length}`);}
-const savedBreakout=await redisClient.get(REDIS_BREAKOUT_KEY);if(savedBreakout){breakoutState=JSON.parse(savedBreakout);for(const sym in breakoutState)for(const tf in breakoutState[sym])if(breakoutState[sym][tf]&&!Array.isArray(breakoutState[sym][tf]))breakoutState[sym][tf]=[breakoutState[sym][tf]];console.log(`💥 Breakout: ${Object.keys(breakoutState).length}`);}else console.log('🆕 No Breakout');
+const savedBreakout=await redisClient.get(REDIS_BREAKOUT_KEY);
+if(savedBreakout){
+    breakoutState=JSON.parse(savedBreakout);
+    for(const sym in breakoutState)for(const tf in breakoutState[sym])if(breakoutState[sym][tf]&&!Array.isArray(breakoutState[sym][tf]))breakoutState[sym][tf]=[breakoutState[sym][tf]];
+    console.log(`💥 Breakout: ${Object.keys(breakoutState).length}`);
+}else console.log('🆕 No Breakout');
 const savedBLog=await redisClient.get(REDIS_BREAKOUT_KEY+'_log');if(savedBLog){breakoutLog=JSON.parse(savedBLog);console.log(`📡 Breakout log: ${breakoutLog.length}`);}
 const savedBS=await redisClient.get(REDIS_BOT_SESSIONS);if(savedBS){botSessions=JSON.parse(savedBS);console.log(`🤖 Bot sessions: ${Object.keys(botSessions).length}`);}
 
@@ -939,16 +1278,16 @@ app.get('/api/crt-stats',(req,res)=>{const p=normalizeBoProfile(req.query.profil
 app.get('/api/breakout-state',(req,res)=>res.json({breakoutState,breakoutLog}));
 app.get('/api/settings',(req,res)=>res.json({settings:appSettings,alignmentCombos:ALIGNMENT_COMBOS}));
 app.post('/api/settings',async(req,res)=>{const{activeAlignments}=req.body;if(!Array.isArray(activeAlignments))return res.status(400).send("Invalid");appSettings.activeAlignments=activeAlignments.filter(id=>ALIGNMENT_COMBOS.map(c=>c.id).includes(id));await redisClient.set(REDIS_SETTINGS_KEY,JSON.stringify(appSettings));broadcastAll({settings:appSettings});res.json({ok:true,settings:appSettings});});
+
 app.get('/api/stream',(req,res)=>{res.setHeader('Content-Type','text/event-stream');res.setHeader('Cache-Control','no-cache');res.setHeader('Connection','keep-alive');res.setHeader('X-Accel-Buffering','no');res.flushHeaders();const id=Date.now();clients.push({id,res});const ka=setInterval(()=>res.write(': keepalive\n\n'),15000);req.on('close',()=>{clearInterval(ka);clients=clients.filter(c=>c.id!==id);});});
 app.get('/api/stats-stream',(req,res)=>{res.setHeader('Content-Type','text/event-stream');res.setHeader('Cache-Control','no-cache');res.setHeader('Connection','keep-alive');res.setHeader('X-Accel-Buffering','no');res.flushHeaders();const id=Date.now();statsClients.push({id,res});const ka=setInterval(()=>res.write(': keepalive\n\n'),15000);req.on('close',()=>{clearInterval(ka);statsClients=statsClients.filter(c=>c.id!==id);});});
 app.get('/api/crt-stream',(req,res)=>{const p=normalizeBoProfile(req.query.profile);res.setHeader('Content-Type','text/event-stream');res.setHeader('Cache-Control','no-cache');res.setHeader('Connection','keep-alive');res.setHeader('X-Accel-Buffering','no');res.flushHeaders();const id=Date.now();const cl=p==='HTF'?crtHTFClients:crtLTFClients;cl.push({id,res});const ka=setInterval(()=>res.write(': keepalive\n\n'),15000);req.on('close',()=>{clearInterval(ka);if(p==='HTF')crtHTFClients=crtHTFClients.filter(c=>c.id!==id);else crtLTFClients=crtLTFClients.filter(c=>c.id!==id);});});
 app.get('/api/breakout-stream',(req,res)=>{res.setHeader('Content-Type','text/event-stream');res.setHeader('Cache-Control','no-cache');res.setHeader('Connection','keep-alive');res.setHeader('X-Accel-Buffering','no');res.flushHeaders();const id=Date.now();breakoutClients.push({id,res});const ka=setInterval(()=>res.write(': keepalive\n\n'),15000);req.on('close',()=>{clearInterval(ka);breakoutClients=breakoutClients.filter(c=>c.id!==id);});});
+
 app.post('/api/delete',async(req,res)=>{const{symbol,action}=req.body;if(!symbol||action!=='DELETE')return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(!marketState[sym])return res.status(404).send("Not found");delete marketState[sym];await redisClient.set(REDIS_STATE_KEY,JSON.stringify(marketState));await pushLogEvent(sym,'SYSTEM','🗑️ Purged');broadcastAll();res.send("Purged");});
 app.post('/api/delete-stats',async(req,res)=>{const{symbol}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(sym==="ALL")tradeStats={};else{if(!tradeStats[sym])return res.status(404).send("Not found");delete tradeStats[sym];}await saveStats();broadcastStats();res.send("Cleared");});
 app.post('/api/delete-crt',async(req,res)=>{const{symbol,profile:rp}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();const p=normalizeBoProfile(rp);let cs=getCRTState(p);let cl=getCRTLog(p);if(sym==="ALL"){cs={};cl=[];}else{if(cs[sym])delete cs[sym];cl=cl.filter(e=>e.symbol!==sym);}setCRTState(p,cs);setCRTLog(p,cl);await saveCRTState(p);await redisClient.set(getCRTRedisKey(p)+'_log',JSON.stringify(cl));broadcastCRT(p);res.send("Cleared");});
-// ══════════════════════════════════════════════
-// PURGE SINGLE CRT COIN (removes from state + log + stats recalculate)
-// ══════════════════════════════════════════════
+
 app.post('/api/purge-crt', async (req, res) => {
     const { symbol, profile: rp } = req.body;
     if (!symbol) return res.status(400).send("Invalid");
@@ -956,34 +1295,22 @@ app.post('/api/purge-crt', async (req, res) => {
     const p = normalizeBoProfile(rp);
     let cs = getCRTState(p);
     let cl = getCRTLog(p);
-
-    // Remove from CRT state
-    if (cs[sym]) {
-        delete cs[sym];
-    } else {
-        return res.status(404).send("Symbol not found");
-    }
-
-    // Remove from CRT log
+    if (cs[sym]) { delete cs[sym]; } else { return res.status(404).send("Symbol not found"); }
     cl = cl.filter(e => e.symbol !== sym);
-
-    // Save
     setCRTState(p, cs);
     setCRTLog(p, cl);
     await saveCRTState(p);
     await redisClient.set(getCRTRedisKey(p) + '_log', JSON.stringify(cl));
-
-    // Broadcast updates
     broadcastCRT(p);
-
     console.log(`[PURGE CRT] ${sym} purged from ${p} profile`);
     res.json({ ok: true, purged: sym, profile: p });
 });
+
 app.post('/api/delete-breakout',async(req,res)=>{const{symbol}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(sym==="ALL"){breakoutState={};breakoutLog=[];}else{if(breakoutState[sym])delete breakoutState[sym];breakoutLog=breakoutLog.filter(e=>e.symbol!==sym);}await saveBreakoutState();await redisClient.set(REDIS_BREAKOUT_KEY+'_log',JSON.stringify(breakoutLog));broadcastBreakout();res.send("Cleared");});
 app.post('/api/breakout-inject',async(req,res)=>{const{symbol,tf,direction}=req.body;if(!symbol||!tf||!direction)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();const nt=normalizeTf(tf);const dir=normalizeBreakoutDirection(direction);if(!BREAKOUT_PAGE_TFS.includes(nt))return res.status(400).send("Invalid TF");if(dir==='NONE')return res.status(400).send("Direction required");await processBreakoutUpdate(sym,nt==='1MO'?dir:'NONE',nt==='1W'?dir:'NONE','INJECT');res.send("OK");});
 
 // ══════════════════════════════════════════════
-// MAIN WEBHOOK
+// MAIN WEBHOOK (updated storyline for 3 TFs)
 // ══════════════════════════════════════════════
 app.post('/webhook', async (req, res) => {
     const payload=req.body;
@@ -993,76 +1320,157 @@ app.post('/webhook', async (req, res) => {
     const isPineEntry=payload.coin!==undefined&&payload.action!==undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
     const isBreakoutPage=payload.weekly_breakout!==undefined||payload.monthly_breakout!==undefined;
 
-    if(isBreakoutPage){const sym=(payload.coin||'').toUpperCase().trim();const wDir=normalizeBreakoutDirection(payload.weekly_breakout);const moDir=normalizeBreakoutDirection(payload.monthly_breakout);if(!sym)return res.status(400).send("Invalid");if(moDir==='NONE'&&wDir==='NONE')return res.status(200).send("OK");await processBreakoutUpdate(sym,moDir,wDir,'WEBHOOK');return res.status(200).send("OK");}
+    if(isBreakoutPage){
+        const sym=(payload.coin||'').toUpperCase().trim();
+        const wDir=normalizeBreakoutDirection(payload.weekly_breakout);
+        const moDir=normalizeBreakoutDirection(payload.monthly_breakout);
+        if(!sym)return res.status(400).send("Invalid");
+        if(moDir==='NONE'&&wDir==='NONE')return res.status(200).send("OK");
+        await processBreakoutUpdate(sym,moDir,wDir,'WEBHOOK');
+        return res.status(200).send("OK");
+    }
 
     if(isStoryline){
-        const sym=(payload.symbol||'').toUpperCase().trim();const tf=normalizeTf(payload.tf);const state=(payload.state||'').toUpperCase().trim();
-        if(!sym||!tf||!state)return res.status(400).send("Invalid");if(!ZONE_TIMEFRAMES.includes(tf))return res.status(200).send("OK");
+        const sym=(payload.symbol||'').toUpperCase().trim();
+        const tf=normalizeTf(payload.tf);
+        const state=(payload.state||'').toUpperCase().trim();
+        if(!sym||!tf||!state)return res.status(400).send("Invalid");
+        if(!ZONE_TIMEFRAMES.includes(tf))return res.status(200).send("OK");
+
         console.log(`\n[STORYLINE] ${sym} | ${tf} → ${state}`);
-        if(!marketState[sym]){const d={};ZONE_TIMEFRAMES.forEach(t=>d[t]="NONE");marketState[sym]={timeframes:d,lastAlertedState:"NONE",lastGodModeStartTime:null,alignCount:0,partialState:"NONE",partialCount:0};}
-        if(!marketState[sym].timeframes){marketState[sym].timeframes={};ZONE_TIMEFRAMES.forEach(t=>marketState[sym].timeframes[t]="NONE");}
+
+        if(!marketState[sym]){
+            const d={};ZONE_TIMEFRAMES.forEach(t=>d[t]="NONE");
+            marketState[sym]={timeframes:d,lastAlertedState:"NONE",lastGodModeStartTime:null,alignCount:0,partialState:"NONE",partialCount:0};
+        }
+        if(!marketState[sym].timeframes){
+            marketState[sym].timeframes={};
+            ZONE_TIMEFRAMES.forEach(t=>marketState[sym].timeframes[t]="NONE");
+        }
+        // Ensure all 3 TFs exist
+        ZONE_TIMEFRAMES.forEach(t => {
+            if (!marketState[sym].timeframes[t]) marketState[sym].timeframes[t] = "NONE";
+        });
+
         marketState[sym].timeframes[tf]=state;
-        const prev=marketState[sym].lastAlertedState;const{dominantState,partialState,partialCount,alignCount}=recalculateAlignment(sym);
-        if(dominantState!=="NONE"&&dominantState!==prev){marketState[sym].lastAlertedState=dominantState;marketState[sym].lastGodModeStartTime=Date.now();await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,`<b>${dominantState==="BULLISH"?"🚀 🐂":"🩸 🐻"} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (2/2 — MO+W)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly aligned!`);await pushLogEvent(sym,dominantState,`GOD-MODE ON: ${dominantState} (2/2 — MO+W)`);}
-        if(dominantState==="NONE"&&prev!=="NONE"){marketState[sym].lastAlertedState="NONE";await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,`<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (2/2)\nNow: ${partialState!=="NONE"?partialState+` (${partialCount}/2)`:`${alignCount}/2`}\n${tfInfoString(sym)}`);await pushLogEvent(sym,'NONE',`Alignment Lost: was ${prev} (2/2)`);}
-        if(dominantState==="NONE"&&partialState!=="NONE"){const pp=marketState[sym]._lastPartialState||"NONE";if(pp!==partialState||(prev!=="NONE"&&dominantState==="NONE")){await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,`<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} PARTIAL: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/2)\n${tfInfoString(sym)}`);await pushLogEvent(sym,partialState,`PARTIAL: ${partialState} (${partialCount}/2)`);}}
+
+        const prev=marketState[sym].lastAlertedState;
+        const{dominantState,partialState,partialCount,alignCount}=recalculateAlignment(sym);
+
+        // GOD-MODE: 3/3 aligned
+        if(dominantState!=="NONE"&&dominantState!==prev){
+            marketState[sym].lastAlertedState=dominantState;
+            marketState[sym].lastGodModeStartTime=Date.now();
+            await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
+                `<b>${dominantState==="BULLISH"?"🚀 🐂":"🩸 🐻"} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (3/3 — MO+W+D)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly + Daily aligned!`);
+            await pushLogEvent(sym,dominantState,`GOD-MODE ON: ${dominantState} (3/3 — MO+W+D)`);
+        }
+
+        // Alignment lost (was GOD, now not)
+        if(dominantState==="NONE"&&prev!=="NONE"){
+            marketState[sym].lastAlertedState="NONE";
+            await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
+                `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (3/3)\nNow: ${partialState!=="NONE"?partialState+` (${partialCount}/3)`:`${alignCount}/3`}\n${tfInfoString(sym)}`);
+            await pushLogEvent(sym,'NONE',`Alignment Lost: was ${prev} (3/3)`);
+        }
+
+        // Partial updates
+        if(dominantState==="NONE"&&partialState!=="NONE"){
+            const pp=marketState[sym]._lastPartialState||"NONE";
+            const ppc=marketState[sym]._lastPartialCount||0;
+            if(pp!==partialState||ppc!==partialCount||(prev!=="NONE"&&dominantState==="NONE")){
+                const levelLabel = partialCount >= STRONG_THRESHOLD ? 'STRONG' : 'PARTIAL';
+                await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
+                    `<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} ${levelLabel}: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/3)\n${tfInfoString(sym)}`);
+                await pushLogEvent(sym,partialState,`${levelLabel}: ${partialState} (${partialCount}/3)`);
+            }
+        }
+
         marketState[sym]._lastPartialState=partialState;
+        marketState[sym]._lastPartialCount=partialCount;
+
         await invalidatePendingTrades(sym);
         await redisClient.set(REDIS_STATE_KEY,JSON.stringify(marketState));
         broadcastAll();
-        // NO bot refresh on storyline — bot is CRT only
         return res.status(200).send("OK");
     }
 
     if(isBreakout){
-        const sym=(payload.symbol||'').toUpperCase().trim();const direction=(payload.direction||'').toUpperCase().trim();const chartTf=normalizeTf(payload.chart_tf);
-        if(!sym||!direction)return res.status(400).send("Invalid");const align=checkDirectionAlignment(sym,direction);if(!align.aligned)return res.status(200).send("OK");
-        const tgMsg=`<b>${direction==="BULLISH"?"🚀 🐂":"🩸 🐻"} BREAKOUT: ${sym}</b>\n\n<b>Direction:</b> ${direction}\n<b>Chart TF:</b> ${chartTf||'?'}\n\n${align.type==='GOD'?'✅':'⚡'} <b>${align.type==='GOD'?'GOD-MODE (2/2)':`PARTIAL (${align.count}/2)`}</b>\n${tfInfoString(sym)}`;
-        const sc=[];if(align.count===PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg);sc.push('PARTIAL');}if(align.type==='GOD'&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push('GOD');}if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg);sc.push('CUSTOM');}
-        await pushLogEvent(sym,direction,`💥 BREAKOUT: ${direction}|Chart:${chartTf||'?'}|${align.type==='GOD'?'GOD-MODE':'PARTIAL'}${sc.length?` → [${sc.join(',')}]`:''}`,{logAction:'BREAKOUT',direction});
-        broadcastAll();broadcastSoundAlert(sym,direction);return res.status(200).send("OK");
+        const sym=(payload.symbol||'').toUpperCase().trim();
+        const direction=(payload.direction||'').toUpperCase().trim();
+        const chartTf=normalizeTf(payload.chart_tf);
+        if(!sym||!direction)return res.status(400).send("Invalid");
+        const align=checkDirectionAlignment(sym,direction);
+        if(!align.aligned)return res.status(200).send("OK");
+
+        const tgMsg=`<b>${direction==="BULLISH"?"🚀 🐂":"🩸 🐻"} BREAKOUT: ${sym}</b>\n\n<b>Direction:</b> ${direction}\n<b>Chart TF:</b> ${chartTf||'?'}\n\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`}</b>\n${tfInfoString(sym)}`;
+
+        const sc=[];
+        if(align.count>=PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg);sc.push('PARTIAL');}
+        if(align.type==='GOD'&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push('GOD');}
+        if(align.type==='STRONG'&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push('STRONG');}
+        if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg);sc.push('CUSTOM');}
+
+        await pushLogEvent(sym,direction,`💥 BREAKOUT: ${direction}|Chart:${chartTf||'?'}|${align.type}${sc.length?` → [${sc.join(',')}]`:''}`,{logAction:'BREAKOUT',direction});
+        broadcastAll();broadcastSoundAlert(sym,direction);
+        return res.status(200).send("OK");
     }
 
     if(isCRT){
-        const sym=(payload.coin||'').toUpperCase().trim();const tf=normalizeTf(payload.tf||'');const side=(payload.side||'').toUpperCase().trim();
+        const sym=(payload.coin||'').toUpperCase().trim();
+        const tf=normalizeTf(payload.tf||'');
+        const side=(payload.side||'').toUpperCase().trim();
         const rej=payload.rej||'---';const bo=payload.bo||'---';const ext=payload.ext||'---';const tgt=payload.tgt||'---';
         const profile=normalizeBoProfile(payload.bo_profile);
-        if(!sym||!tf||!side)return res.status(400).send("Invalid");if(!CRT_VALID_TFS.includes(tf))return res.status(200).send("OK");
+        if(!sym||!tf||!side)return res.status(400).send("Invalid");
+        if(!CRT_VALID_TFS.includes(tf))return res.status(200).send("OK");
+
         console.log(`\n[${payload.kind}] ${sym}|${tf}|${side}|${profile}`);
-        let crtState=getCRTState(profile);if(!crtState[sym])crtState[sym]={};
+        let crtState=getCRTState(profile);
+        if(!crtState[sym])crtState[sym]={};
         if(!Array.isArray(crtState[sym][tf]))crtState[sym][tf]=crtState[sym][tf]?[crtState[sym][tf]]:[];
         const tgCh=getCRTTGChannel(profile);
 
         if(payload.kind==='CRT'){
             const ac=checkCRTAlignment(sym,tf,side);
             const ne={id:`${sym}_${tf}_${Date.now()}`,side,rej,bo,ext,tgt,status:'ACTIVE',timestamp:Date.now(),tp_time:null,inv_time:null,align_level:ac.level,align_label:ac.label,aligned:ac.aligned,bo_profile:profile};
-            crtState[sym][tf].push(ne);if(crtState[sym][tf].length>20)crtState[sym][tf]=crtState[sym][tf].slice(-20);
+            crtState[sym][tf].push(ne);
+            if(crtState[sym][tf].length>20)crtState[sym][tf]=crtState[sym][tf].slice(-20);
             const at=ac.aligned?`✅ ${ac.label}`:`⚠️ ${ac.label}`;
             await pushCRTLog(profile,sym,side,`${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,{tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level});
-            const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:at});if(ctm)await sendTelegram(tgCh,ctm);
-            // Bot: notification + panel auto-refresh (HTF only)
+            const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:at});
+            if(ctm)await sendTelegram(tgCh,ctm);
+
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT',sym,tf,side,ac.level,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
+
         if(payload.kind==='CRT_TARGET'){
-            const entries=crtState[sym][tf];let target=null;for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
+            const entries=crtState[sym][tf];let target=null;
+            for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
             if(!target)return res.status(200).send("OK");
             target.status='TP_HIT';target.tp_time=Date.now();target.rej=rej;target.bo=bo;target.ext=ext;target.tgt=tgt;
             await pushCRTLog(profile,sym,side,`🎯 ${tf} CRT TARGET HIT [${profile}]: ${side}|Tgt:${tgt}`,{tf,tgt,action:'CRT_TARGET'});
-            const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});if(ctm)await sendTelegram(tgCh,ctm);
+            const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
+            if(ctm)await sendTelegram(tgCh,ctm);
+
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_TARGET',sym,tf,side,target.align_level||'NONE',{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
+
         if(payload.kind==='CRT_INVALID'){
-            const entries=crtState[sym][tf];let target=null;for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
+            const entries=crtState[sym][tf];let target=null;
+            for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
             if(!target)return res.status(200).send("OK");
             target.status='INVALID';target.inv_time=Date.now();target.rej=rej;target.bo=bo;target.ext=ext;target.tgt=tgt;
             await pushCRTLog(profile,sym,side,`❌ ${tf} CRT INVALIDATED [${profile}]: ${side}|Ext:${ext}`,{tf,ext,action:'CRT_INVALID'});
-            const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});if(ctm)await sendTelegram(tgCh,ctm);
+            const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
+            if(ctm)await sendTelegram(tgCh,ctm);
+
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_INVALID',sym,tf,side,target.align_level||'NONE',{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1075,18 +1483,79 @@ app.post('/webhook', async (req, res) => {
     }
 
     if(isPineEntry){
-        const sym=(payload.coin||'').toUpperCase().trim();const direction=(payload.direction||'').toUpperCase().trim();
+        const sym=(payload.coin||'').toUpperCase().trim();
+        const direction=(payload.direction||'').toUpperCase().trim();
         const entry=payload.entry;const sl=payload.sl;const tp=payload.tp;const rr=payload.rr;
-        const action=(payload.action||'').toUpperCase().trim();const entryTf=normalizeTf(payload.chart_tf);
-        if(!sym||!direction||entry===undefined)return res.status(400).send("Invalid");if(!ENTRY_TFS.includes(entryTf))return res.status(200).send("OK");
-        if(action==="OB_FORMED"){const align=checkDirectionAlignment(sym,direction);if(!align.aligned)return res.status(200).send("OK");const stats=ensureStats(sym,entryTf);stats.total_signals++;const trade={id:makeTradeId(sym,entryTf),direction,entry:parseFloat(entry)||entry,sl:parseFloat(sl)||sl,tp:parseFloat(tp)||tp,rr:parseFloat(rr)||rr,alignment:align.type,align_combos:align.combos,align_count:align.count,status:'PENDING',signal_time:Date.now(),entry_time:null,result_time:null,entry_tf:entryTf,telegram_chat_id:null,telegram_message_id:null,telegram_deleted:false,cancelled_time:null,cancelled_reason:null};stats.trades.push(trade);if(stats.trades.length>500)stats.trades=stats.trades.slice(-500);const chatId=TG_CHANNEL_MAP[entryTf]?.();let snd=false;if(chatId){const al=align.type==='GOD'?'GOD-MODE (2/2)':`PARTIAL (${align.count}/2)`;const de=direction==="BULLISH"?"🟢 🐂":"🔴 🐻";let msg=`<b>${de} ${entryTf} OB SIGNAL: ${sym}</b>\n\n<b>Entry:</b> <code>${entry}</code>\n<b>SL:</b> <code>${sl}</code>\n`;if(tp)msg+=`<b>TP:</b> <code>${tp}</code>\n`;if(rr)msg+=`<b>R:R:</b> ${rr}\n`;msg+=`\n${align.type==='GOD'?'✅':'⚡'} <b>${al}</b>\n${tfInfoString(sym)}`;const sent=await sendTelegramTracked(chatId,msg);if(sent.ok){snd=true;trade.telegram_chat_id=chatId;trade.telegram_message_id=sent.messageId;}}await saveStats();broadcastStats();if(snd)broadcastSoundAlert(sym,direction);await pushLogEvent(sym,direction,`📡 OB SIGNAL: ${direction} ${entryTf} @ ${entry} [${align.type} ${align.count}/2]`,{entry_tf:entryTf,direction,logAction:'SIGNAL'});broadcastAll();return res.status(200).send("OK");}
-        if(action==="ENTRY_DONE"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='ACTIVE';f.trade.entry_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,direction,`📥 ENTRY FILLED: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'ENTRY_FILLED'});broadcastAll();}return res.status(200).send("OK");}
-        if(action==="ENTRY_AND_SL_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='SL_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 ENTRY+SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();}return res.status(200).send("OK");}
-        if(action==="ENTRY_AND_TP_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='TP_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 ENTRY+TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();}return res.status(200).send("OK");}
-        if(action==="TP_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});if(fa){fa.trade.status='TP_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();return res.status(200).send("OK");}const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(fp){fp.trade.status='TP_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ TP without entry`,{entry_tf:entryTf,direction,logAction:'TP_NO_ENTRY'});broadcastAll();}return res.status(200).send("OK");}
-        if(action==="SL_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});if(fa){fa.trade.status='SL_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();return res.status(200).send("OK");}const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(fp){fp.trade.status='SL_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ SL without entry`,{entry_tf:entryTf,direction,logAction:'SL_NO_ENTRY'});broadcastAll();}return res.status(200).send("OK");}
+        const action=(payload.action||'').toUpperCase().trim();
+        const entryTf=normalizeTf(payload.chart_tf);
+        if(!sym||!direction||entry===undefined)return res.status(400).send("Invalid");
+        if(!ENTRY_TFS.includes(entryTf))return res.status(200).send("OK");
+
+        if(action==="OB_FORMED"){
+            const align=checkDirectionAlignment(sym,direction);
+            if(!align.aligned)return res.status(200).send("OK");
+            const stats=ensureStats(sym,entryTf);stats.total_signals++;
+            const trade={id:makeTradeId(sym,entryTf),direction,entry:parseFloat(entry)||entry,sl:parseFloat(sl)||sl,tp:parseFloat(tp)||tp,rr:parseFloat(rr)||rr,alignment:align.type,align_combos:align.combos,align_count:align.count,status:'PENDING',signal_time:Date.now(),entry_time:null,result_time:null,entry_tf:entryTf,telegram_chat_id:null,telegram_message_id:null,telegram_deleted:false,cancelled_time:null,cancelled_reason:null};
+            stats.trades.push(trade);if(stats.trades.length>500)stats.trades=stats.trades.slice(-500);
+            const chatId=TG_CHANNEL_MAP[entryTf]?.();let snd=false;
+            if(chatId){
+                const al=align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`;
+                const de=direction==="BULLISH"?"🟢 🐂":"🔴 🐻";
+                let msg=`<b>${de} ${entryTf} OB SIGNAL: ${sym}</b>\n\n<b>Entry:</b> <code>${entry}</code>\n<b>SL:</b> <code>${sl}</code>\n`;
+                if(tp)msg+=`<b>TP:</b> <code>${tp}</code>\n`;
+                if(rr)msg+=`<b>R:R:</b> ${rr}\n`;
+                msg+=`\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${al}</b>\n${tfInfoString(sym)}`;
+                const sent=await sendTelegramTracked(chatId,msg);
+                if(sent.ok){snd=true;trade.telegram_chat_id=chatId;trade.telegram_message_id=sent.messageId;}
+            }
+            await saveStats();broadcastStats();
+            if(snd)broadcastSoundAlert(sym,direction);
+            await pushLogEvent(sym,direction,`📡 OB SIGNAL: ${direction} ${entryTf} @ ${entry} [${align.type} ${align.count}/3]`,{entry_tf:entryTf,direction,logAction:'SIGNAL'});
+            broadcastAll();return res.status(200).send("OK");
+        }
+
+        if(action==="ENTRY_DONE"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(f){f.trade.status='ACTIVE';f.trade.entry_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,direction,`📥 ENTRY FILLED: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'ENTRY_FILLED'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
+
+        if(action==="ENTRY_AND_SL_HIT"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(f){f.trade.status='SL_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 ENTRY+SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
+
+        if(action==="ENTRY_AND_TP_HIT"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(f){f.trade.status='TP_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 ENTRY+TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
+
+        if(action==="TP_HIT"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});
+            if(fa){fa.trade.status='TP_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();return res.status(200).send("OK");}
+            const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(fp){fp.trade.status='TP_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ TP without entry`,{entry_tf:entryTf,direction,logAction:'TP_NO_ENTRY'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
+
+        if(action==="SL_HIT"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});
+            if(fa){fa.trade.status='SL_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();return res.status(200).send("OK");}
+            const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(fp){fp.trade.status='SL_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ SL without entry`,{entry_tf:entryTf,direction,logAction:'SL_NO_ENTRY'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
+
         return res.status(400).send("Unknown action");
     }
+
     return res.status(400).send("Unknown payload");
 });
 
