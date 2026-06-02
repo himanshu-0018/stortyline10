@@ -92,7 +92,7 @@
         .card-badge-mixed { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(196,181,253,0.15));border:1px solid rgba(167,139,250,0.4);color:#c4b5fd; }
         .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
 
-        .tf-row { display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px; }
+        .tf-row { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px; }
         .tf-cell { padding:8px 4px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.50rem;text-align:center; }
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
         .tf-cell-bear { background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.25); }
@@ -114,6 +114,9 @@
         .align-tag-mow { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
         .align-tag-mo { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
         .align-tag-w { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .align-tag-d { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
+        .align-tag-dw { background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc; }
+        .align-tag-dwm { background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.5);color:#34d399; }
         .align-tag-none { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
 
         .hitrate-panel { position:relative;z-index:10;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.6);backdrop-filter:blur(10px); }
@@ -156,93 +159,42 @@
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
+
         /* PURGE MODAL */
-.purge-overlay {
-    position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
-    display: none; align-items: center; justify-content: center;
-    animation: fadeIn 0.2s ease-out;
-}
-.purge-overlay.show { display: flex; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .purge-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .purge-overlay.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .purge-modal {
+            background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,20,50,0.95));
+            border: 1px solid rgba(239,68,68,0.4);
+            border-radius: 20px; padding: 28px 32px;
+            max-width: 380px; width: 90%;
+            box-shadow: 0 0 60px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.6);
+            animation: modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            text-align: center;
+        }
+        @keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .purge-modal-icon { font-size: 2.5rem; margin-bottom: 12px; animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+        .purge-modal-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 900; color: #f87171; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .purge-modal-sym { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 800; color: #fbbf24; margin-bottom: 14px; }
+        .purge-modal-desc { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: rgba(203,213,225,0.6); line-height: 1.6; margin-bottom: 20px; }
+        .purge-modal-desc b { color: #f87171; }
+        .purge-modal-btns { display: flex; gap: 10px; justify-content: center; }
+        .purge-btn-cancel { padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; cursor: pointer; background: rgba(71,85,105,0.3); border: 1px solid rgba(71,85,105,0.5); color: #94a3b8; transition: all 0.2s; }
+        .purge-btn-cancel:hover { background: rgba(71,85,105,0.5); color: #cbd5e1; transform: translateY(-1px); }
+        .purge-btn-confirm { padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, rgba(239,68,68,0.4), rgba(153,27,27,0.3)); border: 1px solid rgba(239,68,68,0.6); color: #fca5a5; transition: all 0.2s; }
+        .purge-btn-confirm:hover { background: linear-gradient(135deg, rgba(239,68,68,0.6), rgba(153,27,27,0.5)); color: #fee2e2; transform: translateY(-1px); box-shadow: 0 0 20px rgba(239,68,68,0.3); }
 
-.purge-modal {
-    background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,20,50,0.95));
-    border: 1px solid rgba(239,68,68,0.4);
-    border-radius: 20px; padding: 28px 32px;
-    max-width: 380px; width: 90%;
-    box-shadow: 0 0 60px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.6);
-    animation: modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    text-align: center;
-}
-@keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.purge-modal-icon {
-    font-size: 2.5rem; margin-bottom: 12px;
-    animation: shake 0.5s ease-in-out;
-}
-@keyframes shake {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-8deg); }
-    75% { transform: rotate(8deg); }
-}
-
-.purge-modal-title {
-    font-family: 'Orbitron', sans-serif; font-size: 0.85rem;
-    font-weight: 900; color: #f87171; letter-spacing: 0.08em;
-    margin-bottom: 8px;
-}
-.purge-modal-sym {
-    font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;
-    font-weight: 800; color: #fbbf24; margin-bottom: 14px;
-}
-.purge-modal-desc {
-    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
-    color: rgba(203,213,225,0.6); line-height: 1.6; margin-bottom: 20px;
-}
-.purge-modal-desc b { color: #f87171; }
-
-.purge-modal-btns {
-    display: flex; gap: 10px; justify-content: center;
-}
-.purge-btn-cancel {
-    padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem; font-weight: 700; cursor: pointer;
-    background: rgba(71,85,105,0.3); border: 1px solid rgba(71,85,105,0.5);
-    color: #94a3b8; transition: all 0.2s;
-}
-.purge-btn-cancel:hover {
-    background: rgba(71,85,105,0.5); color: #cbd5e1;
-    transform: translateY(-1px);
-}
-.purge-btn-confirm {
-    padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem; font-weight: 700; cursor: pointer;
-    background: linear-gradient(135deg, rgba(239,68,68,0.4), rgba(153,27,27,0.3));
-    border: 1px solid rgba(239,68,68,0.6); color: #fca5a5;
-    transition: all 0.2s;
-}
-.purge-btn-confirm:hover {
-    background: linear-gradient(135deg, rgba(239,68,68,0.6), rgba(153,27,27,0.5));
-    color: #fee2e2; transform: translateY(-1px);
-    box-shadow: 0 0 20px rgba(239,68,68,0.3);
-}
-
-/* PURGE BUTTON ON CARD */
-.purge-card-btn {
-    position: absolute; top: 8px; right: 8px; z-index: 5;
-    width: 24px; height: 24px; border-radius: 6px;
-    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
-    color: rgba(239,68,68,0.4); font-size: 0.6rem;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s; opacity: 0;
-}
-.coin-card:hover .purge-card-btn { opacity: 1; }
-.purge-card-btn:hover {
-    background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.6);
-    color: #f87171; transform: scale(1.1);
-    box-shadow: 0 0 12px rgba(239,68,68,0.3);
-}
+        /* PURGE BUTTON ON CARD */
+        .purge-card-btn { position: absolute; top: 8px; right: 8px; z-index: 5; width: 24px; height: 24px; border-radius: 6px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.4); font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; opacity: 0; }
+        .coin-card:hover .purge-card-btn { opacity: 1; }
+        .purge-card-btn:hover { background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.6); color: #f87171; transform: scale(1.1); box-shadow: 0 0 12px rgba(239,68,68,0.3); }
     </style>
 </head>
 <body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
@@ -259,31 +211,33 @@
             <div class="cbar r" style="height:47%;animation-delay:.5s"></div><div class="cbar g" style="height:90%;animation-delay:.9s"></div>
         </div>
     </div>
-<!-- PURGE MODAL -->
-<div class="purge-overlay" id="purgeOverlay" onclick="closePurgeModal(event)">
-    <div class="purge-modal" onclick="event.stopPropagation()">
-        <div class="purge-modal-icon">🗑️</div>
-        <div class="purge-modal-title">PURGE COIN</div>
-        <div class="purge-modal-sym" id="purgeSymbol">—</div>
-        <div class="purge-modal-desc">
-            This will <b>permanently remove</b> all CRT data for this coin:<br><br>
-            ✦ All CRT entries (Active, TP, Invalid)<br>
-            ✦ All log entries for this coin<br>
-            ✦ Removed from overall statistics<br><br>
-            This action <b>cannot be undone</b>.
-        </div>
-        <div class="purge-modal-btns">
-            <button class="purge-btn-cancel" onclick="closePurgeModal()">CANCEL</button>
-            <button class="purge-btn-confirm" id="purgeConfirmBtn" onclick="confirmPurge()">🗑️ PURGE</button>
+
+    <!-- PURGE MODAL -->
+    <div class="purge-overlay" id="purgeOverlay" onclick="closePurgeModal(event)">
+        <div class="purge-modal" onclick="event.stopPropagation()">
+            <div class="purge-modal-icon">🗑️</div>
+            <div class="purge-modal-title">PURGE COIN</div>
+            <div class="purge-modal-sym" id="purgeSymbol">—</div>
+            <div class="purge-modal-desc">
+                This will <b>permanently remove</b> all CRT data for this coin:<br><br>
+                ✦ All CRT entries (Active, TP, Invalid)<br>
+                ✦ All log entries for this coin<br>
+                ✦ Removed from overall statistics<br><br>
+                This action <b>cannot be undone</b>.
+            </div>
+            <div class="purge-modal-btns">
+                <button class="purge-btn-cancel" onclick="closePurgeModal()">CANCEL</button>
+                <button class="purge-btn-confirm" id="purgeConfirmBtn" onclick="confirmPurge()">🗑️ PURGE</button>
+            </div>
         </div>
     </div>
-</div>
+
     <div class="top-bar">
         <div style="display:flex;align-items:center;gap:14px;">
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
             <div>
                 <div class="brand-name">CRT DASHBOARD</div>
-                <div class="brand-sub" id="brandSub">CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H</div>
+                <div class="brand-sub" id="brandSub">CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H, 4H→1H</div>
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -359,10 +313,14 @@
     </div>
 
     <script>
-        const CRT_TFS = ['1W', '1D'];
-        const PROFILE_LABELS = {
-            HTF: { title: 'HTF BREAKOUT', sub: 'CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H', desc: 'W→Daily BO, D→4H BO' }
+        // ══════════════════════════════════════════════
+        // UPDATED: 3 CRT timeframes (W, D, 4H)
+        // ══════════════════════════════════════════════
+        const CRT_TFS = ['1W', '1D', '4H'];
+        const TF_LABELS_CRT = { '1W': 'WEEKLY', '1D': 'DAILY', '4H': '4H' };
 
+        const PROFILE_LABELS = {
+            HTF: { title: 'HTF BREAKOUT', sub: 'CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H, 4H→1H', desc: 'W→Daily BO, D→4H BO, 4H→1H BO' }
         };
 
         let crtState = {};
@@ -392,60 +350,51 @@
         }
 
         // ── PURGE SYSTEM ──
-let pendingPurgeSymbol = null;
+        let pendingPurgeSymbol = null;
 
-function openPurgeModal(sym) {
-    pendingPurgeSymbol = sym;
-    document.getElementById('purgeSymbol').textContent = sym;
-    document.getElementById('purgeOverlay').classList.add('show');
-}
-
-function closePurgeModal(e) {
-    if (e && e.target !== e.currentTarget) return;
-    document.getElementById('purgeOverlay').classList.remove('show');
-    pendingPurgeSymbol = null;
-}
-
-async function confirmPurge() {
-    if (!pendingPurgeSymbol) return;
-    const sym = pendingPurgeSymbol;
-    const btn = document.getElementById('purgeConfirmBtn');
-    btn.textContent = '⏳ PURGING...';
-    btn.style.pointerEvents = 'none';
-
-    try {
-        const resp = await fetch('/api/purge-crt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ symbol: sym, profile: activeProfile })
-        });
-
-        if (resp.ok) {
-            // Remove locally for instant UI update
-            if (crtState[sym]) delete crtState[sym];
-            crtLog = crtLog.filter(e => e.symbol !== sym);
-            render();
-            rebuildFeed();
-
-            // Refresh stats
-            fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(data => {
-                crtStats = data.crtStats || {};
-                renderHitRates();
-            }).catch(() => {});
+        function openPurgeModal(sym) {
+            pendingPurgeSymbol = sym;
+            document.getElementById('purgeSymbol').textContent = sym;
+            document.getElementById('purgeOverlay').classList.add('show');
         }
-    } catch (err) {
-        console.error('Purge failed:', err);
-    }
 
-    closePurgeModal();
-    btn.textContent = '🗑️ PURGE';
-    btn.style.pointerEvents = 'auto';
-}
+        function closePurgeModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('purgeOverlay').classList.remove('show');
+            pendingPurgeSymbol = null;
+        }
 
-// ESC key to close modal
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closePurgeModal();
-});
+        async function confirmPurge() {
+            if (!pendingPurgeSymbol) return;
+            const sym = pendingPurgeSymbol;
+            const btn = document.getElementById('purgeConfirmBtn');
+            btn.textContent = '⏳ PURGING...';
+            btn.style.pointerEvents = 'none';
+            try {
+                const resp = await fetch('/api/purge-crt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: sym, profile: activeProfile })
+                });
+                if (resp.ok) {
+                    if (crtState[sym]) delete crtState[sym];
+                    crtLog = crtLog.filter(e => e.symbol !== sym);
+                    render();
+                    rebuildFeed();
+                    fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(data => {
+                        crtStats = data.crtStats || {};
+                        renderHitRates();
+                    }).catch(() => {});
+                }
+            } catch (err) { console.error('Purge failed:', err); }
+            closePurgeModal();
+            btn.textContent = '🗑️ PURGE';
+            btn.style.pointerEvents = 'auto';
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closePurgeModal();
+        });
 
         // ── PROFILE SWITCH ──
         function setProfile(p) {
@@ -453,13 +402,10 @@ document.addEventListener('keydown', e => {
             activeProfile = p;
             document.querySelectorAll('.sp-profile').forEach(el => el.classList.remove('active-profile'));
             document.getElementById('profile' + p).classList.add('active-profile');
-
             const labels = PROFILE_LABELS[p];
             document.getElementById('brandSub').textContent = labels.sub;
             document.getElementById('hitrateTitle').textContent = `📊 CRT HIT RATE — ${labels.title}`;
             document.getElementById('feedTitle').textContent = `📡 CRT FEED — ${p}`;
-
-            // Reload data for new profile
             loadProfileData();
             reconnectSSE();
         }
@@ -480,10 +426,7 @@ document.addEventListener('keydown', e => {
         }
 
         function reconnectSSE() {
-            if (crtEventSource) {
-                crtEventSource.close();
-                crtEventSource = null;
-            }
+            if (crtEventSource) { crtEventSource.close(); crtEventSource = null; }
             crtEventSource = new EventSource(`/api/crt-stream?profile=${activeProfile}`);
             crtEventSource.onopen = () => {
                 dot.className='pulse-dot'; lbl.textContent='LIVE'; lbl.style.color='#34d399'; bdg.className='live-badge';
@@ -535,6 +478,7 @@ document.addEventListener('keydown', e => {
             return true;
         }
 
+        // ── HELPERS ──
         function fmtTime(ts) {
             if (!ts) return '';
             const d = new Date(ts);
@@ -614,9 +558,12 @@ document.addEventListener('keydown', e => {
         function alignTagHTML(entry) {
             if (!entry || !entry.align_level) return '';
             const level = entry.align_level;
-            if (level === 'MO+W') return '<span class="align-tag align-tag-mow">MO+W ✅</span>';
-            if (level === 'MO') return '<span class="align-tag align-tag-mo">MO ✅</span>';
-            if (level === 'W') return '<span class="align-tag align-tag-w">W ✅</span>';
+            if (level === 'MO+W')  return '<span class="align-tag align-tag-mow">MO+W ✅</span>';
+            if (level === 'MO')    return '<span class="align-tag align-tag-mo">MO ✅</span>';
+            if (level === 'W')     return '<span class="align-tag align-tag-w">W ✅</span>';
+            if (level === 'D+W+MO') return '<span class="align-tag align-tag-dwm">D+W+MO ✅</span>';
+            if (level === 'D+W')   return '<span class="align-tag align-tag-dw">D+W ✅</span>';
+            if (level === 'D')     return '<span class="align-tag align-tag-d">D ✅</span>';
             return '<span class="align-tag align-tag-none">NO ALIGN</span>';
         }
 
@@ -645,75 +592,24 @@ document.addEventListener('keydown', e => {
                 return;
             }
 
-            // Build breakout hit rate stats
-            const boStats = {
-                bo_w: { total:0, tp:0, inv:0, active:0 },
-                bo_m: { total:0, tp:0, inv:0, active:0 },
-                bo_both: { total:0, tp:0, inv:0, active:0 },
-                bo_none: { total:0, tp:0, inv:0, active:0 },
-            };
-
-            for (const sym in crtState) {
-                const wBO = getBreakoutDir(sym, '1W');
-                const mBO = getBreakoutDir(sym, '1MO');
-                const hasW = wBO !== 'NONE';
-                const hasM = mBO !== 'NONE';
-
-                let boKey;
-                if (hasW && hasM) boKey = 'bo_both';
-                else if (hasW) boKey = 'bo_w';
-                else if (hasM) boKey = 'bo_m';
-                else boKey = 'bo_none';
-
-                CRT_TFS.forEach(tf => {
-                    getTFEntries(sym, tf).forEach(e => {
-                        if (!e || !e.side) return;
-                        boStats[boKey].total++;
-                        if (e.status === 'TP_HIT') boStats[boKey].tp++;
-                        if (e.status === 'INVALID') boStats[boKey].inv++;
-                        if (e.status === 'ACTIVE') boStats[boKey].active++;
-
-                        if (hasW && hasM) {
-                            boStats['bo_w'].total++;
-                            if (e.status === 'TP_HIT') boStats['bo_w'].tp++;
-                            if (e.status === 'INVALID') boStats['bo_w'].inv++;
-                            if (e.status === 'ACTIVE') boStats['bo_w'].active++;
-                            boStats['bo_m'].total++;
-                            if (e.status === 'TP_HIT') boStats['bo_m'].tp++;
-                            if (e.status === 'INVALID') boStats['bo_m'].inv++;
-                            if (e.status === 'ACTIVE') boStats['bo_m'].active++;
-                        }
-                    });
-                });
-            }
-
-            for (const key in boStats) {
-                const b = boStats[key];
-                const resolved = b.tp + b.inv;
-                b.hit_rate = resolved > 0 ? ((b.tp / resolved) * 100).toFixed(1) : '—';
-            }
-
             const storylineCards = [
-                { key:'overall', label:'OVERALL', icon:'📊' },
-                { key:'daily', label:'DAILY CRT', icon:'📅' },
-                { key:'weekly', label:'WEEKLY CRT', icon:'📆' },
-                { key:'daily_mo_w', label:'DAILY — MO+W ALIGNED', icon:'✅' },
-                { key:'daily_mo', label:'DAILY — MO ONLY', icon:'🟡' },
-                { key:'daily_w', label:'DAILY — W ONLY', icon:'🔵' },
-                { key:'daily_none', label:'DAILY — NO ALIGN', icon:'⚠️' },
-                { key:'weekly_mo', label:'WEEKLY — MO ALIGNED', icon:'✅' },
-                { key:'weekly_none', label:'WEEKLY — NO MO ALIGN', icon:'⚠️' },
-            ];
-
-            const breakoutCards = [
-                { key:'bo_w', label:'WITH W BREAKOUT', icon:'📆💥', bo:true },
-                { key:'bo_m', label:'WITH M BREAKOUT', icon:'📅💥', bo:true },
-                { key:'bo_both', label:'WITH W+M BREAKOUT', icon:'✅💥', bo:true },
-                { key:'bo_none', label:'NO BREAKOUT', icon:'⚪', bo:true },
+                { key:'overall',       label:'OVERALL',                icon:'📊' },
+                { key:'daily',         label:'DAILY CRT',              icon:'📅' },
+                { key:'weekly',        label:'WEEKLY CRT',             icon:'📆' },
+                { key:'fourh',         label:'4H CRT',                 icon:'⏰' },
+                { key:'daily_mo_w',    label:'DAILY — MO+W ALIGNED',   icon:'✅' },
+                { key:'daily_mo',      label:'DAILY — MO ONLY',        icon:'🟡' },
+                { key:'daily_w',       label:'DAILY — W ONLY',         icon:'🔵' },
+                { key:'daily_none',    label:'DAILY — NO ALIGN',       icon:'⚠️' },
+                { key:'weekly_mo',     label:'WEEKLY — MO ALIGNED',    icon:'✅' },
+                { key:'weekly_none',   label:'WEEKLY — NO MO ALIGN',   icon:'⚠️' },
+                { key:'fourh_dwm',     label:'4H — D+W+MO ALIGNED',   icon:'✅' },
+                { key:'fourh_dw',      label:'4H — D+W ALIGNED',      icon:'⚡' },
+                { key:'fourh_d',       label:'4H — D ONLY',           icon:'🟣' },
+                { key:'fourh_none',    label:'4H — NO ALIGN',         icon:'⚠️' },
             ];
 
             let html = '';
-
             html += `<div class="hitrate-section-label">📊 STORYLINE ALIGNMENT — ${activeProfile}</div>`;
             html += storylineCards.map(c => {
                 const s = crtStats[c.key];
@@ -726,8 +622,6 @@ document.addEventListener('keydown', e => {
                     <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
                 </div>`;
             }).join('');
-
-            
 
             grid.innerHTML = html;
         }
@@ -826,7 +720,7 @@ document.addEventListener('keydown', e => {
                         countLine = `<div style="color:rgba(203,213,225,0.45);font-size:0.38rem;margin-top:2px;">${entryCount} signals · ${bits.join(' ')}</div>`;
                     }
 
-                    const tfLabel = tf === '1W' ? 'WEEKLY' : 'DAILY';
+                    const tfLabel = TF_LABELS_CRT[tf] || tf;
 
                     tfCells += `
                         <div class="tf-cell ${cellCls}">
@@ -844,9 +738,9 @@ document.addEventListener('keydown', e => {
 
                 const alignBar = getAlignBarInfo(sym);
 
-             grid.insertAdjacentHTML('beforeend', `
-    <div class="coin-card ${cardCls}" style="position:relative;">
-        <button class="purge-card-btn" onclick="event.stopPropagation();openPurgeModal('${sym}')" title="Purge ${sym}">✕</button>
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="coin-card ${cardCls}" style="position:relative;">
+                        <button class="purge-card-btn" onclick="event.stopPropagation();openPurgeModal('${sym}')" title="Purge ${sym}">✕</button>
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                             <div>
                                 <div class="card-symbol">${sym}</div>
