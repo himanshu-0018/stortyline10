@@ -58,10 +58,17 @@
         .sp-tp { background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#34d399; }
         .sp-inv { background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#f87171; }
         .sp-total { background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24; }
-        .sp-filter { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s; }
+        .sp-aplus { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#34d399; }
+        .sp-bplus { background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24; }
+        .sp-filter { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s;cursor:pointer; }
         .sp-filter:hover { background:rgba(168,85,247,0.2);border-color:rgba(168,85,247,0.4);color:#c4b5fd; }
         .active-filter { background:rgba(168,85,247,0.25)!important;border-color:rgba(168,85,247,0.5)!important;color:#c4b5fd!important; }
-        .sp-profile { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s; }
+        .sp-grade { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s;cursor:pointer; }
+        .sp-grade:hover { background:rgba(245,158,11,0.2);border-color:rgba(245,158,11,0.4);color:#fbbf24; }
+        .active-grade-all { background:rgba(99,102,241,0.25)!important;border-color:rgba(99,102,241,0.5)!important;color:#a5b4fc!important; }
+        .active-grade-aplus { background:rgba(16,185,129,0.25)!important;border-color:rgba(16,185,129,0.5)!important;color:#34d399!important; }
+        .active-grade-bplus { background:rgba(245,158,11,0.25)!important;border-color:rgba(245,158,11,0.5)!important;color:#fbbf24!important; }
+        .sp-profile { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s;cursor:pointer; }
         .sp-profile:hover { background:rgba(245,158,11,0.2);border-color:rgba(245,158,11,0.4);color:#fbbf24; }
         .active-profile { background:rgba(245,158,11,0.25)!important;border-color:rgba(245,158,11,0.5)!important;color:#fbbf24!important; }
         .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
@@ -70,7 +77,7 @@
         .coin-section { flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(245,158,11,0.3) transparent; }
         .coin-section::-webkit-scrollbar { width:4px; }
         .coin-section::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
-        .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px; }
+        .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px; }
 
         .coin-card { border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:default; }
         .coin-card::before { content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none; }
@@ -92,6 +99,10 @@
         .card-badge-mixed { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(196,181,253,0.15));border:1px solid rgba(167,139,250,0.4);color:#c4b5fd; }
         .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
 
+        /* Grade badges */
+        .grade-badge-aplus { font-family:'JetBrains Mono',monospace;font-size:0.5rem;font-weight:800;padding:2px 7px;border-radius:5px;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(52,211,153,0.15));border:1px solid rgba(52,211,153,0.5);color:#34d399;letter-spacing:0.05em; }
+        .grade-badge-bplus { font-family:'JetBrains Mono',monospace;font-size:0.5rem;font-weight:800;padding:2px 7px;border-radius:5px;background:linear-gradient(135deg,rgba(245,158,11,0.3),rgba(251,191,36,0.15));border:1px solid rgba(245,158,11,0.5);color:#fbbf24;letter-spacing:0.05em; }
+
         .tf-row { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px; }
         .tf-cell { padding:8px 4px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.50rem;text-align:center; }
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
@@ -111,28 +122,31 @@
         .align-bar-none { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
 
         .align-tag { font-family:'JetBrains Mono',monospace;font-size:0.40rem;font-weight:700;padding:2px 5px;border-radius:4px;display:inline-block;margin-top:3px; }
-        .align-tag-mow { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
-        .align-tag-mo { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
-        .align-tag-w { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
-        .align-tag-d { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
-        .align-tag-dw { background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc; }
-        .align-tag-dwm { background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.5);color:#34d399; }
+        .align-tag-mow  { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
+        .align-tag-mo   { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .align-tag-w    { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .align-tag-d    { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
+        .align-tag-dw   { background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc; }
+        .align-tag-dwm  { background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.5);color:#34d399; }
+        .align-tag-dmo  { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .align-tag-wmo  { background:rgba(251,191,36,0.2);border:1px solid rgba(251,191,36,0.4);color:#fde68a; }
         .align-tag-none { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
 
         .hitrate-panel { position:relative;z-index:10;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.6);backdrop-filter:blur(10px); }
-        .hitrate-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px; }
+        .hitrate-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px; }
         .hitrate-card { padding:10px 14px;border-radius:12px;font-family:'JetBrains Mono',monospace; }
-        .hitrate-card-good { background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25); }
-        .hitrate-card-warn { background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25); }
-        .hitrate-card-bad { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25); }
+        .hitrate-card-good    { background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25); }
+        .hitrate-card-warn    { background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25); }
+        .hitrate-card-bad     { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25); }
         .hitrate-card-neutral { background:rgba(71,85,105,0.1);border:1px solid rgba(71,85,105,0.25); }
-        .hitrate-card-purple { background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25); }
+        .hitrate-card-aplus   { background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2); }
+        .hitrate-card-bplus   { background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2); }
         .hitrate-label { font-size:0.50rem;color:rgba(203,213,225,0.5);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px; }
         .hitrate-value { font-size:1rem;font-weight:800; }
         .hitrate-sub { font-size:0.45rem;color:rgba(203,213,225,0.4);margin-top:2px; }
-        .hitrate-value-good { color:#34d399; }
-        .hitrate-value-warn { color:#fbbf24; }
-        .hitrate-value-bad { color:#f87171; }
+        .hitrate-value-good    { color:#34d399; }
+        .hitrate-value-warn    { color:#fbbf24; }
+        .hitrate-value-bad     { color:#f87171; }
         .hitrate-value-neutral { color:#64748b; }
         .hitrate-section-label { font-family:'JetBrains Mono',monospace;font-size:0.50rem;font-weight:700;color:rgba(148,163,184,0.4);letter-spacing:0.1em;text-transform:uppercase;grid-column:1/-1;padding:8px 0 2px 0;border-top:1px solid rgba(255,255,255,0.05);margin-top:4px; }
 
@@ -146,13 +160,15 @@
         .log-card { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out; }
         .log-card-bull { background:linear-gradient(135deg,rgba(5,46,22,0.8),rgba(6,78,59,0.4));border:1px solid rgba(16,185,129,0.25);border-left:3px solid #10b981; }
         .log-card-bear { background:linear-gradient(135deg,rgba(69,10,10,0.8),rgba(127,29,29,0.4));border:1px solid rgba(239,68,68,0.25);border-left:3px solid #ef4444; }
-        .log-card-tp { background:linear-gradient(135deg,rgba(5,50,30,0.8),rgba(6,90,65,0.4));border:1px solid rgba(52,211,153,0.35);border-left:3px solid #34d399; }
-        .log-card-inv { background:linear-gradient(135deg,rgba(60,15,15,0.8),rgba(100,25,25,0.4));border:1px solid rgba(248,113,113,0.35);border-left:3px solid #f87171; }
+        .log-card-tp   { background:linear-gradient(135deg,rgba(5,50,30,0.8),rgba(6,90,65,0.4));border:1px solid rgba(52,211,153,0.35);border-left:3px solid #34d399; }
+        .log-card-inv  { background:linear-gradient(135deg,rgba(60,15,15,0.8),rgba(100,25,25,0.4));border:1px solid rgba(248,113,113,0.35);border-left:3px solid #f87171; }
         @keyframes logSlide { from{opacity:0;transform:translateX(12px);} to{opacity:1;transform:translateX(0);} }
-        .log-sym { font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:#f1f5f9; }
-        .log-msg { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(203,213,225,0.75);margin-top:3px; }
+        .log-sym  { font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:#f1f5f9; }
+        .log-msg  { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(203,213,225,0.75);margin-top:3px; }
         .log-time { font-family:'JetBrains Mono',monospace;font-size:0.5rem; }
-        .log-tf-tag { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3); }
+        .log-tf-tag    { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3); }
+        .log-grade-aplus { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.4); }
+        .log-grade-bplus { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.4); }
 
         .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);text-align:center;padding:40px 0;grid-column:1/-1; }
         @keyframes logoGlow { 0%,100%{box-shadow:0 0 25px rgba(245,158,11,0.4);} 50%{box-shadow:0 0 40px rgba(251,191,36,0.5);} }
@@ -161,40 +177,27 @@
         ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
 
         /* PURGE MODAL */
-        .purge-overlay {
-            position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
-            display: none; align-items: center; justify-content: center;
-            animation: fadeIn 0.2s ease-out;
-        }
-        .purge-overlay.show { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .purge-modal {
-            background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,20,50,0.95));
-            border: 1px solid rgba(239,68,68,0.4);
-            border-radius: 20px; padding: 28px 32px;
-            max-width: 380px; width: 90%;
-            box-shadow: 0 0 60px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.6);
-            animation: modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
-            text-align: center;
-        }
-        @keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .purge-modal-icon { font-size: 2.5rem; margin-bottom: 12px; animation: shake 0.5s ease-in-out; }
-        @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
-        .purge-modal-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 900; color: #f87171; letter-spacing: 0.08em; margin-bottom: 8px; }
-        .purge-modal-sym { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 800; color: #fbbf24; margin-bottom: 14px; }
-        .purge-modal-desc { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: rgba(203,213,225,0.6); line-height: 1.6; margin-bottom: 20px; }
-        .purge-modal-desc b { color: #f87171; }
-        .purge-modal-btns { display: flex; gap: 10px; justify-content: center; }
-        .purge-btn-cancel { padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; cursor: pointer; background: rgba(71,85,105,0.3); border: 1px solid rgba(71,85,105,0.5); color: #94a3b8; transition: all 0.2s; }
-        .purge-btn-cancel:hover { background: rgba(71,85,105,0.5); color: #cbd5e1; transform: translateY(-1px); }
-        .purge-btn-confirm { padding: 10px 24px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, rgba(239,68,68,0.4), rgba(153,27,27,0.3)); border: 1px solid rgba(239,68,68,0.6); color: #fca5a5; transition: all 0.2s; }
-        .purge-btn-confirm:hover { background: linear-gradient(135deg, rgba(239,68,68,0.6), rgba(153,27,27,0.5)); color: #fee2e2; transform: translateY(-1px); box-shadow: 0 0 20px rgba(239,68,68,0.3); }
+        .purge-overlay { position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;animation:fadeIn 0.2s ease-out; }
+        .purge-overlay.show { display:flex; }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        .purge-modal { background:linear-gradient(135deg,rgba(15,23,42,0.98),rgba(30,20,50,0.95));border:1px solid rgba(239,68,68,0.4);border-radius:20px;padding:28px 32px;max-width:380px;width:90%;box-shadow:0 0 60px rgba(239,68,68,0.15),0 20px 60px rgba(0,0,0,0.6);animation:modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1);text-align:center; }
+        @keyframes modalPop { from{transform:scale(0.85);opacity:0;} to{transform:scale(1);opacity:1;} }
+        .purge-modal-icon { font-size:2.5rem;margin-bottom:12px;animation:shake 0.5s ease-in-out; }
+        @keyframes shake { 0%,100%{transform:rotate(0);} 25%{transform:rotate(-8deg);} 75%{transform:rotate(8deg);} }
+        .purge-modal-title { font-family:'Orbitron',sans-serif;font-size:0.85rem;font-weight:900;color:#f87171;letter-spacing:0.08em;margin-bottom:8px; }
+        .purge-modal-sym { font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:800;color:#fbbf24;margin-bottom:14px; }
+        .purge-modal-desc { font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(203,213,225,0.6);line-height:1.6;margin-bottom:20px; }
+        .purge-modal-desc b { color:#f87171; }
+        .purge-modal-btns { display:flex;gap:10px;justify-content:center; }
+        .purge-btn-cancel  { padding:10px 24px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;cursor:pointer;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.5);color:#94a3b8;transition:all 0.2s; }
+        .purge-btn-cancel:hover { background:rgba(71,85,105,0.5);color:#cbd5e1;transform:translateY(-1px); }
+        .purge-btn-confirm { padding:10px 24px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,rgba(239,68,68,0.4),rgba(153,27,27,0.3));border:1px solid rgba(239,68,68,0.6);color:#fca5a5;transition:all 0.2s; }
+        .purge-btn-confirm:hover { background:linear-gradient(135deg,rgba(239,68,68,0.6),rgba(153,27,27,0.5));color:#fee2e2;transform:translateY(-1px);box-shadow:0 0 20px rgba(239,68,68,0.3); }
 
         /* PURGE BUTTON ON CARD */
-        .purge-card-btn { position: absolute; top: 8px; right: 8px; z-index: 5; width: 24px; height: 24px; border-radius: 6px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.4); font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; opacity: 0; }
-        .coin-card:hover .purge-card-btn { opacity: 1; }
-        .purge-card-btn:hover { background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.6); color: #f87171; transform: scale(1.1); box-shadow: 0 0 12px rgba(239,68,68,0.3); }
+        .purge-card-btn { position:absolute;top:8px;right:8px;z-index:5;width:24px;height:24px;border-radius:6px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.4);font-size:0.6rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;opacity:0; }
+        .coin-card:hover .purge-card-btn { opacity:1; }
+        .purge-card-btn:hover { background:rgba(239,68,68,0.3);border-color:rgba(239,68,68,0.6);color:#f87171;transform:scale(1.1);box-shadow:0 0 12px rgba(239,68,68,0.3); }
     </style>
 </head>
 <body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
@@ -232,12 +235,13 @@
         </div>
     </div>
 
+    <!-- TOP BAR -->
     <div class="top-bar">
         <div style="display:flex;align-items:center;gap:14px;">
             <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
             <div>
                 <div class="brand-name">CRT DASHBOARD</div>
-                <div class="brand-sub" id="brandSub">CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H, 4H→1H</div>
+                <div class="brand-sub" id="brandSub">CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H, 4H→1H · A+ &amp; B+</div>
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -257,31 +261,45 @@
         </div>
     </div>
 
+    <!-- STATS BAR -->
     <div class="stats-bar">
-        <!-- Profile Toggle -->
+        <!-- Profile -->
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Profile</span>
-        <button id="profileHTF" onclick="setProfile('HTF')" class="stats-pill sp-profile active-profile" style="cursor:pointer;">📊 HTF BO</button>
+        <button id="profileHTF" onclick="setProfile('HTF')" class="stats-pill sp-profile active-profile">📊 HTF BO</button>
 
         <div class="divider-v"></div>
-        <!-- CRT Stats -->
-        <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">CRT Scan</span>
+
+        <!-- Grade Filter -->
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Grade</span>
+        <button id="gradeAll"   onclick="setGrade('ALL')"   class="stats-pill sp-grade active-grade-all">📊 ALL</button>
+        <button id="gradeAplus" onclick="setGrade('A+')"    class="stats-pill sp-grade">⭐ A+ ONLY</button>
+        <button id="gradeBplus" onclick="setGrade('B+')"    class="stats-pill sp-grade">🔶 B+ ONLY</button>
+
         <div class="divider-v"></div>
-        <span id="bullPill" class="stats-pill sp-bull">🐂 0 BULL</span>
-        <span id="bearPill" class="stats-pill sp-bear">🐻 0 BEAR</span>
+
+        <!-- CRT Stats -->
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Scan</span>
+        <div class="divider-v"></div>
+        <span id="bullPill"   class="stats-pill sp-bull">🐂 0 BULL</span>
+        <span id="bearPill"   class="stats-pill sp-bear">🐻 0 BEAR</span>
+        <div class="divider-v"></div>
+        <span id="aplusPill"  class="stats-pill sp-aplus">⭐ 0 A+</span>
+        <span id="bplusPill"  class="stats-pill sp-bplus">🔶 0 B+</span>
         <div class="divider-v"></div>
         <span id="activePill" class="stats-pill sp-active">🔵 0 ACTIVE</span>
-        <span id="tpPill" class="stats-pill sp-tp">🎯 0 TP HIT</span>
-        <span id="invPill" class="stats-pill sp-inv">❌ 0 INVALID</span>
+        <span id="tpPill"     class="stats-pill sp-tp">🎯 0 TP HIT</span>
+        <span id="invPill"    class="stats-pill sp-inv">❌ 0 INVALID</span>
         <div class="divider-v"></div>
-        <span id="totalPill" class="stats-pill sp-total">🔄 0 TOTAL</span>
+        <span id="totalPill"  class="stats-pill sp-total">🔄 0 TOTAL</span>
         <div class="divider-v"></div>
+
         <!-- BO Filter -->
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">BO Filter</span>
-        <button id="filterAll" onclick="setFilter('ALL')" class="stats-pill sp-filter active-filter" style="cursor:pointer;">📊 ALL</button>
-        <button id="filterWBO" onclick="setFilter('W_BO')" class="stats-pill sp-filter" style="cursor:pointer;">📆 W BO</button>
-        <button id="filterMBO" onclick="setFilter('M_BO')" class="stats-pill sp-filter" style="cursor:pointer;">📅 M BO</button>
-        <button id="filterBothBO" onclick="setFilter('BOTH_BO')" class="stats-pill sp-filter" style="cursor:pointer;">✅ W+M BO</button>
-        <button id="filterNoBO" onclick="setFilter('NO_BO')" class="stats-pill sp-filter" style="cursor:pointer;">⚪ NO BO</button>
+        <button id="filterAll"     onclick="setFilter('ALL')"      class="stats-pill sp-filter active-filter">📊 ALL</button>
+        <button id="filterWBO"     onclick="setFilter('W_BO')"     class="stats-pill sp-filter">📆 W BO</button>
+        <button id="filterMBO"     onclick="setFilter('M_BO')"     class="stats-pill sp-filter">📅 M BO</button>
+        <button id="filterBothBO"  onclick="setFilter('BOTH_BO')"  class="stats-pill sp-filter">✅ W+M BO</button>
+        <button id="filterNoBO"    onclick="setFilter('NO_BO')"    class="stats-pill sp-filter">⚪ NO BO</button>
     </div>
 
     <!-- HIT RATE PANEL -->
@@ -295,6 +313,7 @@
         </div>
     </div>
 
+    <!-- MAIN LAYOUT -->
     <div class="main-layout">
         <div class="coin-section">
             <div class="coin-grid" id="coinGrid">
@@ -314,20 +333,24 @@
 
     <script>
         // ══════════════════════════════════════════════
-        // UPDATED: 3 CRT timeframes (W, D, 4H)
+        // CONSTANTS
         // ══════════════════════════════════════════════
         const CRT_TFS = ['1W', '1D', '4H'];
         const TF_LABELS_CRT = { '1W': 'WEEKLY', '1D': 'DAILY', '4H': '4H' };
 
         const PROFILE_LABELS = {
-            HTF: { title: 'HTF BREAKOUT', sub: 'CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H, 4H→1H', desc: 'W→Daily BO, D→4H BO, 4H→1H BO' }
+            HTF: { title: 'HTF BREAKOUT', sub: 'CANDLE RANGE THEORY · HTF BREAKOUT · W→D, D→4H, 4H→1H · A+ & B+', desc: 'W→Daily BO, D→4H BO, 4H→1H BO' }
         };
 
-        let crtState = {};
-        let crtLog = [];
-        let crtStats = {};
+        // ══════════════════════════════════════════════
+        // STATE
+        // ══════════════════════════════════════════════
+        let crtState      = {};
+        let crtLog        = [];
+        let crtStats      = {};
         let breakoutState = {};
-        let activeFilter = 'ALL';
+        let activeFilter  = 'ALL';
+        let activeGrade   = 'ALL';   // NEW: grade filter
         let activeProfile = 'HTF';
         let crtEventSource = null;
 
@@ -335,6 +358,9 @@
         moneySound.volume = 0.85;
         let audioOn = false;
 
+        // ══════════════════════════════════════════════
+        // AUDIO
+        // ══════════════════════════════════════════════
         function toggleAudio() {
             audioOn = !audioOn;
             document.getElementById('audioIco').textContent = audioOn ? '🔊' : '🔇';
@@ -344,12 +370,17 @@
         }
         function playSound() { if (!audioOn) return; moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
 
+        // ══════════════════════════════════════════════
+        // CLEAR ALL
+        // ══════════════════════════════════════════════
         async function clearAllCRT() {
             if (!confirm(`Clear all CRT data for ${activeProfile} profile?`)) return;
             await fetch('/api/delete-crt', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:'ALL', profile: activeProfile}) });
         }
 
-        // ── PURGE SYSTEM ──
+        // ══════════════════════════════════════════════
+        // PURGE SYSTEM
+        // ══════════════════════════════════════════════
         let pendingPurgeSymbol = null;
 
         function openPurgeModal(sym) {
@@ -379,11 +410,9 @@
                 if (resp.ok) {
                     if (crtState[sym]) delete crtState[sym];
                     crtLog = crtLog.filter(e => e.symbol !== sym);
-                    render();
-                    rebuildFeed();
+                    render(); rebuildFeed();
                     fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(data => {
-                        crtStats = data.crtStats || {};
-                        renderHitRates();
+                        crtStats = data.crtStats || {}; renderHitRates();
                     }).catch(() => {});
                 }
             } catch (err) { console.error('Purge failed:', err); }
@@ -392,20 +421,36 @@
             btn.style.pointerEvents = 'auto';
         }
 
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') closePurgeModal();
-        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePurgeModal(); });
 
-        // ── PROFILE SWITCH ──
+        // ══════════════════════════════════════════════
+        // GRADE FILTER
+        // ══════════════════════════════════════════════
+        function setGrade(g) {
+            activeGrade = g;
+            // Reset button classes
+            document.getElementById('gradeAll').className   = 'stats-pill sp-grade';
+            document.getElementById('gradeAplus').className = 'stats-pill sp-grade';
+            document.getElementById('gradeBplus').className = 'stats-pill sp-grade';
+            // Apply active class
+            if (g === 'ALL')  document.getElementById('gradeAll').classList.add('active-grade-all');
+            if (g === 'A+')   document.getElementById('gradeAplus').classList.add('active-grade-aplus');
+            if (g === 'B+')   document.getElementById('gradeBplus').classList.add('active-grade-bplus');
+            render();
+        }
+
+        // ══════════════════════════════════════════════
+        // PROFILE SWITCH
+        // ══════════════════════════════════════════════
         function setProfile(p) {
             if (p === activeProfile) return;
             activeProfile = p;
             document.querySelectorAll('.sp-profile').forEach(el => el.classList.remove('active-profile'));
             document.getElementById('profile' + p).classList.add('active-profile');
             const labels = PROFILE_LABELS[p];
-            document.getElementById('brandSub').textContent = labels.sub;
-            document.getElementById('hitrateTitle').textContent = `📊 CRT HIT RATE — ${labels.title}`;
-            document.getElementById('feedTitle').textContent = `📡 CRT FEED — ${p}`;
+            document.getElementById('brandSub').textContent      = labels.sub;
+            document.getElementById('hitrateTitle').textContent  = `📊 CRT HIT RATE — ${labels.title}`;
+            document.getElementById('feedTitle').textContent     = `📡 CRT FEED — ${p}`;
             loadProfileData();
             reconnectSSE();
         }
@@ -415,13 +460,11 @@
                 fetch(`/api/crt-state?profile=${activeProfile}`).then(r => r.json()),
                 fetch('/api/breakout-state').then(r => r.json())
             ]).then(([crtData, boData]) => {
-                crtState = crtData.crtState || {};
-                crtLog = crtData.crtLog || [];
-                crtStats = crtData.crtStats || {};
+                crtState      = crtData.crtState  || {};
+                crtLog        = crtData.crtLog    || [];
+                crtStats      = crtData.crtStats  || {};
                 breakoutState = boData.breakoutState || {};
-                render();
-                rebuildFeed();
-                renderHitRates();
+                render(); rebuildFeed(); renderHitRates();
             });
         }
 
@@ -438,21 +481,21 @@
                 const data = JSON.parse(e.data);
                 if (data.crtSound) { playSound(); return; }
                 if (data.crtState) crtState = data.crtState;
-                if (data.crtLog) crtLog = data.crtLog;
-                render();
-                rebuildFeed();
+                if (data.crtLog)   crtLog   = data.crtLog;
+                render(); rebuildFeed();
                 fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(d => {
-                    crtStats = d.crtStats || {};
-                    renderHitRates();
+                    crtStats = d.crtStats || {}; renderHitRates();
                 }).catch(() => {});
             };
         }
 
-        // ── FILTER FUNCTIONS ──
+        // ══════════════════════════════════════════════
+        // BO FILTER
+        // ══════════════════════════════════════════════
         function setFilter(f) {
             activeFilter = f;
             document.querySelectorAll('.sp-filter').forEach(el => el.classList.remove('active-filter'));
-            const idMap = { 'ALL':'filterAll', 'W_BO':'filterWBO', 'M_BO':'filterMBO', 'BOTH_BO':'filterBothBO', 'NO_BO':'filterNoBO' };
+            const idMap = { 'ALL':'filterAll','W_BO':'filterWBO','M_BO':'filterMBO','BOTH_BO':'filterBothBO','NO_BO':'filterNoBO' };
             document.getElementById(idMap[f]).classList.add('active-filter');
             render();
         }
@@ -469,16 +512,25 @@
             if (activeFilter === 'ALL') return true;
             const wBO = getBreakoutDir(sym, '1W');
             const mBO = getBreakoutDir(sym, '1MO');
-            const hasW = wBO !== 'NONE';
-            const hasM = mBO !== 'NONE';
-            if (activeFilter === 'W_BO') return hasW;
-            if (activeFilter === 'M_BO') return hasM;
+            const hasW = wBO !== 'NONE', hasM = mBO !== 'NONE';
+            if (activeFilter === 'W_BO')    return hasW;
+            if (activeFilter === 'M_BO')    return hasM;
             if (activeFilter === 'BOTH_BO') return hasW && hasM;
-            if (activeFilter === 'NO_BO') return !hasW && !hasM;
+            if (activeFilter === 'NO_BO')   return !hasW && !hasM;
             return true;
         }
 
-        // ── HELPERS ──
+        // ══════════════════════════════════════════════
+        // GRADE FILTER: does this symbol have any entry matching grade?
+        // ══════════════════════════════════════════════
+        function passesGradeFilter(sym) {
+            if (activeGrade === 'ALL') return true;
+            return getAllEntries(sym).some(e => e.grade === activeGrade);
+        }
+
+        // ══════════════════════════════════════════════
+        // HELPERS
+        // ══════════════════════════════════════════════
         function fmtTime(ts) {
             if (!ts) return '';
             const d = new Date(ts);
@@ -497,6 +549,11 @@
         function getLatestEntry(sym, tf) {
             const entries = getTFEntries(sym, tf);
             if (!entries.length) return null;
+            // If grade filter active, find latest matching grade
+            if (activeGrade !== 'ALL') {
+                const filtered = entries.filter(e => e.grade === activeGrade);
+                return filtered.length ? filtered[filtered.length - 1] : null;
+            }
             return entries[entries.length - 1];
         }
 
@@ -508,8 +565,18 @@
             return out;
         }
 
+        function getFilteredEntries(sym) {
+            // Returns entries filtered by active grade
+            return getAllEntries(sym).filter(e => activeGrade === 'ALL' || e.grade === activeGrade);
+        }
+
         function getCardType(sym) {
-            const sides = CRT_TFS.map(tf => getLatestEntry(sym, tf)?.side).filter(s => s);
+            const entries = getFilteredEntries(sym);
+            const sides = CRT_TFS.map(tf => {
+                const tfEntries = entries.filter(e => e._tf === tf);
+                if (!tfEntries.length) return null;
+                return tfEntries[tfEntries.length - 1]?.side;
+            }).filter(s => s);
             if (sides.length === 0) return 'idle';
             if (sides.every(s => s === 'BULLISH')) return 'bull';
             if (sides.every(s => s === 'BEARISH')) return 'bear';
@@ -517,12 +584,12 @@
         }
 
         function getAlignBarInfo(sym) {
-            const all = getAllEntries(sym);
+            const all = getFilteredEntries(sym);
             if (!all.length) return { cls: 'align-bar-none', txt: '— No CRT signals' };
             let active = 0, tp = 0, inv = 0;
             all.forEach(e => {
-                if (e.status === 'ACTIVE') active++;
-                if (e.status === 'TP_HIT') tp++;
+                if (e.status === 'ACTIVE')  active++;
+                if (e.status === 'TP_HIT')  tp++;
                 if (e.status === 'INVALID') inv++;
             });
             const total = active + tp + inv;
@@ -530,10 +597,10 @@
             const type = getCardType(sym);
             const parts = [];
             if (active > 0) parts.push(`🔵 ${active} Active`);
-            if (tp > 0) parts.push(`🎯 ${tp} TP`);
-            if (inv > 0) parts.push(`❌ ${inv} Inv`);
-            if (type === 'bull') return { cls: 'align-bar-bull', txt: `🐂 ${parts.join(' · ')}` };
-            if (type === 'bear') return { cls: 'align-bar-bear', txt: `🐻 ${parts.join(' · ')}` };
+            if (tp > 0)     parts.push(`🎯 ${tp} TP`);
+            if (inv > 0)    parts.push(`❌ ${inv} Inv`);
+            if (type === 'bull')  return { cls: 'align-bar-bull',  txt: `🐂 ${parts.join(' · ')}` };
+            if (type === 'bear')  return { cls: 'align-bar-bear',  txt: `🐻 ${parts.join(' · ')}` };
             if (type === 'mixed') return { cls: 'align-bar-mixed', txt: `🔀 ${parts.join(' · ')}` };
             return { cls: 'align-bar-none', txt: parts.join(' · ') };
         }
@@ -549,27 +616,36 @@
         }
 
         function statusBadgeHTML(status) {
-            if (status === 'ACTIVE') return '<span class="status-badge status-active">ACTIVE</span>';
-            if (status === 'TP_HIT') return '<span class="status-badge status-tp">🎯 TP HIT</span>';
+            if (status === 'ACTIVE')  return '<span class="status-badge status-active">ACTIVE</span>';
+            if (status === 'TP_HIT')  return '<span class="status-badge status-tp">🎯 TP HIT</span>';
             if (status === 'INVALID') return '<span class="status-badge status-invalid">❌ INVALID</span>';
             return '<span class="status-badge status-none">—</span>';
+        }
+
+        function gradeBadgeHTML(grade) {
+            if (grade === 'A+') return '<span class="grade-badge-aplus">⭐ A+</span>';
+            if (grade === 'B+') return '<span class="grade-badge-bplus">🔶 B+</span>';
+            return '';
         }
 
         function alignTagHTML(entry) {
             if (!entry || !entry.align_level) return '';
             const level = entry.align_level;
-            if (level === 'MO+W')  return '<span class="align-tag align-tag-mow">MO+W ✅</span>';
-            if (level === 'MO')    return '<span class="align-tag align-tag-mo">MO ✅</span>';
-            if (level === 'W')     return '<span class="align-tag align-tag-w">W ✅</span>';
+            if (level === 'MO+W')   return '<span class="align-tag align-tag-mow">MO+W ✅</span>';
+            if (level === 'MO')     return '<span class="align-tag align-tag-mo">MO ✅</span>';
+            if (level === 'W')      return '<span class="align-tag align-tag-w">W ✅</span>';
             if (level === 'D+W+MO') return '<span class="align-tag align-tag-dwm">D+W+MO ✅</span>';
-            if (level === 'D+W')   return '<span class="align-tag align-tag-dw">D+W ✅</span>';
-            if (level === 'D')     return '<span class="align-tag align-tag-d">D ✅</span>';
+            if (level === 'D+W')    return '<span class="align-tag align-tag-dw">D+W ✅</span>';
+            if (level === 'D+MO')   return '<span class="align-tag align-tag-dmo">D+MO ✅</span>';
+            if (level === 'D')      return '<span class="align-tag align-tag-d">D ✅</span>';
+            if (level === 'W+MO')   return '<span class="align-tag align-tag-wmo">W+MO ✅</span>';
             return '<span class="align-tag align-tag-none">NO ALIGN</span>';
         }
 
-        // ── HIT RATE RENDERING ──
-        function getHRCardClass(rate, isPurple) {
-            if (isPurple) return 'hitrate-card-purple';
+        // ══════════════════════════════════════════════
+        // HIT RATE RENDERING
+        // ══════════════════════════════════════════════
+        function getHRCardClass(rate) {
             if (rate === '—') return 'hitrate-card-neutral';
             const v = parseFloat(rate);
             if (v >= 60) return 'hitrate-card-good';
@@ -585,6 +661,18 @@
             return 'hitrate-value-bad';
         }
 
+        function hrCard(icon, label, s, extraClass = '') {
+            if (!s) return '';
+            const rate = s.hit_rate;
+            const resolved = s.tp + s.inv;
+            const cls = extraClass || getHRCardClass(rate);
+            return `<div class="hitrate-card ${cls}">
+                <div class="hitrate-label">${icon} ${label}</div>
+                <div class="hitrate-value ${getHRValueClass(rate)}">${rate === '—' ? '—' : rate + '%'}</div>
+                <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · ${resolved} resolved</div>
+            </div>`;
+        }
+
         function renderHitRates() {
             const grid = document.getElementById('hitrateGrid');
             if (!crtStats || !crtStats.overall) {
@@ -592,41 +680,75 @@
                 return;
             }
 
-            const storylineCards = [
-                { key:'overall',       label:'OVERALL',                icon:'📊' },
-                { key:'daily',         label:'DAILY CRT',              icon:'📅' },
-                { key:'weekly',        label:'WEEKLY CRT',             icon:'📆' },
-                { key:'fourh',         label:'4H CRT',                 icon:'⏰' },
-                { key:'daily_mo_w',    label:'DAILY — MO+W ALIGNED',   icon:'✅' },
-                { key:'daily_mo',      label:'DAILY — MO ONLY',        icon:'🟡' },
-                { key:'daily_w',       label:'DAILY — W ONLY',         icon:'🔵' },
-                { key:'daily_none',    label:'DAILY — NO ALIGN',       icon:'⚠️' },
-                { key:'weekly_mo',     label:'WEEKLY — MO ALIGNED',    icon:'✅' },
-                { key:'weekly_none',   label:'WEEKLY — NO MO ALIGN',   icon:'⚠️' },
-                { key:'fourh_dwm',     label:'4H — D+W+MO ALIGNED',   icon:'✅' },
-                { key:'fourh_dw',      label:'4H — D+W ALIGNED',      icon:'⚡' },
-                { key:'fourh_d',       label:'4H — D ONLY',           icon:'🟣' },
-                { key:'fourh_none',    label:'4H — NO ALIGN',         icon:'⚠️' },
-            ];
-
+            const s = crtStats;
             let html = '';
-            html += `<div class="hitrate-section-label">📊 STORYLINE ALIGNMENT — ${activeProfile}</div>`;
-            html += storylineCards.map(c => {
-                const s = crtStats[c.key];
-                if (!s) return '';
-                const rate = s.hit_rate;
-                const resolved = s.tp + s.inv;
-                return `<div class="hitrate-card ${getHRCardClass(rate, false)}">
-                    <div class="hitrate-label">${c.icon} ${c.label}</div>
-                    <div class="hitrate-value ${getHRValueClass(rate)}">${rate === '—' ? '—' : rate + '%'}</div>
-                    <div class="hitrate-sub">🎯 ${s.tp} TP · ❌ ${s.inv} INV · 🔵 ${s.active} Active · Total: ${s.total} (${resolved} resolved)</div>
-                </div>`;
-            }).join('');
+
+            // ── OVERALL ──
+            html += `<div class="hitrate-section-label">📊 OVERALL — ${activeProfile}</div>`;
+            html += hrCard('📊', 'OVERALL',     s.overall);
+            html += hrCard('⭐', 'A+ OVERALL',  s.overall_aplus, 'hitrate-card-aplus');
+            html += hrCard('🔶', 'B+ OVERALL',  s.overall_bplus, 'hitrate-card-bplus');
+
+            // ── DAILY ──
+            html += `<div class="hitrate-section-label">📅 DAILY CRT</div>`;
+            html += hrCard('📅', 'ALL DAILY',       s.daily);
+            html += hrCard('⭐', 'DAILY A+',         s.daily_aplus,     'hitrate-card-aplus');
+            html += hrCard('🔶', 'DAILY B+',         s.daily_bplus,     'hitrate-card-bplus');
+            html += hrCard('✅', 'MO+W ALIGNED',     s.daily_mo_w);
+            html += hrCard('⭐', 'MO+W A+',          s.daily_mo_w_aplus,'hitrate-card-aplus');
+            html += hrCard('🔶', 'MO+W B+',          s.daily_mo_w_bplus,'hitrate-card-bplus');
+            html += hrCard('⚡', 'MO ONLY',          s.daily_mo);
+            html += hrCard('⭐', 'MO A+',            s.daily_mo_aplus,  'hitrate-card-aplus');
+            html += hrCard('🔶', 'MO B+',            s.daily_mo_bplus,  'hitrate-card-bplus');
+            html += hrCard('🔵', 'W ONLY',           s.daily_w);
+            html += hrCard('⭐', 'W A+',             s.daily_w_aplus,   'hitrate-card-aplus');
+            html += hrCard('🔶', 'W B+',             s.daily_w_bplus,   'hitrate-card-bplus');
+            html += hrCard('⚪', 'NO ALIGNMENT',     s.daily_none);
+
+            // ── WEEKLY ──
+            html += `<div class="hitrate-section-label">📆 WEEKLY CRT</div>`;
+            html += hrCard('📆', 'ALL WEEKLY',       s.weekly);
+            html += hrCard('⭐', 'WEEKLY A+',        s.weekly_aplus,    'hitrate-card-aplus');
+            html += hrCard('🔶', 'WEEKLY B+',        s.weekly_bplus,    'hitrate-card-bplus');
+            html += hrCard('⚡', 'MO ALIGNED',       s.weekly_mo);
+            html += hrCard('⭐', 'MO A+',            s.weekly_mo_aplus, 'hitrate-card-aplus');
+            html += hrCard('🔶', 'MO B+',            s.weekly_mo_bplus, 'hitrate-card-bplus');
+            html += hrCard('⚪', 'NO ALIGNMENT',     s.weekly_none);
+
+            // ── 4H ──
+            html += `<div class="hitrate-section-label">⏰ 4H CRT</div>`;
+            html += hrCard('⏰', 'ALL 4H',           s.fourh);
+            html += hrCard('⭐', '4H A+',            s.fourh_aplus,     'hitrate-card-aplus');
+            html += hrCard('🔶', '4H B+',            s.fourh_bplus,     'hitrate-card-bplus');
+            html += hrCard('✅', 'D+W+MO ALIGNED',   s.fourh_dwm);
+            html += hrCard('⭐', 'D+W+MO A+',        s.fourh_dwm_aplus, 'hitrate-card-aplus');
+            html += hrCard('🔶', 'D+W+MO B+',        s.fourh_dwm_bplus, 'hitrate-card-bplus');
+            html += hrCard('⚡', 'D+W ALIGNED',      s.fourh_dw);
+            html += hrCard('⭐', 'D+W A+',           s.fourh_dw_aplus,  'hitrate-card-aplus');
+            html += hrCard('🔶', 'D+W B+',           s.fourh_dw_bplus,  'hitrate-card-bplus');
+            html += hrCard('⚡', 'D+MO ALIGNED',     s.fourh_dmo);
+            html += hrCard('⭐', 'D+MO A+',          s.fourh_dmo_aplus, 'hitrate-card-aplus');
+            html += hrCard('🔶', 'D+MO B+',          s.fourh_dmo_bplus, 'hitrate-card-bplus');
+            html += hrCard('⚡', 'D ONLY',           s.fourh_d);
+            html += hrCard('⭐', 'D A+',             s.fourh_d_aplus,   'hitrate-card-aplus');
+            html += hrCard('🔶', 'D B+',             s.fourh_d_bplus,   'hitrate-card-bplus');
+            html += hrCard('⚡', 'W+MO ALIGNED',     s.fourh_wmo);
+            html += hrCard('⭐', 'W+MO A+',          s.fourh_wmo_aplus, 'hitrate-card-aplus');
+            html += hrCard('🔶', 'W+MO B+',          s.fourh_wmo_bplus, 'hitrate-card-bplus');
+            html += hrCard('⚡', 'W ONLY',           s.fourh_w);
+            html += hrCard('⭐', 'W A+',             s.fourh_w_aplus,   'hitrate-card-aplus');
+            html += hrCard('🔶', 'W B+',             s.fourh_w_bplus,   'hitrate-card-bplus');
+            html += hrCard('⚡', 'MO ONLY',          s.fourh_mo);
+            html += hrCard('⭐', 'MO A+',            s.fourh_mo_aplus,  'hitrate-card-aplus');
+            html += hrCard('🔶', 'MO B+',            s.fourh_mo_bplus,  'hitrate-card-bplus');
+            html += hrCard('⚪', 'NO ALIGNMENT',     s.fourh_none);
 
             grid.innerHTML = html;
         }
 
-        // ── RENDER ──
+        // ══════════════════════════════════════════════
+        // RENDER
+        // ══════════════════════════════════════════════
         function render() {
             const grid = document.getElementById('coinGrid');
             const allSyms = Object.keys(crtState).sort((a, b) => {
@@ -634,37 +756,47 @@
                 const pa = pri[getCardType(a)] || 0;
                 const pb = pri[getCardType(b)] || 0;
                 if (pa !== pb) return pb - pa;
-                const allA = getAllEntries(a);
-                const allB = getAllEntries(b);
+                const allA = getAllEntries(a), allB = getAllEntries(b);
                 const ta = allA.length ? Math.max(...allA.map(e => e.timestamp || 0)) : 0;
                 const tb = allB.length ? Math.max(...allB.map(e => e.timestamp || 0)) : 0;
                 return tb - ta;
             });
 
-            const syms = allSyms.filter(sym => passesFilter(sym));
+            // Apply both filters
+            const syms = allSyms.filter(sym => passesFilter(sym) && passesGradeFilter(sym));
 
+            // Count stats from ALL entries (ignoring grade filter for pill counts)
             let totalBull=0, totalBear=0, totalActive=0, totalTP=0, totalInv=0, totalEntries=0;
+            let totalAplus=0, totalBplus=0;
             allSyms.forEach(sym => {
                 getAllEntries(sym).forEach(e => {
                     totalEntries++;
                     if (e.side === 'BULLISH') totalBull++;
                     if (e.side === 'BEARISH') totalBear++;
-                    if (e.status === 'ACTIVE') totalActive++;
-                    if (e.status === 'TP_HIT') totalTP++;
+                    if (e.status === 'ACTIVE')  totalActive++;
+                    if (e.status === 'TP_HIT')  totalTP++;
                     if (e.status === 'INVALID') totalInv++;
+                    if (e.grade === 'A+') totalAplus++;
+                    if (e.grade === 'B+') totalBplus++;
                 });
             });
 
-            document.getElementById('activeCount').textContent = allSyms.length;
-            document.getElementById('bullPill').textContent = `🐂 ${totalBull} BULL`;
-            document.getElementById('bearPill').textContent = `🐻 ${totalBear} BEAR`;
+            document.getElementById('activeCount').textContent = syms.length;
+            document.getElementById('bullPill').textContent   = `🐂 ${totalBull} BULL`;
+            document.getElementById('bearPill').textContent   = `🐻 ${totalBear} BEAR`;
+            document.getElementById('aplusPill').textContent  = `⭐ ${totalAplus} A+`;
+            document.getElementById('bplusPill').textContent  = `🔶 ${totalBplus} B+`;
             document.getElementById('activePill').textContent = `🔵 ${totalActive} ACTIVE`;
-            document.getElementById('tpPill').textContent = `🎯 ${totalTP} TP HIT`;
-            document.getElementById('invPill').textContent = `❌ ${totalInv} INVALID`;
-            document.getElementById('totalPill').textContent = `🔄 ${totalEntries} TOTAL`;
+            document.getElementById('tpPill').textContent     = `🎯 ${totalTP} TP HIT`;
+            document.getElementById('invPill').textContent    = `❌ ${totalInv} INVALID`;
+            document.getElementById('totalPill').textContent  = `🔄 ${totalEntries} TOTAL`;
 
             if (!syms.length) {
-                grid.innerHTML = `<p class="empty-state">${activeFilter === 'ALL' ? 'Awaiting CRT signals...' : 'No coins match this breakout filter.'}</p>`;
+                let msg = 'Awaiting CRT signals...';
+                if (activeFilter !== 'ALL' && activeGrade !== 'ALL') msg = 'No coins match the current filters.';
+                else if (activeFilter !== 'ALL') msg = 'No coins match this breakout filter.';
+                else if (activeGrade !== 'ALL')  msg = `No coins have ${activeGrade} signals.`;
+                grid.innerHTML = `<p class="empty-state">${msg}</p>`;
                 renderHitRates();
                 return;
             }
@@ -675,15 +807,15 @@
                 const cardCls = type === 'bull' ? 'card-bull' : type === 'bear' ? 'card-bear' : type === 'mixed' ? 'card-mixed' : 'card-idle';
 
                 let badgeHTML;
-                if (type === 'bull') badgeHTML = '<span class="card-badge-bull">🐂 BULLISH</span>';
-                else if (type === 'bear') badgeHTML = '<span class="card-badge-bear">🐻 BEARISH</span>';
+                if (type === 'bull')  badgeHTML = '<span class="card-badge-bull">🐂 BULLISH</span>';
+                else if (type === 'bear')  badgeHTML = '<span class="card-badge-bear">🐻 BEARISH</span>';
                 else if (type === 'mixed') badgeHTML = '<span class="card-badge-mixed">🔀 MIXED</span>';
                 else badgeHTML = '<span class="card-badge-idle">—</span>';
 
                 const allE = getAllEntries(sym);
-                let latestTs = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
+                const latestTs = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
 
-                // Breakout info line
+                // Breakout info
                 const wBO = getBreakoutDir(sym, '1W');
                 const mBO = getBreakoutDir(sym, '1MO');
                 let boLine = '';
@@ -695,28 +827,46 @@
                     boLine = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.42rem;color:${boColor};margin-top:2px;">💥 BO: ${parts.join(' · ')}</div>`;
                 }
 
+                // Grade summary for symbol
+                const filteredE = getFilteredEntries(sym);
+                const symAplus = filteredE.filter(e => e.grade === 'A+').length;
+                const symBplus = filteredE.filter(e => e.grade === 'B+').length;
+                let gradeSummary = '';
+                if (symAplus > 0 || symBplus > 0) {
+                    const parts = [];
+                    if (symAplus > 0) parts.push(`<span class="grade-badge-aplus">⭐ ${symAplus} A+</span>`);
+                    if (symBplus > 0) parts.push(`<span class="grade-badge-bplus">🔶 ${symBplus} B+</span>`);
+                    gradeSummary = `<div style="display:flex;gap:4px;margin-top:4px;">${parts.join('')}</div>`;
+                }
+
+                // TF cells
                 let tfCells = '';
                 CRT_TFS.forEach(tf => {
                     const d = getLatestEntry(sym, tf);
-                    const entries = getTFEntries(sym, tf);
-                    const cellCls = tfCellCls(d);
-                    const emoji = tfSideEmoji(d);
+                    const entries = activeGrade === 'ALL'
+                        ? getTFEntries(sym, tf)
+                        : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
+                    const cellCls   = tfCellCls(d);
+                    const emoji     = tfSideEmoji(d);
                     const statusHTML = statusBadgeHTML(d?.status);
-                    const sideText = d?.side || 'NONE';
-                    const tfTime = d?.timestamp ? fmtTime(d.timestamp) : '';
-                    const entryCount = entries.length;
+                    const sideText  = d?.side || 'NONE';
+                    const tfTime    = d?.timestamp ? fmtTime(d.timestamp) : '';
                     const alignHTML = alignTagHTML(d);
+                    const gradeHTML = gradeBadgeHTML(d?.grade);
+                    const entryCount = entries.length;
 
-                    const tfTP = entries.filter(e => e.status === 'TP_HIT').length;
-                    const tfInv = entries.filter(e => e.status === 'INVALID').length;
+                    const tfTP     = entries.filter(e => e.status === 'TP_HIT').length;
+                    const tfInv    = entries.filter(e => e.status === 'INVALID').length;
                     const tfActive = entries.filter(e => e.status === 'ACTIVE').length;
+                    const tfAplus  = entries.filter(e => e.grade === 'A+').length;
+                    const tfBplus  = entries.filter(e => e.grade === 'B+').length;
 
                     let countLine = '';
                     if (entryCount > 1) {
                         const bits = [];
                         if (tfActive > 0) bits.push(`${tfActive}🔵`);
-                        if (tfTP > 0) bits.push(`${tfTP}🎯`);
-                        if (tfInv > 0) bits.push(`${tfInv}❌`);
+                        if (tfTP > 0)     bits.push(`${tfTP}🎯`);
+                        if (tfInv > 0)    bits.push(`${tfInv}❌`);
                         countLine = `<div style="color:rgba(203,213,225,0.45);font-size:0.38rem;margin-top:2px;">${entryCount} signals · ${bits.join(' ')}</div>`;
                     }
 
@@ -724,15 +874,16 @@
 
                     tfCells += `
                         <div class="tf-cell ${cellCls}">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
                                 <span style="color:rgba(203,213,225,0.5);font-size:0.42rem;text-transform:uppercase;letter-spacing:.04em;">${tfLabel}</span>
                                 <span style="font-size:0.65rem;">${emoji}</span>
                             </div>
                             <div style="color:rgba(203,213,225,0.6);font-size:0.42rem;">${sideText}</div>
                             ${d?.side ? statusHTML : ''}
+                            ${gradeHTML}
                             ${alignHTML}
                             ${countLine}
-                            ${tfTime ? `<div style="color:rgba(203,213,225,0.7);font-size:0.48rem;font-weight:600;margin-top:4px;font-family:'JetBrains Mono',monospace;">🕐 ${tfTime}</div>` : ''}
+                            ${tfTime ? `<div style="color:rgba(203,213,225,0.7);font-size:0.45rem;font-weight:600;margin-top:3px;font-family:'JetBrains Mono',monospace;">🕐 ${tfTime}</div>` : ''}
                         </div>`;
                 });
 
@@ -741,11 +892,12 @@
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="coin-card ${cardCls}" style="position:relative;">
                         <button class="purge-card-btn" onclick="event.stopPropagation();openPurgeModal('${sym}')" title="Purge ${sym}">✕</button>
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
                             <div>
                                 <div class="card-symbol">${sym}</div>
                                 <div class="card-time">🕐 ${latestTs ? fmtTime(latestTs) : 'N/A'}</div>
                                 ${boLine}
+                                ${gradeSummary}
                             </div>
                             ${badgeHTML}
                         </div>
@@ -757,29 +909,45 @@
             renderHitRates();
         }
 
+        // ══════════════════════════════════════════════
+        // FEED
+        // ══════════════════════════════════════════════
         function rebuildFeed() {
             const feed = document.getElementById('activityFeed');
-            if (!crtLog.length) {
-                feed.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting CRT signals...</p>`;
+
+            // Filter feed by grade if needed
+            const logs = activeGrade === 'ALL'
+                ? crtLog
+                : crtLog.filter(e => e.grade === activeGrade);
+
+            if (!logs.length) {
+                feed.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">${activeGrade !== 'ALL' ? `No ${activeGrade} signals yet.` : 'Awaiting CRT signals...'}</p>`;
                 return;
             }
-            feed.innerHTML = crtLog.slice(0, 100).map(e => {
+
+            feed.innerHTML = logs.slice(0, 100).map(e => {
                 let cls;
-                if (e.action === 'CRT_TARGET') cls = 'log-card log-card-tp';
+                if (e.action === 'CRT_TARGET')  cls = 'log-card log-card-tp';
                 else if (e.action === 'CRT_INVALID') cls = 'log-card log-card-inv';
-                else if (e.side === 'BULLISH') cls = 'log-card log-card-bull';
-                else cls = 'log-card log-card-bear';
-                const tc = e.action === 'CRT_TARGET' ? 'rgba(52,211,153,0.8)' :
-                           e.action === 'CRT_INVALID' ? 'rgba(248,113,113,0.8)' :
-                           e.side === 'BULLISH' ? 'rgba(52,211,153,0.8)' : 'rgba(248,113,113,0.8)';
-                const icon = e.action === 'CRT_TARGET' ? '🎯' :
-                             e.action === 'CRT_INVALID' ? '❌' :
-                             e.side === 'BULLISH' ? '🐂' : '🐻';
+                else if (e.side === 'BULLISH')   cls = 'log-card log-card-bull';
+                else                             cls = 'log-card log-card-bear';
+
+                const tc = e.action === 'CRT_TARGET'  ? 'rgba(52,211,153,0.8)' :
+                           e.action === 'CRT_INVALID'  ? 'rgba(248,113,113,0.8)' :
+                           e.side === 'BULLISH'         ? 'rgba(52,211,153,0.8)' : 'rgba(248,113,113,0.8)';
+                const icon = e.action === 'CRT_TARGET'  ? '🎯' :
+                             e.action === 'CRT_INVALID'  ? '❌' :
+                             e.side === 'BULLISH'         ? '🐂' : '🐻';
+
+                const gradeTag = e.grade === 'A+' ? `<span class="log-grade-aplus">⭐ A+</span>` :
+                                 e.grade === 'B+' ? `<span class="log-grade-bplus">🔶 B+</span>` : '';
+
                 return `<div class="${cls}">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
                         <span class="log-sym">${icon} ${e.symbol}</span>
-                        <div style="display:flex;align-items:center;gap:4px;">
+                        <div style="display:flex;align-items:center;gap:3px;">
                             ${e.tf ? `<span class="log-tf-tag">${e.tf}</span>` : ''}
+                            ${gradeTag}
                             <span class="log-time" style="color:${tc};">${fmtTime(e.timestamp)}</span>
                         </div>
                     </div>
@@ -788,7 +956,9 @@
             }).join('');
         }
 
-        // ── INIT ──
+        // ══════════════════════════════════════════════
+        // INIT
+        // ══════════════════════════════════════════════
         const dot = document.getElementById('pulseDot');
         const lbl = document.getElementById('liveLabel');
         const bdg = document.getElementById('liveBadge');
@@ -804,14 +974,11 @@
             }).catch(() => {});
         }, 30000);
 
-        // ── SSE (Breakout — for filter updates) ──
+        // Breakout SSE for filter updates
         const boEs = new EventSource('/api/breakout-stream');
         boEs.onmessage = e => {
             const data = JSON.parse(e.data);
-            if (data.breakoutState) {
-                breakoutState = data.breakoutState;
-                render();
-            }
+            if (data.breakoutState) { breakoutState = data.breakoutState; render(); }
         };
     </script>
 </body>
