@@ -36,8 +36,6 @@
         .ctrl-btn:hover { transform:translateY(-2px); }
         .btn-inject { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(14,165,233,0.15));border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
         .btn-inject:hover { background:linear-gradient(135deg,rgba(99,102,241,0.4),rgba(14,165,233,0.25));color:#c7d2fe; }
-        .btn-stats { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
-        .btn-stats:hover { background:linear-gradient(135deg,rgba(245,158,11,0.4),rgba(251,191,36,0.25));color:#fde68a; }
         .btn-crt { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
         .btn-crt:hover { background:linear-gradient(135deg,rgba(245,158,11,0.4),rgba(251,191,36,0.25));color:#fde68a; }
         .btn-delete { background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(153,27,27,0.15));border-color:rgba(239,68,68,0.5);color:#fca5a5; }
@@ -56,12 +54,12 @@
 
         .stats-bar { position:relative;z-index:10;display:flex;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.5);backdrop-filter:blur(10px);flex-wrap:wrap; }
         .stats-pill { display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:0.68rem;font-weight:700;font-family:'JetBrains Mono',monospace; }
-        .sp-bull { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
-        .sp-bear { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
+        .sp-bull    { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
+        .sp-bear    { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
         .sp-partial { background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fbbf24; }
-        .sp-idle { background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);color:#a5b4fc; }
-        .sp-total { background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.25);color:#38bdf8; }
-        .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
+        .sp-idle    { background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);color:#a5b4fc; }
+        .sp-total   { background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.25);color:#38bdf8; }
+        .divider-v  { width:1px;height:16px;background:rgba(255,255,255,0.1); }
 
         .main-layout { position:relative;z-index:10;display:flex;gap:16px;padding:16px 24px;flex:1;overflow:hidden;height:calc(100vh - 130px); }
         .coin-section { flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(99,102,241,0.3) transparent; }
@@ -85,13 +83,14 @@
         @keyframes shimmer { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
 
         .card-symbol { font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:#f1f5f9;letter-spacing:0.02em;line-height:1; }
-        .card-badge-bull { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(52,211,153,0.15));border:1px solid rgba(52,211,153,0.4);color:#6ee7b7; }
-        .card-badge-bear { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(248,113,113,0.15));border:1px solid rgba(248,113,113,0.4);color:#fca5a5; }
+        .card-badge-bull         { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(52,211,153,0.15));border:1px solid rgba(52,211,153,0.4);color:#6ee7b7; }
+        .card-badge-bear         { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(248,113,113,0.15));border:1px solid rgba(248,113,113,0.4);color:#fca5a5; }
         .card-badge-partial-bull { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(52,211,153,0.25),rgba(110,231,183,0.12));border:1px solid rgba(110,231,183,0.35);color:#a7f3d0; }
         .card-badge-partial-bear { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:linear-gradient(135deg,rgba(248,113,113,0.25),rgba(252,165,165,0.12));border:1px solid rgba(252,165,165,0.35);color:#fecaca; }
-        .card-badge-idle { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
+        .card-badge-idle         { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
         .card-time { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.5);letter-spacing:0.06em;margin-top:4px; }
 
+        /* 3-column TF row */
         .tf-row { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px; }
         .tf-cell { padding:10px 6px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.55rem; }
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
@@ -99,10 +98,10 @@
         .tf-cell-none { background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2); }
 
         .align-bar { margin-top:8px;padding:6px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;display:flex;align-items:center;gap:8px; }
-        .align-bar-god { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
+        .align-bar-god          { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
         .align-bar-partial-bull { background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.28);color:#6ee7b7; }
         .align-bar-partial-bear { background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.28);color:#fca5a5; }
-        .align-bar-none { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
+        .align-bar-none         { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
 
         .feed-panel { width:280px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(8,12,22,0.85);backdrop-filter:blur(24px); }
         .feed-header { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(14,165,233,0.08));display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
@@ -113,30 +112,31 @@
         .log-card-bear { background:linear-gradient(135deg,rgba(69,10,10,0.8),rgba(127,29,29,0.4));border:1px solid rgba(239,68,68,0.25);border-left:3px solid #ef4444; }
         .log-card-none { background:rgba(30,41,59,0.6);border:1px solid rgba(245,158,11,0.25);border-left:3px solid #f59e0b; }
         @keyframes logSlide { from{opacity:0;transform:translateX(12px);} to{opacity:1;transform:translateX(0);} }
-        .log-sym { font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:#f1f5f9; }
-        .log-msg { font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(203,213,225,0.75);margin-top:3px; }
+        .log-sym  { font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:#f1f5f9; }
+        .log-msg  { font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(203,213,225,0.75);margin-top:3px; }
         .log-time { font-family:'JetBrains Mono',monospace;font-size:0.55rem; }
 
+        /* ── INJECT MODAL: direct-click 3-button style ── */
         .modal-backdrop { position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:16px; }
         .modal-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:28px;width:100%;max-width:520px;position:relative;box-shadow:0 0 60px rgba(99,102,241,0.2);max-height:90vh;overflow-y:auto; }
         .modal-box.delete-theme { border-color:rgba(239,68,68,0.3); }
         .modal-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
-        .modal-sub { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
+        .modal-sub   { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.55);margin-bottom:20px; }
         .field-label { font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(148,163,184,0.6);display:block;margin-bottom:5px; }
         .field-input { width:100%;padding:10px 14px;background:rgba(15,23,42,0.8);border:1px solid rgba(99,102,241,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;transition:all 0.2s;margin-bottom:14px; }
         .field-input:focus { border-color:rgba(99,102,241,0.6);box-shadow:0 0 0 3px rgba(99,102,241,0.1); }
         .delete-input:focus { border-color:rgba(239,68,68,0.6)!important; }
-        .btn-cancel { flex:1;padding:11px;border-radius:10px;border:1px solid rgba(71,85,105,0.5);color:#94a3b8;background:rgba(15,23,42,0.5);font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s; }
+        .btn-cancel       { flex:1;padding:11px;border-radius:10px;border:1px solid rgba(71,85,105,0.5);color:#94a3b8;background:rgba(15,23,42,0.5);font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s; }
         .btn-cancel:hover { border-color:rgba(100,116,139,0.8);color:#cbd5e1; }
-        .btn-inject-modal { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(14,165,233,0.2));border:1px solid rgba(99,102,241,0.5);color:#a5b4fc;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
+        .btn-inject-modal       { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(14,165,233,0.2));border:1px solid rgba(99,102,241,0.5);color:#a5b4fc;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
         .btn-inject-modal:hover { background:linear-gradient(135deg,rgba(99,102,241,0.5),rgba(14,165,233,0.35));color:#c7d2fe; }
-        .btn-delete-modal { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(153,27,27,0.2));border:1px solid rgba(239,68,68,0.5);color:#fca5a5;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
+        .btn-delete-modal       { flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(153,27,27,0.2));border:1px solid rgba(239,68,68,0.5);color:#fca5a5;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;cursor:pointer; }
         .btn-delete-modal:hover { background:linear-gradient(135deg,rgba(239,68,68,0.5),rgba(153,27,27,0.35));color:#fee2e2; }
 
-        /* ── INJECT TF BLOCK: 3 direct-click buttons ── */
-        .inject-tf-block { padding:12px 14px;border-radius:12px;margin-bottom:10px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06); }
-        .inject-tf-title { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#a5b4fc;letter-spacing:0.08em;margin-bottom:8px;display:block; }
-        .inject-btn-row { display:flex;gap:6px; }
+        /* Inject TF block: 3 direct-click buttons */
+        .inject-tf-block  { padding:12px 14px;border-radius:12px;margin-bottom:10px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06); }
+        .inject-tf-title  { font-family:'Orbitron',sans-serif;font-size:0.72rem;font-weight:700;color:#a5b4fc;letter-spacing:0.08em;margin-bottom:8px;display:block; }
+        .inject-btn-row   { display:flex;gap:6px; }
         .inject-state-btn { flex:1;padding:8px 4px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;text-align:center;border:2px solid; }
         .isb-none { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
         .isb-none.active { background:rgba(71,85,105,0.4);border-color:rgba(148,163,184,0.8);color:#e2e8f0;box-shadow:0 0 12px rgba(148,163,184,0.2); }
@@ -150,16 +150,17 @@
 
         .quick-fill-row { display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap; }
         .quick-btn { padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid; }
-        .quick-btn-bull { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
-        .quick-btn-bull:hover { background:rgba(16,185,129,0.3); }
-        .quick-btn-bear { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171; }
-        .quick-btn-bear:hover { background:rgba(239,68,68,0.3); }
-        .quick-btn-none { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
-        .quick-btn-none:hover { background:rgba(71,85,105,0.3); }
+        .quick-btn-bull  { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
+        .quick-btn-bull:hover  { background:rgba(16,185,129,0.3); }
+        .quick-btn-bear  { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171; }
+        .quick-btn-bear:hover  { background:rgba(239,68,68,0.3); }
+        .quick-btn-none  { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
+        .quick-btn-none:hover  { background:rgba(71,85,105,0.3); }
+
         .inject-progress { font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);text-align:center;margin-top:8px;display:none; }
         .inject-progress.active { display:block; }
-        .inject-progress .done { color:#34d399; }
-        .inject-progress .fail { color:#f87171; }
+        .inject-progress .done  { color:#34d399; }
+        .inject-progress .fail  { color:#f87171; }
 
         @keyframes logoGlow { 0%,100%{box-shadow:0 0 25px rgba(99,102,241,0.4);} 50%{box-shadow:0 0 40px rgba(16,185,129,0.5);} }
         ::-webkit-scrollbar { width:4px; }
@@ -169,390 +170,426 @@
 </head>
 <body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
 
-    <div class="bg-container">
-        <div class="bg-photo"></div><div class="bg-gradient"></div><div class="bg-grid"></div>
-        <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div>
-        <div class="scan-beam"></div>
-        <div class="candle-bar-bg">
-            <div class="cbar g" style="height:45%"></div><div class="cbar r" style="height:60%;animation-delay:.3s"></div>
-            <div class="cbar g" style="height:35%;animation-delay:.6s"></div><div class="cbar g" style="height:75%;animation-delay:.1s"></div>
-            <div class="cbar r" style="height:50%;animation-delay:.8s"></div><div class="cbar r" style="height:38%;animation-delay:.4s"></div>
-            <div class="cbar g" style="height:82%;animation-delay:.2s"></div><div class="cbar g" style="height:63%;animation-delay:.7s"></div>
-            <div class="cbar r" style="height:47%;animation-delay:.5s"></div><div class="cbar g" style="height:90%;animation-delay:.9s"></div>
+<div class="bg-container">
+    <div class="bg-photo"></div><div class="bg-gradient"></div><div class="bg-grid"></div>
+    <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div>
+    <div class="scan-beam"></div>
+    <div class="candle-bar-bg">
+        <div class="cbar g" style="height:45%"></div><div class="cbar r" style="height:60%;animation-delay:.3s"></div>
+        <div class="cbar g" style="height:35%;animation-delay:.6s"></div><div class="cbar g" style="height:75%;animation-delay:.1s"></div>
+        <div class="cbar r" style="height:50%;animation-delay:.8s"></div><div class="cbar r" style="height:38%;animation-delay:.4s"></div>
+        <div class="cbar g" style="height:82%;animation-delay:.2s"></div><div class="cbar g" style="height:63%;animation-delay:.7s"></div>
+        <div class="cbar r" style="height:47%;animation-delay:.5s"></div><div class="cbar g" style="height:90%;animation-delay:.9s"></div>
+    </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">⚡</div>
+        <div>
+            <div class="brand-name">GOD-MODE TERMINAL</div>
+            <div class="brand-sub">STORYLINE ENGINE · v7 · MO + W + D · 3/3=GOD · 2/3=STRONG · 1/3=PARTIAL</div>
         </div>
     </div>
-
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div style="display:flex;align-items:center;gap:14px;">
-            <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.3rem;animation:logoGlow 4s ease-in-out infinite;">⚡</div>
-            <div>
-                <div class="brand-name">GOD-MODE TERMINAL</div>
-                <div class="brand-sub">STORYLINE ENGINE · v7 · MO + W + D · 3/3=GOD · 2/3=STRONG · 1/3=PARTIAL</div>
-            </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button onclick="openModal()" class="ctrl-btn btn-inject"><span>⚡</span> INJECT</button>
+        <a href="/crt" class="ctrl-btn btn-crt" style="text-decoration:none;"><span>🔄</span> CRT</a>
+        <button onclick="openDeleteModal()" class="ctrl-btn btn-delete"><span>🗑️</span> PURGE</button>
+        <button id="audioBtn" onclick="toggleAudio()" class="ctrl-btn btn-sound">
+            <span id="audioIco">🔇</span><span id="audioTxt">SOUND OFF</span>
+        </button>
+        <div class="stat-chip">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);letter-spacing:0.08em;">ALIGNED</span>
+            <span id="godCounter" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:800;color:#38bdf8;">0/0</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button onclick="openModal()" class="ctrl-btn btn-inject"><span>⚡</span> INJECT</button>
-            <a href="/crt" class="ctrl-btn btn-crt" style="text-decoration:none;"><span>🔄</span> CRT</a>
-            <button onclick="openDeleteModal()" class="ctrl-btn btn-delete"><span>🗑️</span> PURGE</button>
-            <button id="audioBtn" onclick="toggleAudio()" class="ctrl-btn btn-sound">
-                <span id="audioIco">🔇</span><span id="audioTxt">SOUND OFF</span>
-            </button>
-            <div class="stat-chip">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);letter-spacing:0.08em;">ALIGNED</span>
-                <span id="godCounter" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:800;color:#38bdf8;">0/0</span>
-            </div>
-            <div class="live-badge" id="liveBadge">
-                <div class="pulse-dot" id="pulseDot"></div>
-                <span id="liveLabel" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:#34d399;">LIVE</span>
-            </div>
+        <div class="live-badge" id="liveBadge">
+            <div class="pulse-dot" id="pulseDot"></div>
+            <span id="liveLabel" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:#34d399;">LIVE</span>
         </div>
     </div>
+</div>
 
-    <!-- STATS BAR -->
-    <div class="stats-bar">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Storyline Scan</span>
-        <div class="divider-v"></div>
-        <span id="bullPill" class="stats-pill sp-bull">🐂 0 GOD BULL</span>
-        <span id="bearPill" class="stats-pill sp-bear">🐻 0 GOD BEAR</span>
-        <span id="partialPill" class="stats-pill sp-partial">⚡ 0 PARTIAL</span>
-        <span id="idlePill" class="stats-pill sp-idle">⏳ 0 IDLE</span>
-        <div class="divider-v"></div>
-        <span id="totalPill" class="stats-pill sp-total">📊 0 TRACKED</span>
-    </div>
+<!-- STATS BAR -->
+<div class="stats-bar">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.35);letter-spacing:0.12em;text-transform:uppercase;">Storyline Scan</span>
+    <div class="divider-v"></div>
+    <span id="bullPill"    class="stats-pill sp-bull">🐂 0 GOD BULL</span>
+    <span id="bearPill"    class="stats-pill sp-bear">🐻 0 GOD BEAR</span>
+    <span id="partialPill" class="stats-pill sp-partial">⚡ 0 PARTIAL</span>
+    <span id="idlePill"    class="stats-pill sp-idle">⏳ 0 IDLE</span>
+    <div class="divider-v"></div>
+    <span id="totalPill"   class="stats-pill sp-total">📊 0 TRACKED</span>
+</div>
 
-    <!-- MAIN LAYOUT -->
-    <div class="main-layout">
-        <div class="coin-section">
-            <div class="coin-grid" id="coinGrid">
-                <p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);grid-column:1/-1;text-align:center;padding:40px 0;">Awaiting TradingView webhooks...</p>
-            </div>
-        </div>
-        <div class="feed-panel">
-            <div class="feed-header">
-                <span class="feed-title">📡 SIGNAL FEED</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(165,180,252,0.5);letter-spacing:0.08em;">NEWEST FIRST</span>
-            </div>
-            <div class="feed-body" id="activityFeed">
-                <p id="emptyMsg" style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting signals...</p>
-            </div>
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+    <div class="coin-section">
+        <div class="coin-grid" id="coinGrid">
+            <p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);grid-column:1/-1;text-align:center;padding:40px 0;">Awaiting TradingView webhooks...</p>
         </div>
     </div>
-
-    <!-- INJECT MODAL -->
-    <div class="modal-backdrop" id="modal">
-        <div class="modal-box" style="max-width:540px;">
-            <div class="modal-title">⚡ Storyline Inject</div>
-            <div class="modal-sub">Set Monthly + Weekly + Daily storyline for a coin. Click a state directly.</div>
-            <label class="field-label">Symbol</label>
-            <input type="text" id="injSymbol" class="field-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;">
-            <div class="quick-fill-row">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.4);align-self:center;margin-right:4px;">QUICK FILL:</span>
-                <button class="quick-btn quick-btn-bull" onclick="quickFillAll('BULLISH')">🐂 ALL BULLISH</button>
-                <button class="quick-btn quick-btn-bear" onclick="quickFillAll('BEARISH')">🐻 ALL BEARISH</button>
-                <button class="quick-btn quick-btn-none" onclick="quickFillAll('NONE')">— ALL NONE</button>
-            </div>
-            <div id="tfBlocks"></div>
-            <div class="inject-progress" id="injProgress"></div>
-            <div style="display:flex;gap:10px;margin-top:8px;">
-                <button onclick="closeModal()" class="btn-cancel">CANCEL</button>
-                <button onclick="doInject()" id="injBtn" class="btn-inject-modal">INJECT ⚡</button>
-            </div>
+    <div class="feed-panel">
+        <div class="feed-header">
+            <span class="feed-title">📡 SIGNAL FEED</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(165,180,252,0.5);letter-spacing:0.08em;">NEWEST FIRST</span>
+        </div>
+        <div class="feed-body" id="activityFeed">
+            <p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting signals...</p>
         </div>
     </div>
+</div>
 
-    <!-- DELETE MODAL -->
-    <div class="modal-backdrop" id="deleteModal">
-        <div class="modal-box delete-theme">
-            <div class="modal-title" style="color:#fca5a5;">🗑️ Purge Target Data</div>
-            <div class="modal-sub">Remove coins from the database.</div>
-            <label class="field-label" style="color:rgba(239,68,68,0.6);">Symbol to Purge</label>
-            <input type="text" id="delSymbol" class="field-input delete-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;border-color:rgba(239,68,68,0.25);">
-            <div style="display:flex;gap:10px;margin-top:8px;">
-                <button onclick="closeDeleteModal()" class="btn-cancel">CANCEL</button>
-                <button onclick="doDelete()" id="delBtn" class="btn-delete-modal">PURGE 🗑️</button>
-            </div>
+<!-- INJECT MODAL -->
+<div class="modal-backdrop" id="modal">
+    <div class="modal-box" style="max-width:540px;">
+        <div class="modal-title">⚡ Storyline Inject</div>
+        <div class="modal-sub">Set Monthly + Weekly + Daily storyline for a coin. Click a state directly.</div>
+        <label class="field-label">Symbol</label>
+        <input type="text" id="injSymbol" class="field-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;">
+        <div class="quick-fill-row">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.4);align-self:center;margin-right:4px;">QUICK:</span>
+            <button class="quick-btn quick-btn-bull" onclick="quickFillAll('BULLISH')">🐂 ALL BULL</button>
+            <button class="quick-btn quick-btn-bear" onclick="quickFillAll('BEARISH')">🐻 ALL BEAR</button>
+            <button class="quick-btn quick-btn-none" onclick="quickFillAll('NONE')">— ALL NONE</button>
+        </div>
+        <div id="tfBlocks"></div>
+        <div class="inject-progress" id="injProgress"></div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button onclick="closeModal()" class="btn-cancel">CANCEL</button>
+            <button onclick="doInject()" id="injBtn" class="btn-inject-modal">INJECT ⚡</button>
         </div>
     </div>
+</div>
 
-    <script>
-        const ALL_TFS = ['1MO', '1W', '1D'];
-        const TF_LABELS = { '1MO':'MONTHLY', '1W':'WEEKLY', '1D':'DAILY' };
+<!-- DELETE MODAL -->
+<div class="modal-backdrop" id="deleteModal">
+    <div class="modal-box delete-theme">
+        <div class="modal-title" style="color:#fca5a5;">🗑️ Purge Target Data</div>
+        <div class="modal-sub">Remove a coin from the storyline database.</div>
+        <label class="field-label" style="color:rgba(239,68,68,0.6);">Symbol to Purge</label>
+        <input type="text" id="delSymbol" class="field-input delete-input" placeholder="e.g. BTCUSDT" style="text-transform:uppercase;border-color:rgba(239,68,68,0.25);">
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button onclick="closeDeleteModal()" class="btn-cancel">CANCEL</button>
+            <button onclick="doDelete()" id="delBtn" class="btn-delete-modal">PURGE 🗑️</button>
+        </div>
+    </div>
+</div>
 
-        // Track selected inject state per TF
-        const injStates = { '1MO':'NONE', '1W':'NONE', '1D':'NONE' };
+<script>
+    // ══════════════════════════════════════════════
+    // CONSTANTS — 3 storyline timeframes
+    // ══════════════════════════════════════════════
+    const ALL_TFS   = ['1MO', '1W', '1D'];
+    const TF_LABELS = { '1MO':'MONTHLY', '1W':'WEEKLY', '1D':'DAILY' };
 
-        const moneySound = new Audio('/money.mp3');
-        moneySound.volume = 0.85;
-        let audioOn = false;
+    // Selected inject state per TF
+    const injStates = { '1MO':'NONE', '1W':'NONE', '1D':'NONE' };
 
-        function toggleAudio() {
-            audioOn = !audioOn;
-            document.getElementById('audioIco').textContent = audioOn ? '🔊' : '🔇';
-            document.getElementById('audioTxt').textContent = audioOn ? 'SOUND ON' : 'SOUND OFF';
-            document.getElementById('audioBtn').className = 'ctrl-btn btn-sound' + (audioOn ? ' on' : '');
-            if (audioOn) { moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
-        }
-        function playEntrySound() { if (!audioOn) return; moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
+    const moneySound = new Audio('/money.mp3');
+    moneySound.volume = 0.85;
+    let audioOn = false;
 
-        // ── BUILD INJECT TF BLOCKS (direct-click buttons) ──
-        (function buildTfBlocks() {
-            const container = document.getElementById('tfBlocks');
-            container.innerHTML = ALL_TFS.map(tf => `
-                <div class="inject-tf-block">
-                    <span class="inject-tf-title">${TF_LABELS[tf]}</span>
-                    <div class="inject-btn-row">
-                        <button type="button" class="inject-state-btn isb-none active" data-tf="${tf}" data-val="NONE" onclick="setInjState('${tf}','NONE')">⚪ NONE</button>
-                        <button type="button" class="inject-state-btn isb-bull" data-tf="${tf}" data-val="BULLISH" onclick="setInjState('${tf}','BULLISH')">🟢 BULL</button>
-                        <button type="button" class="inject-state-btn isb-bear" data-tf="${tf}" data-val="BEARISH" onclick="setInjState('${tf}','BEARISH')">🔴 BEAR</button>
-                    </div>
-                </div>`).join('');
-        })();
+    // ── AUDIO ──
+    function toggleAudio() {
+        audioOn = !audioOn;
+        document.getElementById('audioIco').textContent = audioOn ? '🔊' : '🔇';
+        document.getElementById('audioTxt').textContent = audioOn ? 'SOUND ON' : 'SOUND OFF';
+        document.getElementById('audioBtn').className = 'ctrl-btn btn-sound' + (audioOn ? ' on' : '');
+        if (audioOn) { moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
+    }
+    function playEntrySound() { if (!audioOn) return; moneySound.currentTime=0; moneySound.play().catch(()=>{}); }
 
-        function setInjState(tf, state) {
-            injStates[tf] = state;
-            // Update button visuals
-            document.querySelectorAll(`.inject-state-btn[data-tf="${tf}"]`).forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-val') === state);
-            });
-        }
+    // ══════════════════════════════════════════════
+    // BUILD INJECT TF BLOCKS (direct-click buttons)
+    // ══════════════════════════════════════════════
+    (function buildTfBlocks() {
+        const container = document.getElementById('tfBlocks');
+        container.innerHTML = ALL_TFS.map(tf => `
+            <div class="inject-tf-block">
+                <span class="inject-tf-title">${TF_LABELS[tf]}</span>
+                <div class="inject-btn-row">
+                    <button type="button" class="inject-state-btn isb-none active"
+                        data-tf="${tf}" data-val="NONE"
+                        onclick="setInjState('${tf}','NONE')">⚪ NONE</button>
+                    <button type="button" class="inject-state-btn isb-bull"
+                        data-tf="${tf}" data-val="BULLISH"
+                        onclick="setInjState('${tf}','BULLISH')">🟢 BULL</button>
+                    <button type="button" class="inject-state-btn isb-bear"
+                        data-tf="${tf}" data-val="BEARISH"
+                        onclick="setInjState('${tf}','BEARISH')">🔴 BEAR</button>
+                </div>
+            </div>`).join('');
+    })();
 
-        function quickFillAll(state) {
-            ALL_TFS.forEach(tf => setInjState(tf, state));
-        }
+    function setInjState(tf, state) {
+        injStates[tf] = state;
+        document.querySelectorAll(`.inject-state-btn[data-tf="${tf}"]`).forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-val') === state);
+        });
+    }
 
-        const openModal = () => { document.getElementById('modal').style.display='flex'; };
-        const closeModal = () => {
-            document.getElementById('modal').style.display='none';
-            document.getElementById('injSymbol').value='';
-            ALL_TFS.forEach(tf => setInjState(tf, 'NONE'));
-            const prog = document.getElementById('injProgress'); prog.innerHTML=''; prog.classList.remove('active');
-        };
-        document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+    function quickFillAll(state) {
+        ALL_TFS.forEach(tf => setInjState(tf, state));
+    }
 
-        async function doInject() {
-            const sym = document.getElementById('injSymbol').value.toUpperCase().trim();
-            const btn = document.getElementById('injBtn');
-            const prog = document.getElementById('injProgress');
-            if (!sym) return alert('Please enter a symbol.');
-            const tfs = ALL_TFS.map(tf => ({ tf, state: injStates[tf] })).filter(t => t.state);
-            if (!tfs.length) return alert('Set at least one timeframe state.');
-            btn.textContent='INJECTING...'; btn.style.pointerEvents='none'; prog.innerHTML=''; prog.classList.add('active');
-            let success=0, fail=0;
-            for (const t of tfs) {
-                try {
-                    const r = await fetch('/webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,tf:t.tf,state:t.state})});
-                    if(r.ok){success++;prog.innerHTML+=`<span class="done">✅ ${t.tf} → ${t.state}</span><br>`;}
-                    else{fail++;prog.innerHTML+=`<span class="fail">❌ ${t.tf} failed (${r.status})</span><br>`;}
-                } catch{fail++;prog.innerHTML+=`<span class="fail">❌ ${t.tf} error</span><br>`;}
-                await new Promise(r=>setTimeout(r,200));
-            }
-            if(fail===0){prog.innerHTML+=`<br><span class="done">🎯 All injected for ${sym}!</span>`;setTimeout(()=>closeModal(),1200);}
-            else prog.innerHTML+=`<br><span class="fail">⚠️ ${fail} failed, ${success} succeeded</span>`;
-            btn.textContent='INJECT ⚡'; btn.style.pointerEvents='auto';
-        }
+    // ── INJECT MODAL ──
+    const openModal = () => { document.getElementById('modal').style.display='flex'; };
+    const closeModal = () => {
+        document.getElementById('modal').style.display='none';
+        document.getElementById('injSymbol').value = '';
+        ALL_TFS.forEach(tf => setInjState(tf, 'NONE'));
+        const prog = document.getElementById('injProgress');
+        prog.innerHTML = ''; prog.classList.remove('active');
+    };
+    document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
 
-        // ── DELETE MODAL ──
-        const openDeleteModal = () => { document.getElementById('deleteModal').style.display='flex'; };
-        const closeDeleteModal = () => { document.getElementById('deleteModal').style.display='none'; document.getElementById('delSymbol').value=''; };
-        document.getElementById('deleteModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDeleteModal(); });
-        async function doDelete() {
-            const sym = document.getElementById('delSymbol').value.toUpperCase().trim();
-            const btn = document.getElementById('delBtn');
-            if(!sym) return alert('Please enter a symbol to purge.');
-            btn.textContent='PURGING...';
+    async function doInject() {
+        const sym = document.getElementById('injSymbol').value.toUpperCase().trim();
+        const btn = document.getElementById('injBtn');
+        const prog = document.getElementById('injProgress');
+        if (!sym) return alert('Please enter a symbol.');
+        const tfs = ALL_TFS.map(tf => ({ tf, state: injStates[tf] }));
+        btn.textContent = 'INJECTING...'; btn.style.pointerEvents = 'none';
+        prog.innerHTML = ''; prog.classList.add('active');
+        let success = 0, fail = 0;
+        for (const t of tfs) {
             try {
-                const r = await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,action:'DELETE'})});
-                if(r.ok){closeDeleteModal();btn.textContent='PURGE 🗑️';}else throw new Error();
-            } catch{alert('Purge Failed.');btn.textContent='PURGE 🗑️';}
-        }
-
-        // ── RENDER ──
-        function fmtTime(ts) {
-            if (!ts) return '';
-            const d = new Date(ts);
-            const old = Date.now() - ts > 86400000;
-            const t = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-            return old ? d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+t : t;
-        }
-
-        function getCardClass(data) {
-            const tfs = data?.timeframes || {};
-            const mo = tfs['1MO'] || 'NONE';
-            const w  = tfs['1W']  || 'NONE';
-            const d  = tfs['1D']  || 'NONE';
-            const states = [mo, w, d].filter(s => s !== 'NONE');
-            if (states.length === 0) return 'card-idle';
-            if (states.length === 3 && states.every(s => s === 'BULLISH')) return 'card-bull';
-            if (states.length === 3 && states.every(s => s === 'BEARISH')) return 'card-bear';
-            const bullCount = [mo,w,d].filter(s => s === 'BULLISH').length;
-            const bearCount = [mo,w,d].filter(s => s === 'BEARISH').length;
-            if (bullCount > 0 && bearCount === 0) return 'card-partial-bull';
-            if (bearCount > 0 && bullCount === 0) return 'card-partial-bear';
-            return 'card-idle';
-        }
-
-        function getBadge(data) {
-            const tfs = data?.timeframes || {};
-            const mo = tfs['1MO'] || 'NONE';
-            const w  = tfs['1W']  || 'NONE';
-            const d  = tfs['1D']  || 'NONE';
-            const states = [mo, w, d];
-            const bullCount = states.filter(s => s === 'BULLISH').length;
-            const bearCount = states.filter(s => s === 'BEARISH').length;
-            if (bullCount === 3) return '<span class="card-badge-bull">🐂 GOD 3/3</span>';
-            if (bearCount === 3) return '<span class="card-badge-bear">🐻 GOD 3/3</span>';
-            if (bullCount === 2) return '<span class="card-badge-partial-bull">🐂 STRONG 2/3</span>';
-            if (bearCount === 2) return '<span class="card-badge-partial-bear">🐻 STRONG 2/3</span>';
-            if (bullCount === 1) return '<span class="card-badge-partial-bull">🐂 PARTIAL 1/3</span>';
-            if (bearCount === 1) return '<span class="card-badge-partial-bear">🐻 PARTIAL 1/3</span>';
-            return '<span class="card-badge-idle">— IDLE</span>';
-        }
-
-        function getAlignBar(data) {
-            const tfs = data?.timeframes || {};
-            const mo = tfs['1MO'] || 'NONE';
-            const w  = tfs['1W']  || 'NONE';
-            const d  = tfs['1D']  || 'NONE';
-            const states = [mo, w, d];
-            const bullCount = states.filter(s => s === 'BULLISH').length;
-            const bearCount = states.filter(s => s === 'BEARISH').length;
-            const maxCount = Math.max(bullCount, bearCount);
-            const dominant = bullCount >= bearCount ? 'BULLISH' : 'BEARISH';
-            const e = dominant === 'BULLISH' ? '🐂' : '🐻';
-
-            if (maxCount === 3) {
-                return { cls: 'align-bar-god', txt: `✅ GOD-MODE: ${e} MO+W+D ${dominant} (3/3)` };
-            }
-            if (maxCount === 2) {
-                const parts = [];
-                if (mo === dominant) parts.push('MO');
-                if (w === dominant) parts.push('W');
-                if (d === dominant) parts.push('D');
-                const cls = dominant === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear';
-                return { cls, txt: `⚡ STRONG: ${parts.join('+')}=${dominant} (2/3)` };
-            }
-            if (maxCount === 1) {
-                const parts = [];
-                if (mo !== 'NONE') parts.push(`MO=${mo}`);
-                if (w !== 'NONE') parts.push(`W=${w}`);
-                if (d !== 'NONE') parts.push(`D=${d}`);
-                const dir = mo !== 'NONE' ? mo : w !== 'NONE' ? w : d;
-                const cls = dir === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear';
-                return { cls, txt: `⚡ PARTIAL: ${parts.join(' ')} (1/3)` };
-            }
-            return { cls: 'align-bar-none', txt: '— No storyline set' };
-        }
-
-        function tfCellCls(state) {
-            if (state === 'BULLISH') return 'tf-cell-bull';
-            if (state === 'BEARISH') return 'tf-cell-bear';
-            return 'tf-cell-none';
-        }
-
-        function render(marketState, activityLog) {
-            const syms = Object.keys(marketState).sort((a, b) => {
-                const pri = { 'card-bull':6, 'card-bear':6, 'card-partial-bull':3, 'card-partial-bear':3, 'card-idle':0 };
-                return (pri[getCardClass(marketState[b])]||0) - (pri[getCardClass(marketState[a])]||0);
-            });
-
-            let godBull=0, godBear=0, partial=0, idle=0;
-            syms.forEach(sym => {
-                const tfs = marketState[sym]?.timeframes || {};
-                const mo = tfs['1MO']||'NONE', w = tfs['1W']||'NONE', d = tfs['1D']||'NONE';
-                const bullC = [mo,w,d].filter(s=>s==='BULLISH').length;
-                const bearC = [mo,w,d].filter(s=>s==='BEARISH').length;
-                if (bullC === 3) godBull++;
-                else if (bearC === 3) godBear++;
-                else if (bullC > 0 || bearC > 0) partial++;
-                else idle++;
-            });
-
-            const aligned = godBull + godBear;
-            document.getElementById('godCounter').textContent = `${aligned}/${syms.length}`;
-            document.getElementById('bullPill').textContent = `🐂 ${godBull} GOD BULL`;
-            document.getElementById('bearPill').textContent = `🐻 ${godBear} GOD BEAR`;
-            document.getElementById('partialPill').textContent = `⚡ ${partial} PARTIAL`;
-            document.getElementById('idlePill').textContent = `⏳ ${idle} IDLE`;
-            document.getElementById('totalPill').textContent = `📊 ${syms.length} TRACKED`;
-
-            const grid = document.getElementById('coinGrid');
-            if (!syms.length) {
-                grid.innerHTML = '<p style="font-family:\'JetBrains Mono\',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);grid-column:1/-1;text-align:center;padding:40px 0;">Awaiting TradingView webhooks...</p>';
-            } else {
-                grid.innerHTML = '';
-                syms.forEach(sym => {
-                    const data = marketState[sym];
-                    const tfs = data?.timeframes || {};
-                    const cardCls = getCardClass(data);
-                    const badge = getBadge(data);
-                    const alignBar = getAlignBar(data);
-
-                    let tfCells = '';
-                    ALL_TFS.forEach(tf => {
-                        const state = tfs[tf] || 'NONE';
-                        const emoji = state === 'BULLISH' ? '🐂' : state === 'BEARISH' ? '🐻' : '—';
-                        tfCells += `
-                            <div class="tf-cell ${tfCellCls(state)}" style="text-align:center;">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-                                    <span style="color:rgba(203,213,225,0.5);font-size:0.45rem;text-transform:uppercase;letter-spacing:.04em;">${TF_LABELS[tf]}</span>
-                                    <span style="font-size:0.7rem;">${emoji}</span>
-                                </div>
-                                <div style="color:rgba(203,213,225,0.7);font-size:0.55rem;font-weight:600;">${state}</div>
-                            </div>`;
-                    });
-
-                    grid.insertAdjacentHTML('beforeend', `
-                        <div class="coin-card ${cardCls}">
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-                                <div>
-                                    <div class="card-symbol">${sym}</div>
-                                </div>
-                                ${badge}
-                            </div>
-                            <div class="tf-row">${tfCells}</div>
-                            <div class="align-bar ${alignBar.cls}">${alignBar.txt}</div>
-                        </div>`);
+                const r = await fetch('/webhook', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ symbol: sym, tf: t.tf, state: t.state })
                 });
-            }
-
-            // Feed
-            const feed = document.getElementById('activityFeed');
-            if (!activityLog || !activityLog.length) {
-                feed.innerHTML = '<p style="font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting signals...</p>';
-            } else {
-                feed.innerHTML = activityLog.slice(0, 80).map(e => {
-                    const cls = e.type === 'BULLISH' ? 'log-card-bull' : e.type === 'BEARISH' ? 'log-card-bear' : 'log-card-none';
-                    const tc = e.type === 'BULLISH' ? 'rgba(52,211,153,0.8)' : e.type === 'BEARISH' ? 'rgba(248,113,113,0.8)' : 'rgba(251,191,36,0.8)';
-                    const icon = e.type === 'BULLISH' ? '🐂' : e.type === 'BEARISH' ? '🐻' : '📋';
-                    return `<div class="${cls}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span class="log-sym">${icon} ${e.symbol}</span><span class="log-time" style="color:${tc};">${fmtTime(e.timestamp)}</span></div><div class="log-msg">${e.message}</div></div>`;
-                }).join('');
-            }
+                if (r.ok) { success++; prog.innerHTML += `<span class="done">✅ ${t.tf} → ${t.state}</span><br>`; }
+                else       { fail++;    prog.innerHTML += `<span class="fail">❌ ${t.tf} failed (${r.status})</span><br>`; }
+            } catch { fail++; prog.innerHTML += `<span class="fail">❌ ${t.tf} error</span><br>`; }
+            await new Promise(r => setTimeout(r, 200));
         }
+        if (fail === 0) {
+            prog.innerHTML += `<br><span class="done">🎯 All injected for ${sym}!</span>`;
+            setTimeout(() => closeModal(), 1200);
+        } else {
+            prog.innerHTML += `<br><span class="fail">⚠️ ${fail} failed, ${success} succeeded</span>`;
+        }
+        btn.textContent = 'INJECT ⚡'; btn.style.pointerEvents = 'auto';
+    }
 
-        // ── INIT + SSE ──
-        fetch('/api/state').then(r => r.json()).then(data => {
-            render(data.marketState || {}, data.activityLog || []);
+    // ── DELETE MODAL ──
+    const openDeleteModal  = () => { document.getElementById('deleteModal').style.display='flex'; };
+    const closeDeleteModal = () => {
+        document.getElementById('deleteModal').style.display='none';
+        document.getElementById('delSymbol').value = '';
+    };
+    document.getElementById('deleteModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDeleteModal(); });
+
+    async function doDelete() {
+        const sym = document.getElementById('delSymbol').value.toUpperCase().trim();
+        const btn = document.getElementById('delBtn');
+        if (!sym) return alert('Please enter a symbol to purge.');
+        btn.textContent = 'PURGING...';
+        try {
+            const r = await fetch('/api/delete', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ symbol: sym, action: 'DELETE' })
+            });
+            if (r.ok) { closeDeleteModal(); btn.textContent = 'PURGE 🗑️'; }
+            else throw new Error();
+        } catch { alert('Purge Failed.'); btn.textContent = 'PURGE 🗑️'; }
+    }
+
+    // ══════════════════════════════════════════════
+    // RENDER HELPERS
+    // ══════════════════════════════════════════════
+    function fmtTime(ts) {
+        if (!ts) return '';
+        const d = new Date(ts);
+        const old = Date.now() - ts > 86400000;
+        const t = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        return old ? d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+t : t;
+    }
+
+    function getStates(data) {
+        const tfs = data?.timeframes || {};
+        return {
+            mo: tfs['1MO'] || 'NONE',
+            w:  tfs['1W']  || 'NONE',
+            d:  tfs['1D']  || 'NONE',
+        };
+    }
+
+    function getCardClass(data) {
+        const { mo, w, d } = getStates(data);
+        const bull = [mo,w,d].filter(s => s === 'BULLISH').length;
+        const bear = [mo,w,d].filter(s => s === 'BEARISH').length;
+        if (bull === 3) return 'card-bull';
+        if (bear === 3) return 'card-bear';
+        if (bull > 0 && bear === 0) return 'card-partial-bull';
+        if (bear > 0 && bull === 0) return 'card-partial-bear';
+        return 'card-idle';
+    }
+
+    function getBadge(data) {
+        const { mo, w, d } = getStates(data);
+        const bull = [mo,w,d].filter(s => s === 'BULLISH').length;
+        const bear = [mo,w,d].filter(s => s === 'BEARISH').length;
+        if (bull === 3) return '<span class="card-badge-bull">🐂 GOD 3/3</span>';
+        if (bear === 3) return '<span class="card-badge-bear">🐻 GOD 3/3</span>';
+        if (bull === 2) return '<span class="card-badge-partial-bull">🐂 STRONG 2/3</span>';
+        if (bear === 2) return '<span class="card-badge-partial-bear">🐻 STRONG 2/3</span>';
+        if (bull === 1) return '<span class="card-badge-partial-bull">🐂 PARTIAL 1/3</span>';
+        if (bear === 1) return '<span class="card-badge-partial-bear">🐻 PARTIAL 1/3</span>';
+        return '<span class="card-badge-idle">— IDLE</span>';
+    }
+
+    function getAlignBar(data) {
+        const { mo, w, d } = getStates(data);
+        const bull = [mo,w,d].filter(s => s === 'BULLISH').length;
+        const bear = [mo,w,d].filter(s => s === 'BEARISH').length;
+        const max  = Math.max(bull, bear);
+        const dom  = bull >= bear ? 'BULLISH' : 'BEARISH';
+        const e    = dom === 'BULLISH' ? '🐂' : '🐻';
+
+        if (max === 3) {
+            return { cls:'align-bar-god', txt:`✅ GOD-MODE: ${e} MO+W+D ${dom} (3/3)` };
+        }
+        if (max === 2) {
+            const parts = [];
+            if (mo === dom) parts.push('MO');
+            if (w  === dom) parts.push('W');
+            if (d  === dom) parts.push('D');
+            const cls = dom === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear';
+            return { cls, txt:`⚡ STRONG: ${e} ${parts.join('+')}=${dom} (2/3)` };
+        }
+        if (max === 1) {
+            const parts = [];
+            if (mo !== 'NONE') parts.push(`MO=${mo}`);
+            if (w  !== 'NONE') parts.push(`W=${w}`);
+            if (d  !== 'NONE') parts.push(`D=${d}`);
+            const dir = mo !== 'NONE' ? mo : w !== 'NONE' ? w : d;
+            const cls = dir === 'BULLISH' ? 'align-bar-partial-bull' : 'align-bar-partial-bear';
+            return { cls, txt:`⚡ PARTIAL: ${parts.join(' ')} (1/3)` };
+        }
+        return { cls:'align-bar-none', txt:'— No storyline set' };
+    }
+
+    function tfCellCls(state) {
+        if (state === 'BULLISH') return 'tf-cell-bull';
+        if (state === 'BEARISH') return 'tf-cell-bear';
+        return 'tf-cell-none';
+    }
+
+    // ══════════════════════════════════════════════
+    // MAIN RENDER
+    // ══════════════════════════════════════════════
+    function render(marketState, activityLog) {
+        // Sort: GOD first, then STRONG, then PARTIAL, then IDLE
+        const syms = Object.keys(marketState).sort((a, b) => {
+            const pri = { 'card-bull':6, 'card-bear':6, 'card-partial-bull':3, 'card-partial-bear':3, 'card-idle':0 };
+            return (pri[getCardClass(marketState[b])]||0) - (pri[getCardClass(marketState[a])]||0);
         });
 
-        const es = new EventSource('/api/stream');
-        es.onopen = () => {
-            document.getElementById('pulseDot').className='pulse-dot';
-            document.getElementById('liveLabel').textContent='LIVE';
-            document.getElementById('liveLabel').style.color='#34d399';
-            document.getElementById('liveBadge').className='live-badge';
-        };
-        es.onerror = () => {
-            document.getElementById('pulseDot').className='pulse-dot offline';
-            document.getElementById('liveLabel').textContent='RECONNECTING';
-            document.getElementById('liveLabel').style.color='#f87171';
-            document.getElementById('liveBadge').className='live-badge offline';
-        };
-        es.onmessage = e => {
-            const data = JSON.parse(e.data);
-            if (data.soundAlert) { playEntrySound(); return; }
-            if (data.marketState) render(data.marketState, data.activityLog || []);
-        };
-    </script>
+        // Stats
+        let godBull=0, godBear=0, partial=0, idle=0;
+        syms.forEach(sym => {
+            const { mo, w, d } = getStates(marketState[sym]);
+            const bull = [mo,w,d].filter(s=>s==='BULLISH').length;
+            const bear = [mo,w,d].filter(s=>s==='BEARISH').length;
+            if (bull === 3)      godBull++;
+            else if (bear === 3) godBear++;
+            else if (bull > 0 || bear > 0) partial++;
+            else idle++;
+        });
+
+        document.getElementById('godCounter').textContent  = `${godBull+godBear}/${syms.length}`;
+        document.getElementById('bullPill').textContent    = `🐂 ${godBull} GOD BULL`;
+        document.getElementById('bearPill').textContent    = `🐻 ${godBear} GOD BEAR`;
+        document.getElementById('partialPill').textContent = `⚡ ${partial} PARTIAL`;
+        document.getElementById('idlePill').textContent    = `⏳ ${idle} IDLE`;
+        document.getElementById('totalPill').textContent   = `📊 ${syms.length} TRACKED`;
+
+        // Grid
+        const grid = document.getElementById('coinGrid');
+        if (!syms.length) {
+            grid.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);grid-column:1/-1;text-align:center;padding:40px 0;">Awaiting TradingView webhooks...</p>`;
+        } else {
+            grid.innerHTML = '';
+            syms.forEach(sym => {
+                const data     = marketState[sym];
+                const tfs      = data?.timeframes || {};
+                const cardCls  = getCardClass(data);
+                const badge    = getBadge(data);
+                const alignBar = getAlignBar(data);
+
+                let tfCells = '';
+                ALL_TFS.forEach(tf => {
+                    const state = tfs[tf] || 'NONE';
+                    const emoji = state === 'BULLISH' ? '🐂' : state === 'BEARISH' ? '🐻' : '—';
+                    tfCells += `
+                        <div class="tf-cell ${tfCellCls(state)}" style="text-align:center;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                                <span style="color:rgba(203,213,225,0.5);font-size:0.44rem;text-transform:uppercase;letter-spacing:.04em;">${TF_LABELS[tf]}</span>
+                                <span style="font-size:0.7rem;">${emoji}</span>
+                            </div>
+                            <div style="color:rgba(203,213,225,0.7);font-size:0.52rem;font-weight:600;">${state}</div>
+                        </div>`;
+                });
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="coin-card ${cardCls}">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div class="card-symbol">${sym}</div>
+                            ${badge}
+                        </div>
+                        <div class="tf-row">${tfCells}</div>
+                        <div class="align-bar ${alignBar.cls}">${alignBar.txt}</div>
+                    </div>`);
+            });
+        }
+
+        // Feed
+        const feed = document.getElementById('activityFeed');
+        if (!activityLog || !activityLog.length) {
+            feed.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.3);text-align:center;padding:20px 0;">Awaiting signals...</p>`;
+        } else {
+            feed.innerHTML = activityLog.slice(0, 80).map(e => {
+                const cls  = e.type === 'BULLISH' ? 'log-card-bull' : e.type === 'BEARISH' ? 'log-card-bear' : 'log-card-none';
+                const tc   = e.type === 'BULLISH' ? 'rgba(52,211,153,0.8)' : e.type === 'BEARISH' ? 'rgba(248,113,113,0.8)' : 'rgba(251,191,36,0.8)';
+                const icon = e.type === 'BULLISH' ? '🐂' : e.type === 'BEARISH' ? '🐻' : '📋';
+                return `<div class="${cls}">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                        <span class="log-sym">${icon} ${e.symbol}</span>
+                        <span class="log-time" style="color:${tc};">${fmtTime(e.timestamp)}</span>
+                    </div>
+                    <div class="log-msg">${e.message}</div>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // INIT + SSE
+    // ══════════════════════════════════════════════
+    fetch('/api/state').then(r => r.json()).then(data => {
+        render(data.marketState || {}, data.activityLog || []);
+    });
+
+    const es = new EventSource('/api/stream');
+    es.onopen = () => {
+        document.getElementById('pulseDot').className      = 'pulse-dot';
+        document.getElementById('liveLabel').textContent   = 'LIVE';
+        document.getElementById('liveLabel').style.color   = '#34d399';
+        document.getElementById('liveBadge').className     = 'live-badge';
+    };
+    es.onerror = () => {
+        document.getElementById('pulseDot').className      = 'pulse-dot offline';
+        document.getElementById('liveLabel').textContent   = 'RECONNECTING';
+        document.getElementById('liveLabel').style.color   = '#f87171';
+        document.getElementById('liveBadge').className     = 'live-badge offline';
+    };
+    es.onmessage = e => {
+        const data = JSON.parse(e.data);
+        if (data.soundAlert)  { playEntrySound(); return; }
+        if (data.marketState) render(data.marketState, data.activityLog || []);
+    };
+</script>
 </body>
 </html>
