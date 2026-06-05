@@ -13,33 +13,44 @@ app.use(express.static(path.join(__dirname, 'public')));
 const PORT                       = process.env.PORT || 3000;
 const TELEGRAM_TOKEN             = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_STORYLINE_CHAT_ID = process.env.TELEGRAM_STORYLINE_CHAT_ID;
+const TG_STORYLINE_THREAD_ID     = process.env.TG_STORYLINE_THREAD_ID || null;
 
-const TG_1M_ENTRIES = process.env.TG_1M_ENTRIES;
-const TG_3M_ENTRIES = process.env.TG_3M_ENTRIES;
-const TG_5M_ENTRIES = process.env.TG_5M_ENTRIES;
+const TG_1M_ENTRIES    = process.env.TG_1M_ENTRIES;
+const TG_3M_ENTRIES    = process.env.TG_3M_ENTRIES;
+const TG_5M_ENTRIES    = process.env.TG_5M_ENTRIES;
+const TG_1M_THREAD_ID  = process.env.TG_1M_THREAD_ID  || null;
+const TG_3M_THREAD_ID  = process.env.TG_3M_THREAD_ID  || null;
+const TG_5M_THREAD_ID  = process.env.TG_5M_THREAD_ID  || null;
 
-const TG_BREAKOUT_5OF6    = process.env.TG_BREAKOUT_5OF6;
-const TG_BREAKOUT_6OF6    = process.env.TG_BREAKOUT_6OF6;
-const TG_BREAKOUT_WD4H1H  = process.env.TG_BREAKOUT_WD4H1H;
-const TG_CUSTOM_ALIGNMENT = process.env.TG_CUSTOM_ALIGNMENT;
+const TG_BREAKOUT_5OF6       = process.env.TG_BREAKOUT_5OF6;
+const TG_BREAKOUT_6OF6       = process.env.TG_BREAKOUT_6OF6;
+const TG_BREAKOUT_WD4H1H     = process.env.TG_BREAKOUT_WD4H1H;
+const TG_CUSTOM_ALIGNMENT    = process.env.TG_CUSTOM_ALIGNMENT;
+const TG_BREAKOUT5_THREAD_ID = process.env.TG_BREAKOUT5_THREAD_ID || null;
+const TG_BREAKOUT6_THREAD_ID = process.env.TG_BREAKOUT6_THREAD_ID || null;
+const TG_CUSTOM_THREAD_ID    = process.env.TG_CUSTOM_THREAD_ID    || null;
 
-const TG_CRT_CHANNEL     = process.env.TG_CRT_CHANNEL;
-const TG_CRT_HTF_CHANNEL = process.env.TG_CRT_HTF_CHANNEL || process.env.TG_CRT_CHANNEL;
-const TG_CRT_LTF_CHANNEL = process.env.TG_CRT_LTF_CHANNEL || process.env.TG_CRT_CHANNEL;
-const TG_BREAKOUT_PAGE   = process.env.TG_BREAKOUT_PAGE;
+const TG_CRT_CHANNEL        = process.env.TG_CRT_CHANNEL;
+const TG_CRT_HTF_CHANNEL    = process.env.TG_CRT_HTF_CHANNEL || process.env.TG_CRT_CHANNEL;
+const TG_CRT_LTF_CHANNEL    = process.env.TG_CRT_LTF_CHANNEL || process.env.TG_CRT_CHANNEL;
+const TG_CRT_HTF_THREAD_ID  = process.env.TG_CRT_HTF_THREAD_ID || null;
+const TG_CRT_LTF_THREAD_ID  = process.env.TG_CRT_LTF_THREAD_ID || null;
+
+const TG_BREAKOUT_PAGE      = process.env.TG_BREAKOUT_PAGE;
+const TG_BREAKOUT_THREAD_ID = process.env.TG_BREAKOUT_THREAD_ID || null;
 
 const TG_BOT_TOKEN            = process.env.TG_BOT_TOKEN;
 const TG_BOT_ALLOWED_CHAT_IDS = (process.env.TG_BOT_ALLOWED_CHAT_IDS || '')
     .split(',').map(s => s.trim()).filter(Boolean);
 
-const REDIS_STATE_KEY     = process.env.REDIS_KEY || 'godModeState_v4';
-const REDIS_LOG_KEY       = REDIS_STATE_KEY + '_activityLog';
-const REDIS_STATS_KEY     = REDIS_STATE_KEY + '_tradeStats';
-const REDIS_SETTINGS_KEY  = REDIS_STATE_KEY + '_settings';
-const REDIS_CRT_HTF_KEY   = REDIS_STATE_KEY + '_crt_htf';
-const REDIS_CRT_LTF_KEY   = REDIS_STATE_KEY + '_crt_ltf';
-const REDIS_BREAKOUT_KEY  = REDIS_STATE_KEY + '_breakout';
-const REDIS_BOT_SESSIONS  = REDIS_STATE_KEY + '_bot_sessions';
+const REDIS_STATE_KEY      = process.env.REDIS_KEY || 'godModeState_v4';
+const REDIS_LOG_KEY        = REDIS_STATE_KEY + '_activityLog';
+const REDIS_STATS_KEY      = REDIS_STATE_KEY + '_tradeStats';
+const REDIS_SETTINGS_KEY   = REDIS_STATE_KEY + '_settings';
+const REDIS_CRT_HTF_KEY    = REDIS_STATE_KEY + '_crt_htf';
+const REDIS_CRT_LTF_KEY    = REDIS_STATE_KEY + '_crt_ltf';
+const REDIS_BREAKOUT_KEY   = REDIS_STATE_KEY + '_breakout';
+const REDIS_BOT_SESSIONS   = REDIS_STATE_KEY + '_bot_sessions';
 const REDIS_CRT_KEY_LEGACY = REDIS_STATE_KEY + '_crt';
 
 // ══════════════════════════════════════════════
@@ -51,10 +62,11 @@ const STRONG_THRESHOLD  = 2;
 const PARTIAL_THRESHOLD = 1;
 const ENTRY_TFS         = ["1M", "3M", "5M"];
 
+// Updated: returns {chatId, threadId} for thread support
 const TG_CHANNEL_MAP = {
-    "1M": () => TG_1M_ENTRIES,
-    "3M": () => TG_3M_ENTRIES,
-    "5M": () => TG_5M_ENTRIES
+    "1M": () => ({ chatId: TG_1M_ENTRIES, threadId: TG_1M_THREAD_ID }),
+    "3M": () => ({ chatId: TG_3M_ENTRIES, threadId: TG_3M_THREAD_ID }),
+    "5M": () => ({ chatId: TG_5M_ENTRIES, threadId: TG_5M_THREAD_ID }),
 };
 
 const ALIGNMENT_COMBOS = [
@@ -134,16 +146,19 @@ function getCRTLog(profile)          { return profile === 'HTF' ? crtLogHTF : cr
 function setCRTLog(profile, log)     { if (profile === 'HTF') crtLogHTF = log; else crtLogLTF = log; }
 function getCRTRedisKey(profile)     { return profile === 'HTF' ? REDIS_CRT_HTF_KEY : REDIS_CRT_LTF_KEY; }
 function getCRTTGChannel(profile)    { return profile === 'HTF' ? TG_CRT_HTF_CHANNEL : TG_CRT_LTF_CHANNEL; }
+function getCRTTGThreadId(profile)   { return profile === 'HTF' ? TG_CRT_HTF_THREAD_ID : TG_CRT_LTF_THREAD_ID; }
 
 // ══════════════════════════════════════════════
-// TELEGRAM CORE
+// TELEGRAM CORE (updated with threadId support)
 // ══════════════════════════════════════════════
-async function sendTelegramTracked(chatId, message) {
+async function sendTelegramTracked(chatId, message, threadId = null) {
     if (!TELEGRAM_TOKEN || !chatId) return { ok: false, messageId: null };
     try {
+        const body = { chat_id: chatId, text: message, parse_mode: "HTML" };
+        if (threadId) body.message_thread_id = parseInt(threadId);
         const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
             { method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: "HTML" }) });
+              body: JSON.stringify(body) });
         if (!resp.ok) return { ok: false, messageId: null };
         const data = await resp.json();
         return { ok: true, messageId: data?.result?.message_id || null };
@@ -158,12 +173,14 @@ async function deleteTelegramMessage(chatId, messageId) {
         return resp.ok;
     } catch (err) { console.error("TG Delete Error:", err); return false; }
 }
-async function sendTelegram(chatId, message) {
+async function sendTelegram(chatId, message, threadId = null) {
     if (!TELEGRAM_TOKEN || !chatId) return false;
     try {
+        const body = { chat_id: chatId, text: message, parse_mode: "HTML" };
+        if (threadId) body.message_thread_id = parseInt(threadId);
         const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
             { method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: "HTML" }) });
+              body: JSON.stringify(body) });
         return resp.ok;
     } catch (err) { console.error("TG Error:", err); return false; }
 }
@@ -180,9 +197,10 @@ async function botRequest(method, body) {
         return await resp.json();
     } catch (err) { console.error(`Bot API [${method}]:`, err); return null; }
 }
-async function botSendMessage(chatId, text, keyboard = null) {
+async function botSendMessage(chatId, text, keyboard = null, threadId = null) {
     const body = { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true };
     if (keyboard) body.reply_markup = keyboard;
+    if (threadId) body.message_thread_id = parseInt(threadId);
     const res = await botRequest('sendMessage', body);
     return res?.result?.message_id || null;
 }
@@ -211,8 +229,12 @@ function isBotAllowed(chatId) {
 async function saveBotSessions() {
     try { await redisClient.set(REDIS_BOT_SESSIONS, JSON.stringify(botSessions)); } catch(e) {}
 }
-function getSession(chatId) {
-    if (!botSessions[chatId]) botSessions[chatId] = { lastMsgId: null, view: 'MAIN' };
+function getSession(chatId, threadId = null) {
+    if (!botSessions[chatId]) {
+        botSessions[chatId] = { lastMsgId: null, view: 'MAIN', threadId: null };
+    }
+    // Update threadId if provided
+    if (threadId) botSessions[chatId].threadId = threadId;
     return botSessions[chatId];
 }
 
@@ -275,12 +297,8 @@ function progressBar(tp, inv) {
 // ══════════════════════════════════════════════
 function calcHitProbability(profile, tf, alignLevel, grade) {
     const stats = buildCRTStats(profile);
-
-    // Build a list of stat buckets to check, from most specific to least
-    // For each bucket key, check if we have enough data
     const buckets = [];
 
-    // Most specific: tf + align + grade combo
     if (tf === '1D') {
         if (grade === 'A+') {
             if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w_aplus',  label: 'Daily MO+W A+' });
@@ -293,7 +311,6 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
             if (alignLevel === 'W')    buckets.push({ key: 'daily_w_bplus',      label: 'Daily W B+' });
             buckets.push({ key: 'daily_bplus', label: 'Daily B+' });
         }
-        // fallback to align-only
         if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w', label: 'Daily MO+W' });
         if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo',   label: 'Daily MO' });
         if (alignLevel === 'W')    buckets.push({ key: 'daily_w',    label: 'Daily W' });
@@ -323,7 +340,6 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
             if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo_bplus',  label: '4H MO B+' });
             buckets.push({ key: 'fourh_bplus', label: '4H B+' });
         }
-        // fallback to align-only
         if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm', label: '4H D+W+MO' });
         if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw',  label: '4H D+W' });
         if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo', label: '4H D+MO' });
@@ -334,30 +350,18 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
         buckets.push({ key: 'fourh', label: '4H' });
     }
 
-    // Always add overall as last fallback
     buckets.push({ key: 'overall', label: 'Overall' });
 
-    const MIN_SAMPLE = 5; // minimum resolved trades to show probability
-
+    const MIN_SAMPLE = 5;
     for (const bucket of buckets) {
         const s = stats[bucket.key];
         if (!s) continue;
         const resolved = s.tp + s.inv;
         if (resolved >= MIN_SAMPLE) {
             const pct = ((s.tp / resolved) * 100).toFixed(1);
-            return {
-                found: true,
-                pct,
-                tp: s.tp,
-                inv: s.inv,
-                total: s.total,
-                resolved,
-                label: bucket.label
-            };
+            return { found: true, pct, tp: s.tp, inv: s.inv, total: s.total, resolved, label: bucket.label };
         }
     }
-
-    // Not enough data
     return { found: false };
 }
 
@@ -821,13 +825,12 @@ function buildStatsMsg() {
 // BOT PUSH NOTIFICATION (with grade + hit prob)
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
-    // Filter rules — only send if aligned
     if (tf === '1D' && !['MO+W','MO','W'].includes(alignLevel)) return;
     if (tf === '1W' && alignLevel !== 'MO') return;
     if (tf === '4H' && !['D+W+MO','D+W','D+MO','D','W+MO','W','MO'].includes(alignLevel)) return;
     if (Object.keys(botSessions).length === 0) return;
 
-    const tfLabel = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
+    const tfLabel    = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
     const gradeLabel = grade === 'A+' ? '⭐ A+' : grade === 'B+' ? '🔶 B+' : '';
     const gradeBarStr = grade === 'A+' ? '🌟🌟🌟🌟🌟' : grade === 'B+' ? '🔶🔶🔶🔶🔶' : '';
 
@@ -843,7 +846,6 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { 
         ? `🎯 <b>TARGET HIT</b>`
         : `🔴 <b>INVALIDATED</b>`;
 
-    // Calculate hit probability for new CRT signals
     let probLine = '';
     if (kind === 'CRT') {
         const prob = calcHitProbability('HTF', tf, alignLevel, grade);
@@ -880,9 +882,15 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { 
     ].join('\n');
 
     for (const chatId of Object.keys(botSessions)) {
-        try { await botSendMessage(chatId, text); } catch(e) {}
+        try {
+            const sess = botSessions[chatId];
+            // ✅ Use the stored thread ID from session
+            const threadId = sess.threadId || null;
+            await botSendMessage(chatId, text, null, threadId);
+        } catch(e) {}
     }
 }
+
 
 // ══════════════════════════════════════════════
 // AUTO-REFRESH ALL OPEN PANELS
@@ -893,14 +901,14 @@ async function autoRefreshBotPanels() {
         if (!sess?.lastMsgId) continue;
         try {
             let text = null, kb = null;
-            if      (sess.view === 'MAIN')     { text = buildMainMenuMsg();    kb = mainMenuKeyboard();           }
-            else if (sess.view === 'DAILY')    { text = buildDailyCRTMsg();    kb = subKeyboard('DAILY_CRT');     }
-            else if (sess.view === 'WEEKLY')   { text = buildWeeklyCRTMsg();   kb = subKeyboard('WEEKLY_CRT');    }
+            if      (sess.view === 'MAIN')     { text = buildMainMenuMsg();    kb = mainMenuKeyboard();          }
+            else if (sess.view === 'DAILY')    { text = buildDailyCRTMsg();    kb = subKeyboard('DAILY_CRT');    }
+            else if (sess.view === 'WEEKLY')   { text = buildWeeklyCRTMsg();   kb = subKeyboard('WEEKLY_CRT');   }
             else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg(); kb = subKeyboard('FOURHOUR_CRT'); }
-            else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();   kb = subKeyboard('ACTIVE_CRT');    }
-            else if (sess.view === 'STATS')    { text = buildStatsMsg();       kb = subKeyboard('CRT_STATS');     }
+            else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();   kb = subKeyboard('ACTIVE_CRT');   }
+            else if (sess.view === 'STATS')    { text = buildStatsMsg();       kb = subKeyboard('CRT_STATS');    }
             if (text) await botEditMessage(chatId, sess.lastMsgId, text, kb);
-        } catch(e) { /* message may be deleted — ignore */ }
+        } catch(e) { /* ignore */ }
     }
 }
 
@@ -910,118 +918,133 @@ async function autoRefreshBotPanels() {
 async function handleBotUpdate(update) {
 
     // ── COMMANDS ──
-    if (update.message) {
-        const chatId = String(update.message.chat.id);
-        const text   = (update.message.text || '').trim();
+if (update.message) {
+    const chatId  = String(update.message.chat.id);
+    const text    = (update.message.text || '').trim();
+    const threadId = update.message.message_thread_id || null;
 
-        if (!isBotAllowed(chatId)) {
-            await botSendMessage(chatId,
-                `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
-            return;
-        }
+    // ✅ IGNORE messages from General (no thread ID in a forum group)
+    // Only respond if it's a private chat OR a specific topic message
+    const isPrivateChat = update.message.chat.type === 'private';
+    const isTopicMessage = update.message.is_topic_message === true;
 
-        const sess = getSession(chatId);
-        if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
-
-        const cmd = text.split(' ')[0].toLowerCase();
-
-        if (cmd === '/start' || cmd === '/menu') {
-            sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard());
-            sess.view = 'MAIN';
-        } else if (cmd === '/daily') {
-            sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
-            sess.view = 'DAILY';
-        } else if (cmd === '/weekly') {
-            sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
-            sess.view = 'WEEKLY';
-        } else if (cmd === '/4h' || cmd === '/fourhour') {
-            sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
-            sess.view = 'FOURHOUR';
-        } else if (cmd === '/active') {
-            sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
-            sess.view = 'ACTIVE';
-        } else if (cmd === '/stats') {
-            sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'));
-            sess.view = 'STATS';
-        } else if (cmd === '/help') {
-            sess.lastMsgId = await botSendMessage(chatId, [
-                B_TOP,
-                `║  🤖 <b>GOD-MODE CRT BOT</b>`,
-                `║  Command Reference`,
-                B_BOT,
-                ``,
-                `  /start      🏠 Main terminal`,
-                `  /daily      📅 Daily CRTs (aligned)`,
-                `  /weekly     📆 Weekly CRTs (MO)`,
-                `  /4h         ⏰ 4H CRTs (aligned)`,
-                `  /active     🟢 Active positions`,
-                `  /stats      📊 Performance stats`,
-                `  /help       ❓ This help`,
-                ``,
-                B_THIN,
-                ``,
-                `  <b>🔔 Grades:</b>`,
-                `  ⭐ A+ = Sweep + SNR Rejection + BO`,
-                `  🔶 B+ = Sweep + BO (no rejection)`,
-                ``,
-                `  <b>🔔 Auto-Notifications:</b>`,
-                `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
-                `  📆 Weekly →  MO aligned ⚡ only`,
-                `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
-                ``,
-                `  <b>📊 Hit Probability:</b>`,
-                `  New CRT alerts show historical`,
-                `  hit rate for that exact combo`,
-                ``,
-                `  <b>📡 Live Auto-Refresh:</b>`,
-                `  Panels update automatically`,
-                ``,
-                B_DASH,
-            ].join('\n'), subKeyboard('MAIN_REFRESH'));
-            sess.view = 'HELP';
-        } else {
-            sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`);
-        }
-
-        await saveBotSessions();
+    if (!isPrivateChat && !isTopicMessage) {
+        // Message is in General — ignore it completely
         return;
     }
 
-    // ── CALLBACKS ──
-    if (update.callback_query) {
-        const cb     = update.callback_query;
-        const chatId = String(cb.message.chat.id);
-        const msgId  = cb.message.message_id;
-        const data   = cb.data;
+    // ✅ Only respond to commands (messages starting with /)
+    if (!text.startsWith('/')) return;
 
-        if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
-
-        const sess = getSession(chatId);
-        sess.lastMsgId = msgId;
-        await botAnswerCallback(cb.id, '✅');
-
-        if (data === 'MAIN' || data === 'MAIN_REFRESH') {
-            await botEditMessage(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard());
-            sess.view = 'MAIN';
-        } else if (data === 'DAILY_CRT') {
-            await botEditMessage(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
-            sess.view = 'DAILY';
-        } else if (data === 'WEEKLY_CRT') {
-            await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
-            sess.view = 'WEEKLY';
-        } else if (data === 'FOURHOUR_CRT') {
-            await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
-            sess.view = 'FOURHOUR';
-        } else if (data === 'ACTIVE_CRT') {
-            await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
-            sess.view = 'ACTIVE';
-        } else if (data === 'CRT_STATS') {
-            await botEditMessage(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'));
-            sess.view = 'STATS';
-        }
-
-        await saveBotSessions();
+    if (!isBotAllowed(chatId)) {
+        await botSendMessage(chatId, `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
+        return;
     }
+
+    const sess = getSession(chatId, threadId);
+    if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
+
+    const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
+
+    if (cmd === '/start' || cmd === '/menu') {
+        sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
+        sess.view = 'MAIN';
+    } else if (cmd === '/daily') {
+        sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
+        sess.view = 'DAILY';
+    } else if (cmd === '/weekly') {
+        sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
+        sess.view = 'WEEKLY';
+    } else if (cmd === '/4h' || cmd === '/fourhour') {
+        sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
+        sess.view = 'FOURHOUR';
+    } else if (cmd === '/active') {
+        sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
+        sess.view = 'ACTIVE';
+    } else if (cmd === '/stats') {
+        sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
+        sess.view = 'STATS';
+    } else if (cmd === '/help') {
+        sess.lastMsgId = await botSendMessage(chatId, [
+            B_TOP,
+            `║  🤖 <b>GOD-MODE CRT BOT</b>`,
+            `║  Command Reference`,
+            B_BOT,
+            ``,
+            `  /start      🏠 Main terminal`,
+            `  /daily      📅 Daily CRTs (aligned)`,
+            `  /weekly     📆 Weekly CRTs (MO)`,
+            `  /4h         ⏰ 4H CRTs (aligned)`,
+            `  /active     🟢 Active positions`,
+            `  /stats      📊 Performance stats`,
+            `  /help       ❓ This help`,
+            ``,
+            B_THIN,
+            ``,
+            `  <b>🔔 Grades:</b>`,
+            `  ⭐ A+ = Sweep + SNR Rejection + BO`,
+            `  🔶 B+ = Sweep + BO (no rejection)`,
+            ``,
+            `  <b>🔔 Auto-Notifications:</b>`,
+            `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
+            `  📆 Weekly →  MO aligned ⚡ only`,
+            `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
+            ``,
+            `  <b>📊 Hit Probability:</b>`,
+            `  New CRT alerts show historical`,
+            `  hit rate for that exact combo`,
+            ``,
+            `  <b>📡 Live Auto-Refresh:</b>`,
+            `  Panels update automatically`,
+            ``,
+            B_DASH,
+        ].join('\n'), subKeyboard('MAIN_REFRESH'), sess.threadId);
+        sess.view = 'HELP';
+    } else {
+        sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`, null, sess.threadId);
+    }
+
+    await saveBotSessions();
+    return;
+}
+
+    // ── CALLBACKS ──
+if (update.callback_query) {
+    const cb     = update.callback_query;
+    const chatId = String(cb.message.chat.id);
+    const msgId  = cb.message.message_id;
+    const data   = cb.data;
+    // ✅ Capture thread ID from callback message
+    const threadId = cb.message.message_thread_id || null;
+
+    if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
+
+    const sess = getSession(chatId, threadId); // ✅ Pass threadId
+    sess.lastMsgId = msgId;
+    await botAnswerCallback(cb.id, '✅');
+
+    if (data === 'MAIN' || data === 'MAIN_REFRESH') {
+        await botEditMessage(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard());
+        sess.view = 'MAIN';
+    } else if (data === 'DAILY_CRT') {
+        await botEditMessage(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
+        sess.view = 'DAILY';
+    } else if (data === 'WEEKLY_CRT') {
+        await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
+        sess.view = 'WEEKLY';
+    } else if (data === 'FOURHOUR_CRT') {
+        await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
+        sess.view = 'FOURHOUR';
+    } else if (data === 'ACTIVE_CRT') {
+        await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
+        sess.view = 'ACTIVE';
+    } else if (data === 'CRT_STATS') {
+        await botEditMessage(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'));
+        sess.view = 'STATS';
+    }
+
+    await saveBotSessions();
+}
 }
 
 // ══════════════════════════════════════════════
@@ -1256,69 +1279,29 @@ function migrateCRTState(state){
 // ══════════════════════════════════════════════
 function buildCRTStats(profile) {
     const cs = getCRTState(profile);
-
-    // Helper to make empty bucket
     const B = () => ({ total:0, tp:0, inv:0, active:0 });
 
     const stats = {
-        overall:        B(),
-        overall_aplus:  B(),
-        overall_bplus:  B(),
-
-        daily:          B(),
-        daily_aplus:    B(),
-        daily_bplus:    B(),
-        daily_mo_w:     B(),
-        daily_mo_w_aplus: B(),
-        daily_mo_w_bplus: B(),
-        daily_mo:       B(),
-        daily_mo_aplus: B(),
-        daily_mo_bplus: B(),
-        daily_w:        B(),
-        daily_w_aplus:  B(),
-        daily_w_bplus:  B(),
-        daily_none:     B(),
-        daily_none_aplus: B(),
-        daily_none_bplus: B(),
-
-        weekly:         B(),
-        weekly_aplus:   B(),
-        weekly_bplus:   B(),
-        weekly_mo:      B(),
-        weekly_mo_aplus: B(),
-        weekly_mo_bplus: B(),
-        weekly_none:    B(),
-
-        fourh:          B(),
-        fourh_aplus:    B(),
-        fourh_bplus:    B(),
-        fourh_dwm:      B(),
-        fourh_dwm_aplus: B(),
-        fourh_dwm_bplus: B(),
-        fourh_dw:       B(),
-        fourh_dw_aplus: B(),
-        fourh_dw_bplus: B(),
-        fourh_dmo:      B(),
-        fourh_dmo_aplus: B(),
-        fourh_dmo_bplus: B(),
-        fourh_d:        B(),
-        fourh_d_aplus:  B(),
-        fourh_d_bplus:  B(),
-        fourh_wmo:      B(),
-        fourh_wmo_aplus: B(),
-        fourh_wmo_bplus: B(),
-        fourh_w:        B(),
-        fourh_w_aplus:  B(),
-        fourh_w_bplus:  B(),
-        fourh_mo:       B(),
-        fourh_mo_aplus: B(),
-        fourh_mo_bplus: B(),
-        fourh_none:     B(),
-        fourh_none_aplus: B(),
-        fourh_none_bplus: B(),
+        overall:B(), overall_aplus:B(), overall_bplus:B(),
+        daily:B(), daily_aplus:B(), daily_bplus:B(),
+        daily_mo_w:B(), daily_mo_w_aplus:B(), daily_mo_w_bplus:B(),
+        daily_mo:B(), daily_mo_aplus:B(), daily_mo_bplus:B(),
+        daily_w:B(), daily_w_aplus:B(), daily_w_bplus:B(),
+        daily_none:B(), daily_none_aplus:B(), daily_none_bplus:B(),
+        weekly:B(), weekly_aplus:B(), weekly_bplus:B(),
+        weekly_mo:B(), weekly_mo_aplus:B(), weekly_mo_bplus:B(),
+        weekly_none:B(),
+        fourh:B(), fourh_aplus:B(), fourh_bplus:B(),
+        fourh_dwm:B(), fourh_dwm_aplus:B(), fourh_dwm_bplus:B(),
+        fourh_dw:B(), fourh_dw_aplus:B(), fourh_dw_bplus:B(),
+        fourh_dmo:B(), fourh_dmo_aplus:B(), fourh_dmo_bplus:B(),
+        fourh_d:B(), fourh_d_aplus:B(), fourh_d_bplus:B(),
+        fourh_wmo:B(), fourh_wmo_aplus:B(), fourh_wmo_bplus:B(),
+        fourh_w:B(), fourh_w_aplus:B(), fourh_w_bplus:B(),
+        fourh_mo:B(), fourh_mo_aplus:B(), fourh_mo_bplus:B(),
+        fourh_none:B(), fourh_none_aplus:B(), fourh_none_bplus:B(),
     };
 
-    // Helper to increment a bucket
     function inc(bucket, status) {
         if (!stats[bucket]) return;
         stats[bucket].total++;
@@ -1338,34 +1321,28 @@ function buildCRTStats(profile) {
                 const isAplus = g === 'A+';
                 const isBplus = g === 'B+';
 
-                // Determine bucket
                 const bucket = tf === '1D' ? 'daily' : tf === '1W' ? 'weekly' : tf === '4H' ? 'fourh' : null;
                 if (!bucket) continue;
 
-                // Overall
                 inc('overall', s);
                 if (isAplus) inc('overall_aplus', s);
                 if (isBplus) inc('overall_bplus', s);
 
-                // TF bucket
                 inc(bucket, s);
                 if (isAplus) inc(bucket + '_aplus', s);
                 if (isBplus) inc(bucket + '_bplus', s);
 
-                // ── DAILY alignment sub-buckets ──
                 if (tf === '1D') {
                     let alignKey;
                     if (lv === 'MO+W')      alignKey = 'daily_mo_w';
                     else if (lv === 'MO')   alignKey = 'daily_mo';
                     else if (lv === 'W')    alignKey = 'daily_w';
                     else                    alignKey = 'daily_none';
-
                     inc(alignKey, s);
                     if (isAplus) inc(alignKey + '_aplus', s);
                     if (isBplus) inc(alignKey + '_bplus', s);
                 }
 
-                // ── WEEKLY alignment sub-buckets ──
                 if (tf === '1W') {
                     const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
                     inc(alignKey, s);
@@ -1373,7 +1350,6 @@ function buildCRTStats(profile) {
                     if (isBplus) inc(alignKey + '_bplus', s);
                 }
 
-                // ── 4H alignment sub-buckets ──
                 if (tf === '4H') {
                     let alignKey;
                     if (lv === 'D+W+MO')    alignKey = 'fourh_dwm';
@@ -1384,7 +1360,6 @@ function buildCRTStats(profile) {
                     else if (lv === 'W')    alignKey = 'fourh_w';
                     else if (lv === 'MO')   alignKey = 'fourh_mo';
                     else                    alignKey = 'fourh_none';
-
                     inc(alignKey, s);
                     if (isAplus) inc(alignKey + '_aplus', s);
                     if (isBplus) inc(alignKey + '_bplus', s);
@@ -1393,7 +1368,6 @@ function buildCRTStats(profile) {
         }
     }
 
-    // Calculate hit rates for all buckets
     for (const k in stats) {
         const b = stats[k];
         const r = b.tp + b.inv;
@@ -1434,7 +1408,8 @@ async function processBreakoutUpdate(sym,moDir,wDir,source='WEBHOOK'){
     if(changed){
         await saveBreakoutState();
         const tgMsg=buildBreakoutTelegramMessage(sym,moDir,wDir,marketState[sym]?tfInfoString(sym):null);
-        if(TG_BREAKOUT_PAGE)await sendTelegram(TG_BREAKOUT_PAGE,tgMsg);
+        // ✅ Thread support
+        if(TG_BREAKOUT_PAGE)await sendTelegram(TG_BREAKOUT_PAGE,tgMsg,TG_BREAKOUT_THREAD_ID);
         const tfl=[];if(moDir!=='NONE')tfl.push(`MO:${moDir}`);if(wDir!=='NONE')tfl.push(`W:${wDir}`);
         await pushLogEvent(sym,moDir!=='NONE'?moDir:wDir,`💥 BREAKOUT: ${tfl.join(' + ')}`,{logAction:'BREAKOUT_PAGE'});
         broadcastBreakout();broadcastAll();
@@ -1548,15 +1523,14 @@ app.post('/api/breakout-inject',async(req,res)=>{const{symbol,tf,direction}=req.
 // MAIN WEBHOOK
 // ══════════════════════════════════════════════
 app.post('/webhook', async (req, res) => {
-    const payload = req.body;
-    const isStoryline  = payload.state!==undefined&&payload.tf!==undefined&&payload.coin===undefined&&payload.action===undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
-    const isBreakout   = payload.kind==="BREAKOUT";
-    const isCRT        = payload.kind==="CRT"||payload.kind==="CRT_TARGET"||payload.kind==="CRT_INVALID";
-    const isPineEntry  = payload.coin!==undefined&&payload.action!==undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
-    const isBreakoutPage = payload.weekly_breakout!==undefined||payload.monthly_breakout!==undefined;
+    const payload=req.body;
+    const isStoryline=payload.state!==undefined&&payload.tf!==undefined&&payload.coin===undefined&&payload.action===undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
+    const isBreakout=payload.kind==="BREAKOUT";
+    const isCRT=payload.kind==="CRT"||payload.kind==="CRT_TARGET"||payload.kind==="CRT_INVALID";
+    const isPineEntry=payload.coin!==undefined&&payload.action!==undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
+    const isBreakoutPage=payload.weekly_breakout!==undefined||payload.monthly_breakout!==undefined;
 
-    // ── BREAKOUT PAGE ──
-    if (isBreakoutPage) {
+    if(isBreakoutPage){
         const sym=(payload.coin||'').toUpperCase().trim();
         const wDir=normalizeBreakoutDirection(payload.weekly_breakout);
         const moDir=normalizeBreakoutDirection(payload.monthly_breakout);
@@ -1566,94 +1540,76 @@ app.post('/webhook', async (req, res) => {
         return res.status(200).send("OK");
     }
 
-    // ── STORYLINE ──
-    if (isStoryline) {
+    if(isStoryline){
         const sym=(payload.symbol||'').toUpperCase().trim();
         const tf=normalizeTf(payload.tf);
         const state=(payload.state||'').toUpperCase().trim();
         if(!sym||!tf||!state)return res.status(400).send("Invalid");
         if(!ZONE_TIMEFRAMES.includes(tf))return res.status(200).send("OK");
-
         console.log(`\n[STORYLINE] ${sym} | ${tf} → ${state}`);
-
-        if(!marketState[sym]){
-            const d={};ZONE_TIMEFRAMES.forEach(t=>d[t]="NONE");
-            marketState[sym]={timeframes:d,lastAlertedState:"NONE",lastGodModeStartTime:null,alignCount:0,partialState:"NONE",partialCount:0};
-        }
-        if(!marketState[sym].timeframes){
-            marketState[sym].timeframes={};
-            ZONE_TIMEFRAMES.forEach(t=>marketState[sym].timeframes[t]="NONE");
-        }
-        ZONE_TIMEFRAMES.forEach(t=>{
-            if(!marketState[sym].timeframes[t])marketState[sym].timeframes[t]="NONE";
-        });
-
+        if(!marketState[sym]){const d={};ZONE_TIMEFRAMES.forEach(t=>d[t]="NONE");marketState[sym]={timeframes:d,lastAlertedState:"NONE",lastGodModeStartTime:null,alignCount:0,partialState:"NONE",partialCount:0};}
+        if(!marketState[sym].timeframes){marketState[sym].timeframes={};ZONE_TIMEFRAMES.forEach(t=>marketState[sym].timeframes[t]="NONE");}
+        ZONE_TIMEFRAMES.forEach(t=>{if(!marketState[sym].timeframes[t])marketState[sym].timeframes[t]="NONE";});
         marketState[sym].timeframes[tf]=state;
-
         const prev=marketState[sym].lastAlertedState;
         const{dominantState,partialState,partialCount,alignCount}=recalculateAlignment(sym);
 
-        // GOD-MODE: 3/3
         if(dominantState!=="NONE"&&dominantState!==prev){
             marketState[sym].lastAlertedState=dominantState;
             marketState[sym].lastGodModeStartTime=Date.now();
+            // ✅ Thread support
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
-                `<b>${dominantState==="BULLISH"?"🚀 🐂":"🩸 🐻"} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (3/3 — MO+W+D)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly + Daily aligned!`);
+                `<b>${dominantState==="BULLISH"?"🚀 🐂":"🩸 🐻"} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (3/3 — MO+W+D)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly + Daily aligned!`,
+                TG_STORYLINE_THREAD_ID);
             await pushLogEvent(sym,dominantState,`GOD-MODE ON: ${dominantState} (3/3 — MO+W+D)`);
         }
-
-        // Alignment lost
         if(dominantState==="NONE"&&prev!=="NONE"){
             marketState[sym].lastAlertedState="NONE";
+            // ✅ Thread support
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
-                `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (3/3)\nNow: ${partialState!=="NONE"?partialState+` (${partialCount}/3)`:`${alignCount}/3`}\n${tfInfoString(sym)}`);
+                `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (3/3)\nNow: ${partialState!=="NONE"?partialState+` (${partialCount}/3)`:`${alignCount}/3`}\n${tfInfoString(sym)}`,
+                TG_STORYLINE_THREAD_ID);
             await pushLogEvent(sym,'NONE',`Alignment Lost: was ${prev} (3/3)`);
         }
-
-        // Partial
         if(dominantState==="NONE"&&partialState!=="NONE"){
             const pp=marketState[sym]._lastPartialState||"NONE";
             const ppc=marketState[sym]._lastPartialCount||0;
             if(pp!==partialState||ppc!==partialCount||(prev!=="NONE"&&dominantState==="NONE")){
                 const levelLabel=partialCount>=STRONG_THRESHOLD?'STRONG':'PARTIAL';
+                // ✅ Thread support
                 await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
-                    `<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} ${levelLabel}: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/3)\n${tfInfoString(sym)}`);
+                    `<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} ${levelLabel}: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/3)\n${tfInfoString(sym)}`,
+                    TG_STORYLINE_THREAD_ID);
                 await pushLogEvent(sym,partialState,`${levelLabel}: ${partialState} (${partialCount}/3)`);
             }
         }
-
         marketState[sym]._lastPartialState=partialState;
         marketState[sym]._lastPartialCount=partialCount;
-
         await invalidatePendingTrades(sym);
         await redisClient.set(REDIS_STATE_KEY,JSON.stringify(marketState));
         broadcastAll();
         return res.status(200).send("OK");
     }
 
-    // ── BREAKOUT ──
-    if (isBreakout) {
+    if(isBreakout){
         const sym=(payload.symbol||'').toUpperCase().trim();
         const direction=(payload.direction||'').toUpperCase().trim();
         const chartTf=normalizeTf(payload.chart_tf);
         if(!sym||!direction)return res.status(400).send("Invalid");
         const align=checkDirectionAlignment(sym,direction);
         if(!align.aligned)return res.status(200).send("OK");
-
         const tgMsg=`<b>${direction==="BULLISH"?"🚀 🐂":"🩸 🐻"} BREAKOUT: ${sym}</b>\n\n<b>Direction:</b> ${direction}\n<b>Chart TF:</b> ${chartTf||'?'}\n\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`}</b>\n${tfInfoString(sym)}`;
-
         const sc=[];
-        if(align.count>=PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg);sc.push('PARTIAL');}
-        if((align.type==='GOD'||align.type==='STRONG')&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push(align.type);}
-        if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg);sc.push('CUSTOM');}
-
+        // ✅ Thread support for all breakout channels
+        if(align.count>=PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg,TG_BREAKOUT5_THREAD_ID);sc.push('PARTIAL');}
+        if((align.type==='GOD'||align.type==='STRONG')&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg,TG_BREAKOUT6_THREAD_ID);sc.push(align.type);}
+        if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg,TG_CUSTOM_THREAD_ID);sc.push('CUSTOM');}
         await pushLogEvent(sym,direction,`💥 BREAKOUT: ${direction}|Chart:${chartTf||'?'}|${align.type}${sc.length?` → [${sc.join(',')}]`:''}`,{logAction:'BREAKOUT',direction});
         broadcastAll();broadcastSoundAlert(sym,direction);
         return res.status(200).send("OK");
     }
 
-    // ── CRT ──
-    if (isCRT) {
+    if(isCRT){
         const sym=(payload.coin||'').toUpperCase().trim();
         const tf=normalizeTf(payload.tf||'');
         const side=(payload.side||'').toUpperCase().trim();
@@ -1662,14 +1618,14 @@ app.post('/webhook', async (req, res) => {
         const profile=normalizeBoProfile(payload.bo_profile);
         if(!sym||!tf||!side)return res.status(400).send("Invalid");
         if(!CRT_VALID_TFS.includes(tf))return res.status(200).send("OK");
-
         console.log(`\n[${payload.kind}] ${sym}|${tf}|${side}|${grade}|${profile}`);
         let crtState=getCRTState(profile);
         if(!crtState[sym])crtState[sym]={};
         if(!Array.isArray(crtState[sym][tf]))crtState[sym][tf]=crtState[sym][tf]?[crtState[sym][tf]]:[];
         const tgCh=getCRTTGChannel(profile);
+        const tgThread=getCRTTGThreadId(profile); // ✅ Get thread ID
 
-        if (payload.kind === 'CRT') {
+        if(payload.kind==='CRT'){
             const ac=checkCRTAlignment(sym,tf,side);
             const ne={
                 id:`${sym}_${tf}_${Date.now()}`,
@@ -1689,15 +1645,16 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
                 {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
-            const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,grade,profile,{rej,bo,ext,tgt,alignInfo:at});
-            if(ctm)await sendTelegram(tgCh,ctm);
+            //const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,grade,profile,{rej,bo,ext,tgt,alignInfo:at});
+            // ✅ Send with thread ID
+            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT',sym,tf,side,ac.level,grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
 
-        if (payload.kind === 'CRT_TARGET') {
+        if(payload.kind==='CRT_TARGET'){
             const entries=crtState[sym][tf];let target=null;
             for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
             if(!target)return res.status(200).send("OK");
@@ -1708,15 +1665,16 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `🎯 ${tf} CRT${gradeTag} TARGET HIT [${profile}]: ${side}|Tgt:${tgt}`,
                 {tf,tgt,action:'CRT_TARGET',grade:target.grade});
-            const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
-            if(ctm)await sendTelegram(tgCh,ctm);
+            //const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
+            // ✅ Send with thread ID
+            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_TARGET',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
 
-        if (payload.kind === 'CRT_INVALID') {
+        if(payload.kind==='CRT_INVALID'){
             const entries=crtState[sym][tf];let target=null;
             for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
             if(!target)return res.status(200).send("OK");
@@ -1727,8 +1685,9 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `❌ ${tf} CRT${gradeTag} INVALIDATED [${profile}]: ${side}|Ext:${ext}`,
                 {tf,ext,action:'CRT_INVALID',grade:target.grade});
-            const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
-            if(ctm)await sendTelegram(tgCh,ctm);
+            //const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
+            // ✅ Send with thread ID
+            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_INVALID',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1742,8 +1701,7 @@ app.post('/webhook', async (req, res) => {
         return res.status(200).send("OK");
     }
 
-    // ── PINE ENTRY ──
-    if (isPineEntry) {
+    if(isPineEntry){
         const sym=(payload.coin||'').toUpperCase().trim();
         const direction=(payload.direction||'').toUpperCase().trim();
         const entry=payload.entry;const sl=payload.sl;const tp=payload.tp;const rr=payload.rr;
@@ -1758,16 +1716,18 @@ app.post('/webhook', async (req, res) => {
             const stats=ensureStats(sym,entryTf);stats.total_signals++;
             const trade={id:makeTradeId(sym,entryTf),direction,entry:parseFloat(entry)||entry,sl:parseFloat(sl)||sl,tp:parseFloat(tp)||tp,rr:parseFloat(rr)||rr,alignment:align.type,align_combos:align.combos,align_count:align.count,status:'PENDING',signal_time:Date.now(),entry_time:null,result_time:null,entry_tf:entryTf,telegram_chat_id:null,telegram_message_id:null,telegram_deleted:false,cancelled_time:null,cancelled_reason:null};
             stats.trades.push(trade);if(stats.trades.length>500)stats.trades=stats.trades.slice(-500);
-            const chatId=TG_CHANNEL_MAP[entryTf]?.();let snd=false;
-            if(chatId){
+            // ✅ Updated to use {chatId, threadId} from channel map
+            const ch=TG_CHANNEL_MAP[entryTf]?.();let snd=false;
+            if(ch?.chatId){
                 const al=align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`;
                 const de=direction==="BULLISH"?"🟢 🐂":"🔴 🐻";
                 let msg=`<b>${de} ${entryTf} OB SIGNAL: ${sym}</b>\n\n<b>Entry:</b> <code>${entry}</code>\n<b>SL:</b> <code>${sl}</code>\n`;
                 if(tp)msg+=`<b>TP:</b> <code>${tp}</code>\n`;
                 if(rr)msg+=`<b>R:R:</b> ${rr}\n`;
                 msg+=`\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${al}</b>\n${tfInfoString(sym)}`;
-                const sent=await sendTelegramTracked(chatId,msg);
-                if(sent.ok){snd=true;trade.telegram_chat_id=chatId;trade.telegram_message_id=sent.messageId;}
+                // ✅ Send with thread ID
+                const sent=await sendTelegramTracked(ch.chatId,msg,ch.threadId);
+                if(sent.ok){snd=true;trade.telegram_chat_id=ch.chatId;trade.telegram_message_id=sent.messageId;}
             }
             await saveStats();broadcastStats();
             if(snd)broadcastSoundAlert(sym,direction);
@@ -1779,8 +1739,23 @@ app.post('/webhook', async (req, res) => {
         if(action==="ENTRY_AND_SL_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='SL_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 ENTRY+SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();}return res.status(200).send("OK");}
         if(action==="ENTRY_AND_TP_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='TP_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 ENTRY+TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();}return res.status(200).send("OK");}
 
-        if(action==="TP_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});if(fa){fa.trade.status='TP_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();return res.status(200).send("OK");}const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(fp){fp.trade.status='TP_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ TP without entry`,{entry_tf:entryTf,direction,logAction:'TP_NO_ENTRY'});broadcastAll();}return res.status(200).send("OK");}
-        if(action==="SL_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});if(fa){fa.trade.status='SL_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();return res.status(200).send("OK");}const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(fp){fp.trade.status='SL_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ SL without entry`,{entry_tf:entryTf,direction,logAction:'SL_NO_ENTRY'});broadcastAll();}return res.status(200).send("OK");}
+        if(action==="TP_HIT"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});
+            if(fa){fa.trade.status='TP_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();return res.status(200).send("OK");}
+            const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(fp){fp.trade.status='TP_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ TP without entry`,{entry_tf:entryTf,direction,logAction:'TP_NO_ENTRY'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
+
+        if(action==="SL_HIT"){
+            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
+            const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});
+            if(fa){fa.trade.status='SL_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();return res.status(200).send("OK");}
+            const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
+            if(fp){fp.trade.status='SL_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ SL without entry`,{entry_tf:entryTf,direction,logAction:'SL_NO_ENTRY'});broadcastAll();}
+            return res.status(200).send("OK");
+        }
 
         return res.status(400).send("Unknown action");
     }
@@ -1793,9 +1768,26 @@ app.get('/stats',(req,res)=>res.sendFile(path.join(__dirname,'public','stats.htm
 app.get('/crt',(req,res)=>res.sendFile(path.join(__dirname,'public','crt.html')));
 app.get('/breakout',(req,res)=>res.sendFile(path.join(__dirname,'public','breakout.html')));
 
+app.get('/api/clear-sessions', async (req, res) => {
+    botSessions = {};
+    await redisClient.set(REDIS_BOT_SESSIONS, JSON.stringify({}));
+    res.json({ ok: true, message: 'Bot sessions cleared' });
+});
+
+app.get('/api/show-sessions', (req, res) => {
+    res.json(botSessions);
+});
+
+console.log('🧵 THREAD DEBUG:');
+console.log('TG_CRT_HTF_CHANNEL:', process.env.TG_CRT_HTF_CHANNEL);
+console.log('TG_CRT_HTF_THREAD_ID:', process.env.TG_CRT_HTF_THREAD_ID);
+console.log('TG_STORYLINE_CHAT_ID:', process.env.TELEGRAM_STORYLINE_CHAT_ID);
+console.log('TG_STORYLINE_THREAD_ID:', process.env.TG_STORYLINE_THREAD_ID);
+
 app.listen(PORT, () => {
     console.log(`\n🚀 God-Mode V7 on port ${PORT}`);
     console.log(`🤖 Bot: ${TG_BOT_TOKEN ? 'ENABLED' : 'DISABLED'}`);
     console.log(`🤖 Allowed: ${TG_BOT_ALLOWED_CHAT_IDS.length ? TG_BOT_ALLOWED_CHAT_IDS.join(', ') : 'ALL'}`);
+    console.log(`📡 Threads: Storyline=${TG_STORYLINE_THREAD_ID||'none'} | CRT_HTF=${TG_CRT_HTF_THREAD_ID||'none'} | CRT_LTF=${TG_CRT_LTF_THREAD_ID||'none'} | Breakout=${TG_BREAKOUT_THREAD_ID||'none'} | BO5=${TG_BREAKOUT5_THREAD_ID||'none'} | BO6=${TG_BREAKOUT6_THREAD_ID||'none'}`);
     startBotPolling();
 });
