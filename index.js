@@ -43,7 +43,7 @@ const REDIS_BOT_SESSIONS  = REDIS_STATE_KEY + '_bot_sessions';
 const REDIS_CRT_KEY_LEGACY = REDIS_STATE_KEY + '_crt';
 
 // ══════════════════════════════════════════════
-// UPDATED: 3 storyline timeframes (MO + W + D)
+// 3 storyline timeframes (MO + W + D)
 // ══════════════════════════════════════════════
 const ZONE_TIMEFRAMES   = ["1MO", "1W", "1D"];
 const GOD_THRESHOLD     = 3;
@@ -65,15 +65,12 @@ const ALIGNMENT_COMBOS = [
 ];
 
 // ══════════════════════════════════════════════
-// UPDATED: CRT now includes 4H (1H breakout)
+// CRT now includes 4H (1H breakout)
 // ══════════════════════════════════════════════
 const CRT_VALID_TFS     = ['1W', '1D', '4H'];
 const VALID_BO_PROFILES = ['HTF', 'LTF'];
 const BREAKOUT_PAGE_TFS = ['1MO', '1W'];
-const BO_PROFILE_LABELS = {
-    HTF: 'HTF Breakout (W→D, D→4H, 4H→1H)',
-    LTF: 'LTF Breakout (W→4H, D→1H)'
-};
+const CRT_GRADES        = ['A+', 'B+'];
 
 let marketState   = {};
 let activityLog   = [];
@@ -236,6 +233,9 @@ function statusIcon(s) {
 }
 function dirIcon(side)  { return side === 'BULLISH' ? '🐂' : '🐻'; }
 function dirBar(side)   { return side === 'BULLISH' ? '🟩🟩🟩🟩🟩' : '🟥🟥🟥🟥🟥'; }
+function gradeIcon(g)   { return g === 'A+' ? '⭐ A+' : g === 'B+' ? '🔶 B+' : ''; }
+function gradeBar(g)    { return g === 'A+' ? '🌟🌟🌟🌟🌟' : '🔶🔶🔶🔶🔶'; }
+
 function alignBadge(lv) {
     if (lv === 'MO+W+D') return '✅ MO+W+D Aligned (GOD)';
     if (lv === 'MO+W')   return '⚡ MO+W Aligned';
@@ -243,9 +243,11 @@ function alignBadge(lv) {
     if (lv === 'W+D')    return '⚡ W+D Aligned';
     if (lv === 'D+W+MO') return '✅ D+W+MO Aligned';
     if (lv === 'D+W')    return '⚡ D+W Aligned';
+    if (lv === 'D+MO')   return '⚡ D+MO Aligned';
     if (lv === 'D')      return '⚡ D Aligned';
-    if (lv === 'MO')     return '⚡ MO Aligned';
+    if (lv === 'W+MO')   return '⚡ W+MO Aligned';
     if (lv === 'W')      return '⚡ W Aligned';
+    if (lv === 'MO')     return '⚡ MO Aligned';
     return '⚪ No Alignment';
 }
 function timeStr(ts) {
@@ -268,22 +270,114 @@ function progressBar(tp, inv) {
 }
 
 // ══════════════════════════════════════════════
-// KEYBOARDS (updated with 4H CRT)
+// HIT PROBABILITY CALCULATOR
+// Used in bot push notifications
+// ══════════════════════════════════════════════
+function calcHitProbability(profile, tf, alignLevel, grade) {
+    const stats = buildCRTStats(profile);
+
+    // Build a list of stat buckets to check, from most specific to least
+    // For each bucket key, check if we have enough data
+    const buckets = [];
+
+    // Most specific: tf + align + grade combo
+    if (tf === '1D') {
+        if (grade === 'A+') {
+            if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w_aplus',  label: 'Daily MO+W A+' });
+            if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo_aplus',     label: 'Daily MO A+' });
+            if (alignLevel === 'W')    buckets.push({ key: 'daily_w_aplus',      label: 'Daily W A+' });
+            buckets.push({ key: 'daily_aplus', label: 'Daily A+' });
+        } else if (grade === 'B+') {
+            if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w_bplus',  label: 'Daily MO+W B+' });
+            if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo_bplus',     label: 'Daily MO B+' });
+            if (alignLevel === 'W')    buckets.push({ key: 'daily_w_bplus',      label: 'Daily W B+' });
+            buckets.push({ key: 'daily_bplus', label: 'Daily B+' });
+        }
+        // fallback to align-only
+        if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w', label: 'Daily MO+W' });
+        if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo',   label: 'Daily MO' });
+        if (alignLevel === 'W')    buckets.push({ key: 'daily_w',    label: 'Daily W' });
+        buckets.push({ key: 'daily', label: 'Daily' });
+    } else if (tf === '1W') {
+        if (grade === 'A+') buckets.push({ key: 'weekly_mo_aplus', label: 'Weekly MO A+' });
+        if (grade === 'B+') buckets.push({ key: 'weekly_mo_bplus', label: 'Weekly MO B+' });
+        if (alignLevel === 'MO') buckets.push({ key: 'weekly_mo', label: 'Weekly MO' });
+        buckets.push({ key: 'weekly', label: 'Weekly' });
+    } else if (tf === '4H') {
+        if (grade === 'A+') {
+            if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm_aplus', label: '4H D+W+MO A+' });
+            if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw_aplus',  label: '4H D+W A+' });
+            if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo_aplus', label: '4H D+MO A+' });
+            if (alignLevel === 'D')      buckets.push({ key: 'fourh_d_aplus',   label: '4H D A+' });
+            if (alignLevel === 'W+MO')   buckets.push({ key: 'fourh_wmo_aplus', label: '4H W+MO A+' });
+            if (alignLevel === 'W')      buckets.push({ key: 'fourh_w_aplus',   label: '4H W A+' });
+            if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo_aplus',  label: '4H MO A+' });
+            buckets.push({ key: 'fourh_aplus', label: '4H A+' });
+        } else if (grade === 'B+') {
+            if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm_bplus', label: '4H D+W+MO B+' });
+            if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw_bplus',  label: '4H D+W B+' });
+            if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo_bplus', label: '4H D+MO B+' });
+            if (alignLevel === 'D')      buckets.push({ key: 'fourh_d_bplus',   label: '4H D B+' });
+            if (alignLevel === 'W+MO')   buckets.push({ key: 'fourh_wmo_bplus', label: '4H W+MO B+' });
+            if (alignLevel === 'W')      buckets.push({ key: 'fourh_w_bplus',   label: '4H W B+' });
+            if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo_bplus',  label: '4H MO B+' });
+            buckets.push({ key: 'fourh_bplus', label: '4H B+' });
+        }
+        // fallback to align-only
+        if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm', label: '4H D+W+MO' });
+        if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw',  label: '4H D+W' });
+        if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo', label: '4H D+MO' });
+        if (alignLevel === 'D')      buckets.push({ key: 'fourh_d',   label: '4H D' });
+        if (alignLevel === 'W+MO')   buckets.push({ key: 'fourh_wmo', label: '4H W+MO' });
+        if (alignLevel === 'W')      buckets.push({ key: 'fourh_w',   label: '4H W' });
+        if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo',  label: '4H MO' });
+        buckets.push({ key: 'fourh', label: '4H' });
+    }
+
+    // Always add overall as last fallback
+    buckets.push({ key: 'overall', label: 'Overall' });
+
+    const MIN_SAMPLE = 5; // minimum resolved trades to show probability
+
+    for (const bucket of buckets) {
+        const s = stats[bucket.key];
+        if (!s) continue;
+        const resolved = s.tp + s.inv;
+        if (resolved >= MIN_SAMPLE) {
+            const pct = ((s.tp / resolved) * 100).toFixed(1);
+            return {
+                found: true,
+                pct,
+                tp: s.tp,
+                inv: s.inv,
+                total: s.total,
+                resolved,
+                label: bucket.label
+            };
+        }
+    }
+
+    // Not enough data
+    return { found: false };
+}
+
+// ══════════════════════════════════════════════
+// KEYBOARDS (updated with 4H CRT + grade filter)
 // ══════════════════════════════════════════════
 function mainMenuKeyboard() {
     return { inline_keyboard: [
-        [{ text: '📅 Daily CRT',    callback_data: 'DAILY_CRT'   },
-         { text: '📆 Weekly CRT',   callback_data: 'WEEKLY_CRT'  }],
-        [{ text: '⏰ 4H CRT',      callback_data: 'FOURHOUR_CRT'},
-         { text: '🟢 Active CRTs',  callback_data: 'ACTIVE_CRT'  }],
-        [{ text: '📊 CRT Stats',    callback_data: 'CRT_STATS'   },
-         { text: '🔄 Refresh',      callback_data: 'MAIN_REFRESH'}],
+        [{ text: '📅 Daily CRT',     callback_data: 'DAILY_CRT'    },
+         { text: '📆 Weekly CRT',    callback_data: 'WEEKLY_CRT'   }],
+        [{ text: '⏰ 4H CRT',        callback_data: 'FOURHOUR_CRT' },
+         { text: '🟢 Active CRTs',   callback_data: 'ACTIVE_CRT'   }],
+        [{ text: '📊 CRT Stats',     callback_data: 'CRT_STATS'    },
+         { text: '🔄 Refresh',       callback_data: 'MAIN_REFRESH' }],
     ]};
 }
 function subKeyboard(refreshCb) {
     return { inline_keyboard: [
-        [{ text: '🔄 Refresh',    callback_data: refreshCb },
-         { text: '🏠 Main Menu',  callback_data: 'MAIN'    }],
+        [{ text: '🔄 Refresh',   callback_data: refreshCb },
+         { text: '🏠 Main Menu', callback_data: 'MAIN'    }],
     ]};
 }
 
@@ -297,24 +391,25 @@ function checkCRTAlignment(symbol, tf, side) {
     const d  = sl['1D']  || 'NONE';
 
     if (tf === '1D') {
-        // Daily CRT alignment: check MO and W
         if (mo === side && w === side) return { aligned: true, level: 'MO+W', label: `MO+W aligned ${side}` };
-        if (mo === side)               return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
-        if (w === side)                return { aligned: true, level: 'W', label: `W aligned ${side}` };
+        if (mo === side)               return { aligned: true, level: 'MO',   label: `MO aligned ${side}` };
+        if (w === side)                return { aligned: true, level: 'W',    label: `W aligned ${side}` };
         return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
     }
 
     if (tf === '1W') {
-        // Weekly CRT alignment: check MO only
         if (mo === side) return { aligned: true, level: 'MO', label: `MO aligned ${side}` };
         return { aligned: false, level: 'NONE', label: `MO not aligned for ${side}` };
     }
 
     if (tf === '4H') {
-        // 4H CRT alignment: check D, W, MO
         if (d === side && w === side && mo === side) return { aligned: true, level: 'D+W+MO', label: `D+W+MO aligned ${side}` };
-        if (d === side && w === side)                return { aligned: true, level: 'D+W', label: `D+W aligned ${side}` };
-        if (d === side)                              return { aligned: true, level: 'D', label: `D aligned ${side}` };
+        if (d === side && w === side)                return { aligned: true, level: 'D+W',    label: `D+W aligned ${side}` };
+        if (d === side && mo === side)               return { aligned: true, level: 'D+MO',   label: `D+MO aligned ${side}` };
+        if (d === side)                              return { aligned: true, level: 'D',      label: `D aligned ${side}` };
+        if (w === side && mo === side)               return { aligned: true, level: 'W+MO',   label: `W+MO aligned ${side}` };
+        if (w === side)                              return { aligned: true, level: 'W',      label: `W aligned ${side}` };
+        if (mo === side)                             return { aligned: true, level: 'MO',     label: `MO aligned ${side}` };
         return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
     }
 
@@ -322,37 +417,46 @@ function checkCRTAlignment(symbol, tf, side) {
 }
 
 // ══════════════════════════════════════════════
-// BOT MESSAGE BUILDERS (updated with 4H CRT)
+// BOT MESSAGE BUILDERS (updated with grade + 4H)
 // ══════════════════════════════════════════════
 function buildMainMenuMsg() {
-    let totalActive = 0, dailyActive = 0, weeklyActive = 0, fourHActive = 0;
-    let dailyMoW = 0, dailyMo = 0, dailyW = 0;
-    let weeklyMo = 0;
-    let fourH_DWM = 0, fourH_DW = 0, fourH_D = 0;
+    let totalActive = 0;
+    let dailyActive = 0, dailyMoW = 0, dailyMo = 0, dailyW = 0;
+    let dailyAplus = 0, dailyBplus = 0;
+    let weeklyActive = 0, weeklyMo = 0;
+    let weeklyAplus = 0, weeklyBplus = 0;
+    let fourHActive = 0, fourH_DWM = 0, fourH_DW = 0, fourH_DMO = 0, fourH_D = 0, fourH_WMO = 0, fourH_W = 0, fourH_MO = 0;
+    let fourHAplus = 0, fourHBplus = 0;
 
     for (const sym in crtStateHTF) {
         for (const tf in crtStateHTF[sym]) {
             const arr = Array.isArray(crtStateHTF[sym][tf]) ? crtStateHTF[sym][tf] : [];
             for (const e of arr) {
-                if (!e?.status) continue;
-                if (e.status === 'ACTIVE') {
-                    totalActive++;
-                    if (tf === '1D') {
-                        dailyActive++;
-                        if (e.align_level === 'MO+W') dailyMoW++;
-                        else if (e.align_level === 'MO') dailyMo++;
-                        else if (e.align_level === 'W') dailyW++;
-                    }
-                    if (tf === '1W') {
-                        weeklyActive++;
-                        if (e.align_level === 'MO') weeklyMo++;
-                    }
-                    if (tf === '4H') {
-                        fourHActive++;
-                        if (e.align_level === 'D+W+MO') fourH_DWM++;
-                        else if (e.align_level === 'D+W') fourH_DW++;
-                        else if (e.align_level === 'D') fourH_D++;
-                    }
+                if (!e?.status || e.status !== 'ACTIVE') continue;
+                totalActive++;
+                const g = e.grade || '';
+                if (tf === '1D') {
+                    dailyActive++;
+                    if (e.align_level === 'MO+W') dailyMoW++;
+                    else if (e.align_level === 'MO') dailyMo++;
+                    else if (e.align_level === 'W') dailyW++;
+                    if (g === 'A+') dailyAplus++; else if (g === 'B+') dailyBplus++;
+                }
+                if (tf === '1W') {
+                    weeklyActive++;
+                    if (e.align_level === 'MO') weeklyMo++;
+                    if (g === 'A+') weeklyAplus++; else if (g === 'B+') weeklyBplus++;
+                }
+                if (tf === '4H') {
+                    fourHActive++;
+                    if (e.align_level === 'D+W+MO') fourH_DWM++;
+                    else if (e.align_level === 'D+W') fourH_DW++;
+                    else if (e.align_level === 'D+MO') fourH_DMO++;
+                    else if (e.align_level === 'D') fourH_D++;
+                    else if (e.align_level === 'W+MO') fourH_WMO++;
+                    else if (e.align_level === 'W') fourH_W++;
+                    else if (e.align_level === 'MO') fourH_MO++;
+                    if (g === 'A+') fourHAplus++; else if (g === 'B+') fourHBplus++;
                 }
             }
         }
@@ -373,20 +477,24 @@ function buildMainMenuMsg() {
         `║`,
         `║  🟢 Total Active:  <b>${totalActive}</b>`,
         `║`,
-        `║  📅 Daily:   <b>${dailyActive}</b>`,
+        `║  📅 Daily:   <b>${dailyActive}</b>  ⭐A+: <b>${dailyAplus}</b>  🔶B+: <b>${dailyBplus}</b>`,
         `║    ✅ MO+W: <b>${dailyMoW}</b>   ⚡MO: <b>${dailyMo}</b>   ⚡W: <b>${dailyW}</b>`,
         `║`,
-        `║  📆 Weekly:  <b>${weeklyActive}</b>`,
+        `║  📆 Weekly:  <b>${weeklyActive}</b>  ⭐A+: <b>${weeklyAplus}</b>  🔶B+: <b>${weeklyBplus}</b>`,
         `║    ⚡ MO:   <b>${weeklyMo}</b>`,
         `║`,
-        `║  ⏰ 4H:     <b>${fourHActive}</b>`,
-        `║    ✅ D+W+MO: <b>${fourH_DWM}</b>   ⚡D+W: <b>${fourH_DW}</b>   ⚡D: <b>${fourH_D}</b>`,
+        `║  ⏰ 4H:     <b>${fourHActive}</b>  ⭐A+: <b>${fourHAplus}</b>  🔶B+: <b>${fourHBplus}</b>`,
+        `║    ✅ D+W+MO: <b>${fourH_DWM}</b>   ⚡D+W: <b>${fourH_DW}</b>   ⚡D+MO: <b>${fourH_DMO}</b>`,
+        `║    ⚡ D: <b>${fourH_D}</b>   ⚡W+MO: <b>${fourH_WMO}</b>   ⚡W: <b>${fourH_W}</b>   ⚡MO: <b>${fourH_MO}</b>`,
         `║`,
         B_MID,
         `║`,
-        `║  📈 <b>WIN RATES</b>`,
+        `║  📈 <b>WIN RATES  (A+ / B+)</b>`,
         `║`,
         `║  Overall  ${progressBar(stats.overall.tp, stats.overall.inv)}`,
+        `║  A+       ${progressBar(stats.overall_aplus.tp, stats.overall_aplus.inv)}`,
+        `║  B+       ${progressBar(stats.overall_bplus.tp, stats.overall_bplus.inv)}`,
+        `║`,
         `║  Daily    ${progressBar(stats.daily.tp,   stats.daily.inv)}`,
         `║  Weekly   ${progressBar(stats.weekly.tp,  stats.weekly.inv)}`,
         `║  4H       ${progressBar(stats.fourh.tp,   stats.fourh.inv)}`,
@@ -400,8 +508,9 @@ function buildMainMenuMsg() {
             return recent.map(e => {
                 const t = shortTime(e.timestamp);
                 const d = dirIcon(e.side);
-                const a = e.align_level === 'MO+W' || e.align_level === 'D+W+MO' ? '✅' : e.align_level !== 'NONE' ? '⚡' : '⚪';
-                return `║  ${t}  ${d} <b>${e.symbol}</b>  ${a} ${e.align_level || '—'}`;
+                const a = ['MO+W','D+W+MO'].includes(e.align_level) ? '✅' : e.align_level !== 'NONE' ? '⚡' : '⚪';
+                const g = e.grade ? ` [${e.grade}]` : '';
+                return `║  ${t}  ${d} <b>${e.symbol}</b>  ${a} ${e.align_level || '—'}${g}`;
             });
         })(),
         `║`,
@@ -416,8 +525,7 @@ function buildDailyCRTMsg() {
     const grouped = { 'MO+W': [], 'MO': [], 'W': [] };
 
     for (const sym in crtStateHTF) {
-        const arr = Array.isArray(crtStateHTF[sym]?.['1D'])
-            ? crtStateHTF[sym]['1D'] : [];
+        const arr = Array.isArray(crtStateHTF[sym]?.['1D']) ? crtStateHTF[sym]['1D'] : [];
         for (const e of arr) {
             if (!e?.side) continue;
             if (grouped[e.align_level]) grouped[e.align_level].push({ sym, e });
@@ -447,7 +555,9 @@ function buildDailyCRTMsg() {
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
         for (const { sym, e } of items) {
-            lines.push(``, `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            lines.push(``,
+                `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
                 `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
                 `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
                 `  ┃  Status: <b>${e.status}</b>`,
@@ -468,8 +578,7 @@ function buildDailyCRTMsg() {
 function buildWeeklyCRTMsg() {
     const items = [];
     for (const sym in crtStateHTF) {
-        const arr = Array.isArray(crtStateHTF[sym]?.['1W'])
-            ? crtStateHTF[sym]['1W'] : [];
+        const arr = Array.isArray(crtStateHTF[sym]?.['1W']) ? crtStateHTF[sym]['1W'] : [];
         for (const e of arr) {
             if (e?.side && e.align_level === 'MO') items.push({ sym, e });
         }
@@ -495,7 +604,9 @@ function buildWeeklyCRTMsg() {
     lines.push(B_THIN);
 
     for (const { sym, e } of items) {
-        lines.push(``, `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+        const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+        lines.push(``,
+            `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
             `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
             `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
             `  ┃  Status: <b>${e.status}</b>`,
@@ -506,20 +617,19 @@ function buildWeeklyCRTMsg() {
     return lines.join('\n');
 }
 
-// ── 4H CRT: aligned only (D, D+W, D+W+MO) ──
+// ── 4H CRT: all alignment levels ──
 function buildFourHourCRTMsg() {
-    const grouped = { 'D+W+MO': [], 'D+W': [], 'D': [] };
+    const grouped = { 'D+W+MO': [], 'D+W': [], 'D+MO': [], 'D': [], 'W+MO': [], 'W': [], 'MO': [] };
 
     for (const sym in crtStateHTF) {
-        const arr = Array.isArray(crtStateHTF[sym]?.['4H'])
-            ? crtStateHTF[sym]['4H'] : [];
+        const arr = Array.isArray(crtStateHTF[sym]?.['4H']) ? crtStateHTF[sym]['4H'] : [];
         for (const e of arr) {
             if (!e?.side) continue;
             if (grouped[e.align_level]) grouped[e.align_level].push({ sym, e });
         }
     }
 
-    const total = grouped['D+W+MO'].length + grouped['D+W'].length + grouped['D'].length;
+    const total = Object.values(grouped).reduce((s, a) => s + a.length, 0);
 
     const lines = [
         B_TOP,
@@ -542,7 +652,9 @@ function buildFourHourCRTMsg() {
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
         for (const { sym, e } of items) {
-            lines.push(``, `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            lines.push(``,
+                `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
                 `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
                 `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
                 `  ┃  Status: <b>${e.status}</b>`,
@@ -553,7 +665,11 @@ function buildFourHourCRTMsg() {
 
     renderGroup('D + W + MO  ALIGNED', '✅', grouped['D+W+MO']);
     renderGroup('D + W  ALIGNED',      '⚡', grouped['D+W']);
+    renderGroup('D + MO  ALIGNED',     '⚡', grouped['D+MO']);
     renderGroup('D  ALIGNED',          '⚡', grouped['D']);
+    renderGroup('W + MO  ALIGNED',     '⚡', grouped['W+MO']);
+    renderGroup('W  ALIGNED',          '⚡', grouped['W']);
+    renderGroup('MO  ALIGNED',         '⚡', grouped['MO']);
 
     lines.push(B_DASH);
     return lines.join('\n');
@@ -589,8 +705,9 @@ function buildActiveCRTMsg() {
 
     for (const { sym, tf, e } of items) {
         const tfLabel = tf === '1D' ? '📅 Daily' : tf === '1W' ? '📆 Weekly' : '⏰ 4H';
+        const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
         lines.push(B_THIN, ``,
-            `  🟢 <b>${sym}</b>   [${tfLabel}]   ${dirIcon(e.side)} ${dirBar(e.side)}`,
+            `  🟢 <b>${sym}</b>   [${tfLabel}]   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
             `  ┃  ${alignBadge(e.align_level)}`,
             `  ┃`,
             `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
@@ -602,12 +719,13 @@ function buildActiveCRTMsg() {
     return lines.join('\n');
 }
 
-// ── CRT Stats (updated with 4H) ──
+// ── CRT Stats (updated with grade breakdown) ──
 function buildStatsMsg() {
     const s  = buildCRTStats('HTF');
     const ts = nowUTC();
 
     function block(label, b) {
+        if (!b) return `  <b>${label}</b>\n  No data`;
         return [
             `  <b>${label}</b>`,
             `  Total: <b>${b.total}</b>   TP: <b>${b.tp}</b>   Inv: <b>${b.inv}</b>   Active: <b>${b.active}</b>`,
@@ -625,62 +743,96 @@ function buildStatsMsg() {
         ``,
         block('🌐  OVERALL', s.overall),
         ``,
+        block('⭐  A+ OVERALL', s.overall_aplus),
+        ``,
+        block('🔶  B+ OVERALL', s.overall_bplus),
+        ``,
         B_THIN,
         ``,
         `📅 <b>DAILY CRT</b>`,
         ``,
-        block('All Daily', s.daily),
+        block('All Daily',           s.daily),
         ``,
-        block('✅  MO+W Aligned', s.daily_mo_w),
+        block('⭐  Daily A+',        s.daily_aplus),
         ``,
-        block('⚡  MO Aligned',   s.daily_mo),
+        block('🔶  Daily B+',        s.daily_bplus),
         ``,
-        block('⚡  W Aligned',    s.daily_w),
+        block('✅  MO+W Aligned',    s.daily_mo_w),
         ``,
-        block('⚪  No Alignment', s.daily_none),
+        block('⭐  MO+W A+',         s.daily_mo_w_aplus),
+        ``,
+        block('🔶  MO+W B+',         s.daily_mo_w_bplus),
+        ``,
+        block('⚡  MO Aligned',      s.daily_mo),
+        ``,
+        block('⚡  W Aligned',       s.daily_w),
+        ``,
+        block('⚪  No Alignment',    s.daily_none),
         ``,
         B_THIN,
         ``,
         `📆 <b>WEEKLY CRT</b>`,
         ``,
-        block('All Weekly',       s.weekly),
+        block('All Weekly',          s.weekly),
         ``,
-        block('⚡  MO Aligned',   s.weekly_mo),
+        block('⭐  Weekly A+',       s.weekly_aplus),
         ``,
-        block('⚪  No Alignment', s.weekly_none),
+        block('🔶  Weekly B+',       s.weekly_bplus),
+        ``,
+        block('⚡  MO Aligned',      s.weekly_mo),
+        ``,
+        block('⭐  MO A+',           s.weekly_mo_aplus),
+        ``,
+        block('🔶  MO B+',           s.weekly_mo_bplus),
+        ``,
+        block('⚪  No Alignment',    s.weekly_none),
         ``,
         B_THIN,
         ``,
         `⏰ <b>4H CRT</b>`,
         ``,
-        block('All 4H',               s.fourh),
+        block('All 4H',              s.fourh),
         ``,
-        block('✅  D+W+MO Aligned',   s.fourh_dwm),
+        block('⭐  4H A+',           s.fourh_aplus),
         ``,
-        block('⚡  D+W Aligned',      s.fourh_dw),
+        block('🔶  4H B+',           s.fourh_bplus),
         ``,
-        block('⚡  D Aligned',        s.fourh_d),
+        block('✅  D+W+MO Aligned',  s.fourh_dwm),
         ``,
-        block('⚪  No Alignment',     s.fourh_none),
+        block('⚡  D+W Aligned',     s.fourh_dw),
+        ``,
+        block('⚡  D+MO Aligned',    s.fourh_dmo),
+        ``,
+        block('⚡  D Aligned',       s.fourh_d),
+        ``,
+        block('⚡  W+MO Aligned',    s.fourh_wmo),
+        ``,
+        block('⚡  W Aligned',       s.fourh_w),
+        ``,
+        block('⚡  MO Aligned',      s.fourh_mo),
+        ``,
+        block('⚪  No Alignment',    s.fourh_none),
         ``,
         B_DASH,
     ].join('\n');
 }
 
 // ══════════════════════════════════════════════
-// BOT PUSH NOTIFICATION (updated: includes 4H aligned)
+// BOT PUSH NOTIFICATION (with grade + hit prob)
 // ══════════════════════════════════════════════
-async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, { rej, bo, ext, tgt }) {
+async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
     // Filter rules — only send if aligned
     if (tf === '1D' && !['MO+W','MO','W'].includes(alignLevel)) return;
     if (tf === '1W' && alignLevel !== 'MO') return;
-    if (tf === '4H' && !['D+W+MO','D+W','D'].includes(alignLevel)) return;
+    if (tf === '4H' && !['D+W+MO','D+W','D+MO','D','W+MO','W','MO'].includes(alignLevel)) return;
     if (Object.keys(botSessions).length === 0) return;
 
     const tfLabel = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
+    const gradeLabel = grade === 'A+' ? '⭐ A+' : grade === 'B+' ? '🔶 B+' : '';
+    const gradeBarStr = grade === 'A+' ? '🌟🌟🌟🌟🌟' : grade === 'B+' ? '🔶🔶🔶🔶🔶' : '';
 
     const accentBar = kind === 'CRT'
-        ? '🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩'
+        ? (grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' : '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶')
         : kind === 'CRT_TARGET'
         ? '🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯'
         : '🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥';
@@ -691,19 +843,38 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, { rej, bo
         ? `🎯 <b>TARGET HIT</b>`
         : `🔴 <b>INVALIDATED</b>`;
 
+    // Calculate hit probability for new CRT signals
+    let probLine = '';
+    if (kind === 'CRT') {
+        const prob = calcHitProbability('HTF', tf, alignLevel, grade);
+        if (prob.found) {
+            const probBar = progressBar(prob.tp, prob.inv);
+            probLine = [
+                ``,
+                `  📊 <b>HIT PROBABILITY</b>`,
+                `  Based on: <i>${prob.label}</i>`,
+                `  ${probBar}`,
+                `  🎯 ${prob.tp} TP · ❌ ${prob.inv} INV · ${prob.resolved} resolved`,
+            ].join('\n');
+        } else {
+            probLine = `\n  📊 <b>Hit Prob:</b> <i>Not enough data yet</i>`;
+        }
+    }
+
     const text = [
         accentBar,
         ``,
         `  ${header}`,
         ``,
-        `  ${dirIcon(side)} <b>${sym}</b>   ${tfLabel}`,
-        `  ${dirBar(side)}`,
+        `  ${dirIcon(side)} <b>${sym}</b>   ${tfLabel}   ${gradeLabel}`,
+        `  ${dirBar(side)}   ${gradeBarStr}`,
         ``,
         `  ${alignBadge(alignLevel)}`,
         ``,
         `  ┃  Rej <code>${rej}</code>   BO <code>${bo}</code>`,
         `  ┃  Ext <code>${ext}</code>   Tgt <code>${tgt}</code>${kind === 'CRT_TARGET' ? '  ✅' : ''}`,
         `  ┗  🕐 ${nowUTC()}`,
+        probLine,
         ``,
         accentBar,
     ].join('\n');
@@ -722,19 +893,19 @@ async function autoRefreshBotPanels() {
         if (!sess?.lastMsgId) continue;
         try {
             let text = null, kb = null;
-            if      (sess.view === 'MAIN')     { text = buildMainMenuMsg();     kb = mainMenuKeyboard();            }
-            else if (sess.view === 'DAILY')    { text = buildDailyCRTMsg();     kb = subKeyboard('DAILY_CRT');      }
-            else if (sess.view === 'WEEKLY')   { text = buildWeeklyCRTMsg();    kb = subKeyboard('WEEKLY_CRT');     }
-            else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg();  kb = subKeyboard('FOURHOUR_CRT');   }
-            else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();    kb = subKeyboard('ACTIVE_CRT');     }
-            else if (sess.view === 'STATS')    { text = buildStatsMsg();        kb = subKeyboard('CRT_STATS');      }
+            if      (sess.view === 'MAIN')     { text = buildMainMenuMsg();    kb = mainMenuKeyboard();           }
+            else if (sess.view === 'DAILY')    { text = buildDailyCRTMsg();    kb = subKeyboard('DAILY_CRT');     }
+            else if (sess.view === 'WEEKLY')   { text = buildWeeklyCRTMsg();   kb = subKeyboard('WEEKLY_CRT');    }
+            else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg(); kb = subKeyboard('FOURHOUR_CRT'); }
+            else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();   kb = subKeyboard('ACTIVE_CRT');    }
+            else if (sess.view === 'STATS')    { text = buildStatsMsg();       kb = subKeyboard('CRT_STATS');     }
             if (text) await botEditMessage(chatId, sess.lastMsgId, text, kb);
         } catch(e) { /* message may be deleted — ignore */ }
     }
 }
 
 // ══════════════════════════════════════════════
-// BOT COMMAND & CALLBACK HANDLER (updated with 4H)
+// BOT COMMAND & CALLBACK HANDLER
 // ══════════════════════════════════════════════
 async function handleBotUpdate(update) {
 
@@ -750,38 +921,28 @@ async function handleBotUpdate(update) {
         }
 
         const sess = getSession(chatId);
-
-        if (sess.lastMsgId) {
-            await botDeleteMessage(chatId, sess.lastMsgId);
-            sess.lastMsgId = null;
-        }
+        if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
 
         const cmd = text.split(' ')[0].toLowerCase();
 
         if (cmd === '/start' || cmd === '/menu') {
             sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard());
             sess.view = 'MAIN';
-
         } else if (cmd === '/daily') {
             sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
             sess.view = 'DAILY';
-
         } else if (cmd === '/weekly') {
             sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
             sess.view = 'WEEKLY';
-
         } else if (cmd === '/4h' || cmd === '/fourhour') {
             sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
             sess.view = 'FOURHOUR';
-
         } else if (cmd === '/active') {
             sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
             sess.view = 'ACTIVE';
-
         } else if (cmd === '/stats') {
             sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'));
             sess.view = 'STATS';
-
         } else if (cmd === '/help') {
             sess.lastMsgId = await botSendMessage(chatId, [
                 B_TOP,
@@ -799,19 +960,25 @@ async function handleBotUpdate(update) {
                 ``,
                 B_THIN,
                 ``,
+                `  <b>🔔 Grades:</b>`,
+                `  ⭐ A+ = Sweep + SNR Rejection + BO`,
+                `  🔶 B+ = Sweep + BO (no rejection)`,
+                ``,
                 `  <b>🔔 Auto-Notifications:</b>`,
                 `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
                 `  📆 Weekly →  MO aligned ⚡ only`,
-                `  ⏰ 4H     →  D ⚡  D+W ⚡  D+W+MO ✅`,
+                `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
+                ``,
+                `  <b>📊 Hit Probability:</b>`,
+                `  New CRT alerts show historical`,
+                `  hit rate for that exact combo`,
                 ``,
                 `  <b>📡 Live Auto-Refresh:</b>`,
                 `  Panels update automatically`,
-                `  No need to press Refresh!`,
                 ``,
                 B_DASH,
             ].join('\n'), subKeyboard('MAIN_REFRESH'));
             sess.view = 'HELP';
-
         } else {
             sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`);
         }
@@ -827,35 +994,27 @@ async function handleBotUpdate(update) {
         const msgId  = cb.message.message_id;
         const data   = cb.data;
 
-        if (!isBotAllowed(chatId)) {
-            await botAnswerCallback(cb.id, '⛔ Access denied');
-            return;
-        }
+        if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
 
-        const sess     = getSession(chatId);
+        const sess = getSession(chatId);
         sess.lastMsgId = msgId;
         await botAnswerCallback(cb.id, '✅');
 
         if (data === 'MAIN' || data === 'MAIN_REFRESH') {
             await botEditMessage(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard());
             sess.view = 'MAIN';
-
         } else if (data === 'DAILY_CRT') {
             await botEditMessage(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
             sess.view = 'DAILY';
-
         } else if (data === 'WEEKLY_CRT') {
             await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
             sess.view = 'WEEKLY';
-
         } else if (data === 'FOURHOUR_CRT') {
             await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
             sess.view = 'FOURHOUR';
-
         } else if (data === 'ACTIVE_CRT') {
             await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
             sess.view = 'ACTIVE';
-
         } else if (data === 'CRT_STATS') {
             await botEditMessage(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'));
             sess.view = 'STATS';
@@ -898,15 +1057,16 @@ async function pollOnce() {
 }
 
 // ══════════════════════════════════════════════
-// CRT TELEGRAM MESSAGE BUILDER (original channel messages)
+// CRT TELEGRAM CHANNEL MESSAGE BUILDER
 // ══════════════════════════════════════════════
-function buildCRTTelegramMessage(kind, sym, tf, side, profile, { rej, bo, ext, tgt, alignInfo }) {
+function buildCRTTelegramMessage(kind, sym, tf, side, grade, profile, { rej, bo, ext, tgt, alignInfo }) {
     const d = side === 'BULLISH' ? '🐂' : '🐻';
     const p = profile === 'HTF' ? '📊 HTF BO' : '🔬 LTF BO';
+    const g = grade ? `<b>Grade:</b> ${gradeIcon(grade)}` : '';
     const a = alignInfo ? `<b>Alignment:</b> ${alignInfo}` : '';
-    if (kind==='CRT')         return [`<b>${d} CRT FORMED: ${sym}</b>`,``,`<b>Timeframe:</b> ${tf}`,`<b>Side:</b> ${side}`,`<b>Profile:</b> ${p}`,a,``,`<b>Rejection:</b> <code>${rej}</code>`,`<b>Breakout:</b>  <code>${bo}</code>`,`<b>Extension:</b> <code>${ext}</code>`,`<b>Target:</b>    <code>${tgt}</code>`].filter(l=>l!=='').join('\n');
-    if (kind==='CRT_TARGET')  return [`<b>🎯 CRT TARGET HIT: ${sym}</b>`,``,`<b>Timeframe:</b> ${tf}`,`<b>Side:</b> ${d} ${side}`,`<b>Profile:</b> ${p}`,a,``,`<b>Rejection:</b> <code>${rej}</code>`,`<b>Breakout:</b>  <code>${bo}</code>`,`<b>Extension:</b> <code>${ext}</code>`,`<b>Target:</b>    <code>${tgt}</code> ✅`].filter(l=>l!=='').join('\n');
-    if (kind==='CRT_INVALID') return [`<b>❌ CRT INVALIDATED: ${sym}</b>`,``,`<b>Timeframe:</b> ${tf}`,`<b>Side:</b> ${d} ${side}`,`<b>Profile:</b> ${p}`,a,``,`<b>Rejection:</b> <code>${rej}</code>`,`<b>Breakout:</b>  <code>${bo}</code>`,`<b>Extension:</b> <code>${ext}</code>`,`<b>Target:</b>    <code>${tgt}</code>`].filter(l=>l!=='').join('\n');
+    if (kind === 'CRT')        return [`<b>${d} CRT FORMED: ${sym}</b>`,``,`<b>Timeframe:</b> ${tf}`,`<b>Side:</b> ${side}`,`<b>Profile:</b> ${p}`,g,a,``,`<b>Rejection:</b> <code>${rej}</code>`,`<b>Breakout:</b>  <code>${bo}</code>`,`<b>Extension:</b> <code>${ext}</code>`,`<b>Target:</b>    <code>${tgt}</code>`].filter(l=>l!=='').join('\n');
+    if (kind === 'CRT_TARGET') return [`<b>🎯 CRT TARGET HIT: ${sym}</b>`,``,`<b>Timeframe:</b> ${tf}`,`<b>Side:</b> ${d} ${side}`,`<b>Profile:</b> ${p}`,g,a,``,`<b>Rejection:</b> <code>${rej}</code>`,`<b>Breakout:</b>  <code>${bo}</code>`,`<b>Extension:</b> <code>${ext}</code>`,`<b>Target:</b>    <code>${tgt}</code> ✅`].filter(l=>l!=='').join('\n');
+    if (kind === 'CRT_INVALID') return [`<b>❌ CRT INVALIDATED: ${sym}</b>`,``,`<b>Timeframe:</b> ${tf}`,`<b>Side:</b> ${d} ${side}`,`<b>Profile:</b> ${p}`,g,a,``,`<b>Rejection:</b> <code>${rej}</code>`,`<b>Breakout:</b>  <code>${bo}</code>`,`<b>Extension:</b> <code>${ext}</code>`,`<b>Target:</b>    <code>${tgt}</code>`].filter(l=>l!=='').join('\n');
     return null;
 }
 
@@ -982,9 +1142,9 @@ function checkDirectionAlignment(symbol,direction){
     let count=0;
     ZONE_TIMEFRAMES.forEach(tf=>{if(tfs[tf]===direction)count++;});
     if(count<PARTIAL_THRESHOLD)return{aligned:false,reason:`Only ${count}`};
-    let type = 'PARTIAL';
-    if (count >= GOD_THRESHOLD) type = 'GOD';
-    else if (count >= STRONG_THRESHOLD) type = 'STRONG';
+    let type='PARTIAL';
+    if(count>=GOD_THRESHOLD) type='GOD';
+    else if(count>=STRONG_THRESHOLD) type='STRONG';
     return{aligned:true,type,count,combos:getMatchedCombos(symbol,direction)};
 }
 
@@ -1084,6 +1244,7 @@ function normalizeBreakoutDirection(dir){
     return'NONE';
 }
 function normalizeBoProfile(p){if(!p)return'HTF';const u=p.toString().toUpperCase().trim();if(VALID_BO_PROFILES.includes(u))return u;return'HTF';}
+function normalizeGrade(g){if(!g)return'';const u=g.toString().toUpperCase().trim();if(u==='A+'||u==='A')return'A+';if(u==='B+'||u==='B')return'B+';return g;}
 
 function migrateCRTState(state){
     for(const s in state)for(const t in state[s]){const e=state[s][t];if(e&&!Array.isArray(e))state[s][t]=[e];}
@@ -1091,80 +1252,154 @@ function migrateCRTState(state){
 }
 
 // ══════════════════════════════════════════════
-// BUILD CRT STATS (updated with 4H)
+// BUILD CRT STATS (fully updated with grade buckets)
 // ══════════════════════════════════════════════
-function buildCRTStats(profile){
-    const cs=getCRTState(profile);
-    const stats={
-        overall:{total:0,tp:0,inv:0,active:0},
-        daily:{total:0,tp:0,inv:0,active:0},
-        weekly:{total:0,tp:0,inv:0,active:0},
-        fourh:{total:0,tp:0,inv:0,active:0},
-        daily_mo_w:{total:0,tp:0,inv:0,active:0},
-        daily_mo:{total:0,tp:0,inv:0,active:0},
-        daily_w:{total:0,tp:0,inv:0,active:0},
-        daily_none:{total:0,tp:0,inv:0,active:0},
-        weekly_mo:{total:0,tp:0,inv:0,active:0},
-        weekly_none:{total:0,tp:0,inv:0,active:0},
-        fourh_dwm:{total:0,tp:0,inv:0,active:0},
-        fourh_dw:{total:0,tp:0,inv:0,active:0},
-        fourh_d:{total:0,tp:0,inv:0,active:0},
-        fourh_none:{total:0,tp:0,inv:0,active:0},
+function buildCRTStats(profile) {
+    const cs = getCRTState(profile);
+
+    // Helper to make empty bucket
+    const B = () => ({ total:0, tp:0, inv:0, active:0 });
+
+    const stats = {
+        overall:        B(),
+        overall_aplus:  B(),
+        overall_bplus:  B(),
+
+        daily:          B(),
+        daily_aplus:    B(),
+        daily_bplus:    B(),
+        daily_mo_w:     B(),
+        daily_mo_w_aplus: B(),
+        daily_mo_w_bplus: B(),
+        daily_mo:       B(),
+        daily_mo_aplus: B(),
+        daily_mo_bplus: B(),
+        daily_w:        B(),
+        daily_w_aplus:  B(),
+        daily_w_bplus:  B(),
+        daily_none:     B(),
+        daily_none_aplus: B(),
+        daily_none_bplus: B(),
+
+        weekly:         B(),
+        weekly_aplus:   B(),
+        weekly_bplus:   B(),
+        weekly_mo:      B(),
+        weekly_mo_aplus: B(),
+        weekly_mo_bplus: B(),
+        weekly_none:    B(),
+
+        fourh:          B(),
+        fourh_aplus:    B(),
+        fourh_bplus:    B(),
+        fourh_dwm:      B(),
+        fourh_dwm_aplus: B(),
+        fourh_dwm_bplus: B(),
+        fourh_dw:       B(),
+        fourh_dw_aplus: B(),
+        fourh_dw_bplus: B(),
+        fourh_dmo:      B(),
+        fourh_dmo_aplus: B(),
+        fourh_dmo_bplus: B(),
+        fourh_d:        B(),
+        fourh_d_aplus:  B(),
+        fourh_d_bplus:  B(),
+        fourh_wmo:      B(),
+        fourh_wmo_aplus: B(),
+        fourh_wmo_bplus: B(),
+        fourh_w:        B(),
+        fourh_w_aplus:  B(),
+        fourh_w_bplus:  B(),
+        fourh_mo:       B(),
+        fourh_mo_aplus: B(),
+        fourh_mo_bplus: B(),
+        fourh_none:     B(),
+        fourh_none_aplus: B(),
+        fourh_none_bplus: B(),
     };
 
-    for(const sym in cs){
-        for(const tf in cs[sym]){
-            const entries=Array.isArray(cs[sym][tf])?cs[sym][tf]:[cs[sym][tf]];
-            for(const entry of entries){
-                if(!entry||!entry.side)continue;
-                const s=entry.status;
-                const bucket = tf==='1D' ? 'daily' : tf==='1W' ? 'weekly' : tf==='4H' ? 'fourh' : null;
-                if(!bucket)continue;
+    // Helper to increment a bucket
+    function inc(bucket, status) {
+        if (!stats[bucket]) return;
+        stats[bucket].total++;
+        if (status === 'TP_HIT') stats[bucket].tp++;
+        if (status === 'INVALID') stats[bucket].inv++;
+        if (status === 'ACTIVE') stats[bucket].active++;
+    }
 
-                stats.overall.total++;
-                if(s==='TP_HIT')stats.overall.tp++;
-                if(s==='INVALID')stats.overall.inv++;
-                if(s==='ACTIVE')stats.overall.active++;
+    for (const sym in cs) {
+        for (const tf in cs[sym]) {
+            const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
+            for (const entry of entries) {
+                if (!entry || !entry.side) continue;
+                const s = entry.status;
+                const lv = entry.align_level || 'NONE';
+                const g = entry.grade || '';
+                const isAplus = g === 'A+';
+                const isBplus = g === 'B+';
 
-                stats[bucket].total++;
-                if(s==='TP_HIT')stats[bucket].tp++;
-                if(s==='INVALID')stats[bucket].inv++;
-                if(s==='ACTIVE')stats[bucket].active++;
+                // Determine bucket
+                const bucket = tf === '1D' ? 'daily' : tf === '1W' ? 'weekly' : tf === '4H' ? 'fourh' : null;
+                if (!bucket) continue;
 
-                const lv=entry.align_level||'NONE';
+                // Overall
+                inc('overall', s);
+                if (isAplus) inc('overall_aplus', s);
+                if (isBplus) inc('overall_bplus', s);
 
-                if(tf==='1D'){
-                    const key=lv==='MO+W'?'daily_mo_w':lv==='MO'?'daily_mo':lv==='W'?'daily_w':'daily_none';
-                    stats[key].total++;
-                    if(s==='TP_HIT')stats[key].tp++;
-                    if(s==='INVALID')stats[key].inv++;
-                    if(s==='ACTIVE')stats[key].active++;
+                // TF bucket
+                inc(bucket, s);
+                if (isAplus) inc(bucket + '_aplus', s);
+                if (isBplus) inc(bucket + '_bplus', s);
+
+                // ── DAILY alignment sub-buckets ──
+                if (tf === '1D') {
+                    let alignKey;
+                    if (lv === 'MO+W')      alignKey = 'daily_mo_w';
+                    else if (lv === 'MO')   alignKey = 'daily_mo';
+                    else if (lv === 'W')    alignKey = 'daily_w';
+                    else                    alignKey = 'daily_none';
+
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
                 }
 
-                if(tf==='1W'){
-                    const key=lv==='MO'?'weekly_mo':'weekly_none';
-                    stats[key].total++;
-                    if(s==='TP_HIT')stats[key].tp++;
-                    if(s==='INVALID')stats[key].inv++;
-                    if(s==='ACTIVE')stats[key].active++;
+                // ── WEEKLY alignment sub-buckets ──
+                if (tf === '1W') {
+                    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
                 }
 
-                if(tf==='4H'){
-                    const key=lv==='D+W+MO'?'fourh_dwm':lv==='D+W'?'fourh_dw':lv==='D'?'fourh_d':'fourh_none';
-                    stats[key].total++;
-                    if(s==='TP_HIT')stats[key].tp++;
-                    if(s==='INVALID')stats[key].inv++;
-                    if(s==='ACTIVE')stats[key].active++;
+                // ── 4H alignment sub-buckets ──
+                if (tf === '4H') {
+                    let alignKey;
+                    if (lv === 'D+W+MO')    alignKey = 'fourh_dwm';
+                    else if (lv === 'D+W')  alignKey = 'fourh_dw';
+                    else if (lv === 'D+MO') alignKey = 'fourh_dmo';
+                    else if (lv === 'D')    alignKey = 'fourh_d';
+                    else if (lv === 'W+MO') alignKey = 'fourh_wmo';
+                    else if (lv === 'W')    alignKey = 'fourh_w';
+                    else if (lv === 'MO')   alignKey = 'fourh_mo';
+                    else                    alignKey = 'fourh_none';
+
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
                 }
             }
         }
     }
 
-    for(const k in stats){
-        const b=stats[k];
-        const r=b.tp+b.inv;
-        b.hit_rate=r>0?((b.tp/r)*100).toFixed(1):'—';
+    // Calculate hit rates for all buckets
+    for (const k in stats) {
+        const b = stats[k];
+        const r = b.tp + b.inv;
+        b.hit_rate = r > 0 ? ((b.tp / r) * 100).toFixed(1) : '—';
     }
+
     return stats;
 }
 
@@ -1310,17 +1545,18 @@ app.post('/api/delete-breakout',async(req,res)=>{const{symbol}=req.body;if(!symb
 app.post('/api/breakout-inject',async(req,res)=>{const{symbol,tf,direction}=req.body;if(!symbol||!tf||!direction)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();const nt=normalizeTf(tf);const dir=normalizeBreakoutDirection(direction);if(!BREAKOUT_PAGE_TFS.includes(nt))return res.status(400).send("Invalid TF");if(dir==='NONE')return res.status(400).send("Direction required");await processBreakoutUpdate(sym,nt==='1MO'?dir:'NONE',nt==='1W'?dir:'NONE','INJECT');res.send("OK");});
 
 // ══════════════════════════════════════════════
-// MAIN WEBHOOK (updated storyline for 3 TFs)
+// MAIN WEBHOOK
 // ══════════════════════════════════════════════
 app.post('/webhook', async (req, res) => {
-    const payload=req.body;
-    const isStoryline=payload.state!==undefined&&payload.tf!==undefined&&payload.coin===undefined&&payload.action===undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
-    const isBreakout=payload.kind==="BREAKOUT";
-    const isCRT=payload.kind==="CRT"||payload.kind==="CRT_TARGET"||payload.kind==="CRT_INVALID";
-    const isPineEntry=payload.coin!==undefined&&payload.action!==undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
-    const isBreakoutPage=payload.weekly_breakout!==undefined||payload.monthly_breakout!==undefined;
+    const payload = req.body;
+    const isStoryline  = payload.state!==undefined&&payload.tf!==undefined&&payload.coin===undefined&&payload.action===undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
+    const isBreakout   = payload.kind==="BREAKOUT";
+    const isCRT        = payload.kind==="CRT"||payload.kind==="CRT_TARGET"||payload.kind==="CRT_INVALID";
+    const isPineEntry  = payload.coin!==undefined&&payload.action!==undefined&&payload.kind===undefined&&payload.weekly_breakout===undefined;
+    const isBreakoutPage = payload.weekly_breakout!==undefined||payload.monthly_breakout!==undefined;
 
-    if(isBreakoutPage){
+    // ── BREAKOUT PAGE ──
+    if (isBreakoutPage) {
         const sym=(payload.coin||'').toUpperCase().trim();
         const wDir=normalizeBreakoutDirection(payload.weekly_breakout);
         const moDir=normalizeBreakoutDirection(payload.monthly_breakout);
@@ -1330,7 +1566,8 @@ app.post('/webhook', async (req, res) => {
         return res.status(200).send("OK");
     }
 
-    if(isStoryline){
+    // ── STORYLINE ──
+    if (isStoryline) {
         const sym=(payload.symbol||'').toUpperCase().trim();
         const tf=normalizeTf(payload.tf);
         const state=(payload.state||'').toUpperCase().trim();
@@ -1347,9 +1584,8 @@ app.post('/webhook', async (req, res) => {
             marketState[sym].timeframes={};
             ZONE_TIMEFRAMES.forEach(t=>marketState[sym].timeframes[t]="NONE");
         }
-        // Ensure all 3 TFs exist
-        ZONE_TIMEFRAMES.forEach(t => {
-            if (!marketState[sym].timeframes[t]) marketState[sym].timeframes[t] = "NONE";
+        ZONE_TIMEFRAMES.forEach(t=>{
+            if(!marketState[sym].timeframes[t])marketState[sym].timeframes[t]="NONE";
         });
 
         marketState[sym].timeframes[tf]=state;
@@ -1357,7 +1593,7 @@ app.post('/webhook', async (req, res) => {
         const prev=marketState[sym].lastAlertedState;
         const{dominantState,partialState,partialCount,alignCount}=recalculateAlignment(sym);
 
-        // GOD-MODE: 3/3 aligned
+        // GOD-MODE: 3/3
         if(dominantState!=="NONE"&&dominantState!==prev){
             marketState[sym].lastAlertedState=dominantState;
             marketState[sym].lastGodModeStartTime=Date.now();
@@ -1366,7 +1602,7 @@ app.post('/webhook', async (req, res) => {
             await pushLogEvent(sym,dominantState,`GOD-MODE ON: ${dominantState} (3/3 — MO+W+D)`);
         }
 
-        // Alignment lost (was GOD, now not)
+        // Alignment lost
         if(dominantState==="NONE"&&prev!=="NONE"){
             marketState[sym].lastAlertedState="NONE";
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
@@ -1374,12 +1610,12 @@ app.post('/webhook', async (req, res) => {
             await pushLogEvent(sym,'NONE',`Alignment Lost: was ${prev} (3/3)`);
         }
 
-        // Partial updates
+        // Partial
         if(dominantState==="NONE"&&partialState!=="NONE"){
             const pp=marketState[sym]._lastPartialState||"NONE";
             const ppc=marketState[sym]._lastPartialCount||0;
             if(pp!==partialState||ppc!==partialCount||(prev!=="NONE"&&dominantState==="NONE")){
-                const levelLabel = partialCount >= STRONG_THRESHOLD ? 'STRONG' : 'PARTIAL';
+                const levelLabel=partialCount>=STRONG_THRESHOLD?'STRONG':'PARTIAL';
                 await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                     `<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} ${levelLabel}: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/3)\n${tfInfoString(sym)}`);
                 await pushLogEvent(sym,partialState,`${levelLabel}: ${partialState} (${partialCount}/3)`);
@@ -1395,7 +1631,8 @@ app.post('/webhook', async (req, res) => {
         return res.status(200).send("OK");
     }
 
-    if(isBreakout){
+    // ── BREAKOUT ──
+    if (isBreakout) {
         const sym=(payload.symbol||'').toUpperCase().trim();
         const direction=(payload.direction||'').toUpperCase().trim();
         const chartTf=normalizeTf(payload.chart_tf);
@@ -1407,8 +1644,7 @@ app.post('/webhook', async (req, res) => {
 
         const sc=[];
         if(align.count>=PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg);sc.push('PARTIAL');}
-        if(align.type==='GOD'&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push('GOD');}
-        if(align.type==='STRONG'&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push('STRONG');}
+        if((align.type==='GOD'||align.type==='STRONG')&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg);sc.push(align.type);}
         if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg);sc.push('CUSTOM');}
 
         await pushLogEvent(sym,direction,`💥 BREAKOUT: ${direction}|Chart:${chartTf||'?'}|${align.type}${sc.length?` → [${sc.join(',')}]`:''}`,{logAction:'BREAKOUT',direction});
@@ -1416,73 +1652,98 @@ app.post('/webhook', async (req, res) => {
         return res.status(200).send("OK");
     }
 
-    if(isCRT){
+    // ── CRT ──
+    if (isCRT) {
         const sym=(payload.coin||'').toUpperCase().trim();
         const tf=normalizeTf(payload.tf||'');
         const side=(payload.side||'').toUpperCase().trim();
+        const grade=normalizeGrade(payload.grade||'');
         const rej=payload.rej||'---';const bo=payload.bo||'---';const ext=payload.ext||'---';const tgt=payload.tgt||'---';
         const profile=normalizeBoProfile(payload.bo_profile);
         if(!sym||!tf||!side)return res.status(400).send("Invalid");
         if(!CRT_VALID_TFS.includes(tf))return res.status(200).send("OK");
 
-        console.log(`\n[${payload.kind}] ${sym}|${tf}|${side}|${profile}`);
+        console.log(`\n[${payload.kind}] ${sym}|${tf}|${side}|${grade}|${profile}`);
         let crtState=getCRTState(profile);
         if(!crtState[sym])crtState[sym]={};
         if(!Array.isArray(crtState[sym][tf]))crtState[sym][tf]=crtState[sym][tf]?[crtState[sym][tf]]:[];
         const tgCh=getCRTTGChannel(profile);
 
-        if(payload.kind==='CRT'){
+        if (payload.kind === 'CRT') {
             const ac=checkCRTAlignment(sym,tf,side);
-            const ne={id:`${sym}_${tf}_${Date.now()}`,side,rej,bo,ext,tgt,status:'ACTIVE',timestamp:Date.now(),tp_time:null,inv_time:null,align_level:ac.level,align_label:ac.label,aligned:ac.aligned,bo_profile:profile};
+            const ne={
+                id:`${sym}_${tf}_${Date.now()}`,
+                side, grade, rej, bo, ext, tgt,
+                status:'ACTIVE',
+                timestamp:Date.now(),
+                tp_time:null, inv_time:null,
+                align_level:ac.level,
+                align_label:ac.label,
+                aligned:ac.aligned,
+                bo_profile:profile
+            };
             crtState[sym][tf].push(ne);
             if(crtState[sym][tf].length>20)crtState[sym][tf]=crtState[sym][tf].slice(-20);
             const at=ac.aligned?`✅ ${ac.label}`:`⚠️ ${ac.label}`;
-            await pushCRTLog(profile,sym,side,`${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,{tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level});
-            const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:at});
+            const gradeTag=grade?` [${grade}]`:'';
+            await pushCRTLog(profile,sym,side,
+                `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
+                {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
+            const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,grade,profile,{rej,bo,ext,tgt,alignInfo:at});
             if(ctm)await sendTelegram(tgCh,ctm);
-
             if(profile==='HTF'){
-                await sendBotCRTNotification('CRT',sym,tf,side,ac.level,{rej,bo,ext,tgt});
+                await sendBotCRTNotification('CRT',sym,tf,side,ac.level,grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
 
-        if(payload.kind==='CRT_TARGET'){
+        if (payload.kind === 'CRT_TARGET') {
             const entries=crtState[sym][tf];let target=null;
             for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
             if(!target)return res.status(200).send("OK");
-            target.status='TP_HIT';target.tp_time=Date.now();target.rej=rej;target.bo=bo;target.ext=ext;target.tgt=tgt;
-            await pushCRTLog(profile,sym,side,`🎯 ${tf} CRT TARGET HIT [${profile}]: ${side}|Tgt:${tgt}`,{tf,tgt,action:'CRT_TARGET'});
-            const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
+            target.status='TP_HIT';target.tp_time=Date.now();
+            target.rej=rej;target.bo=bo;target.ext=ext;target.tgt=tgt;
+            if(grade&&!target.grade)target.grade=grade;
+            const gradeTag=target.grade?` [${target.grade}]`:'';
+            await pushCRTLog(profile,sym,side,
+                `🎯 ${tf} CRT${gradeTag} TARGET HIT [${profile}]: ${side}|Tgt:${tgt}`,
+                {tf,tgt,action:'CRT_TARGET',grade:target.grade});
+            const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
             if(ctm)await sendTelegram(tgCh,ctm);
-
             if(profile==='HTF'){
-                await sendBotCRTNotification('CRT_TARGET',sym,tf,side,target.align_level||'NONE',{rej,bo,ext,tgt});
+                await sendBotCRTNotification('CRT_TARGET',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
 
-        if(payload.kind==='CRT_INVALID'){
+        if (payload.kind === 'CRT_INVALID') {
             const entries=crtState[sym][tf];let target=null;
             for(let i=entries.length-1;i>=0;i--)if(entries[i].status==='ACTIVE'&&entries[i].side===side){target=entries[i];break;}
             if(!target)return res.status(200).send("OK");
-            target.status='INVALID';target.inv_time=Date.now();target.rej=rej;target.bo=bo;target.ext=ext;target.tgt=tgt;
-            await pushCRTLog(profile,sym,side,`❌ ${tf} CRT INVALIDATED [${profile}]: ${side}|Ext:${ext}`,{tf,ext,action:'CRT_INVALID'});
-            const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
+            target.status='INVALID';target.inv_time=Date.now();
+            target.rej=rej;target.bo=bo;target.ext=ext;target.tgt=tgt;
+            if(grade&&!target.grade)target.grade=grade;
+            const gradeTag=target.grade?` [${target.grade}]`:'';
+            await pushCRTLog(profile,sym,side,
+                `❌ ${tf} CRT${gradeTag} INVALIDATED [${profile}]: ${side}|Ext:${ext}`,
+                {tf,ext,action:'CRT_INVALID',grade:target.grade});
+            const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
             if(ctm)await sendTelegram(tgCh,ctm);
-
             if(profile==='HTF'){
-                await sendBotCRTNotification('CRT_INVALID',sym,tf,side,target.align_level||'NONE',{rej,bo,ext,tgt});
+                await sendBotCRTNotification('CRT_INVALID',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
             }
         }
 
-        setCRTState(profile,crtState);await saveCRTState(profile);broadcastCRT(profile);
+        setCRTState(profile,crtState);
+        await saveCRTState(profile);
+        broadcastCRT(profile);
         if(payload.kind==='CRT')broadcastCRTSound(profile,sym,side);
         return res.status(200).send("OK");
     }
 
-    if(isPineEntry){
+    // ── PINE ENTRY ──
+    if (isPineEntry) {
         const sym=(payload.coin||'').toUpperCase().trim();
         const direction=(payload.direction||'').toUpperCase().trim();
         const entry=payload.entry;const sl=payload.sl;const tp=payload.tp;const rr=payload.rr;
@@ -1514,44 +1775,12 @@ app.post('/webhook', async (req, res) => {
             broadcastAll();return res.status(200).send("OK");
         }
 
-        if(action==="ENTRY_DONE"){
-            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
-            const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
-            if(f){f.trade.status='ACTIVE';f.trade.entry_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,direction,`📥 ENTRY FILLED: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'ENTRY_FILLED'});broadcastAll();}
-            return res.status(200).send("OK");
-        }
+        if(action==="ENTRY_DONE"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='ACTIVE';f.trade.entry_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,direction,`📥 ENTRY FILLED: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'ENTRY_FILLED'});broadcastAll();}return res.status(200).send("OK");}
+        if(action==="ENTRY_AND_SL_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='SL_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 ENTRY+SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();}return res.status(200).send("OK");}
+        if(action==="ENTRY_AND_TP_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(f){f.trade.status='TP_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 ENTRY+TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();}return res.status(200).send("OK");}
 
-        if(action==="ENTRY_AND_SL_HIT"){
-            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
-            const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
-            if(f){f.trade.status='SL_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 ENTRY+SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();}
-            return res.status(200).send("OK");
-        }
-
-        if(action==="ENTRY_AND_TP_HIT"){
-            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
-            const f=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
-            if(f){f.trade.status='TP_HIT';f.trade.entry_time=Date.now();f.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 ENTRY+TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();}
-            return res.status(200).send("OK");
-        }
-
-        if(action==="TP_HIT"){
-            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
-            const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});
-            if(fa){fa.trade.status='TP_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();return res.status(200).send("OK");}
-            const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
-            if(fp){fp.trade.status='TP_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ TP without entry`,{entry_tf:entryTf,direction,logAction:'TP_NO_ENTRY'});broadcastAll();}
-            return res.status(200).send("OK");
-        }
-
-        if(action==="SL_HIT"){
-            const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");
-            const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});
-            if(fa){fa.trade.status='SL_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();return res.status(200).send("OK");}
-            const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});
-            if(fp){fp.trade.status='SL_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ SL without entry`,{entry_tf:entryTf,direction,logAction:'SL_NO_ENTRY'});broadcastAll();}
-            return res.status(200).send("OK");
-        }
+        if(action==="TP_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});if(fa){fa.trade.status='TP_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BULLISH',`🎯 TP HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'TP_HIT'});broadcastAll();return res.status(200).send("OK");}const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(fp){fp.trade.status='TP_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ TP without entry`,{entry_tf:entryTf,direction,logAction:'TP_NO_ENTRY'});broadcastAll();}return res.status(200).send("OK");}
+        if(action==="SL_HIT"){const stats=tradeStats[sym]?.[entryTf];if(!stats)return res.status(200).send("OK");const fa=findBestTrade(stats,{direction,entry,allowedStatuses:['ACTIVE']});if(fa){fa.trade.status='SL_HIT';fa.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'BEARISH',`💀 SL HIT: ${direction} ${entryTf} @ ${entry}`,{entry_tf:entryTf,direction,logAction:'SL_HIT'});broadcastAll();return res.status(200).send("OK");}const fp=findBestTrade(stats,{direction,entry,allowedStatuses:['PENDING']});if(fp){fp.trade.status='SL_NO_ENTRY';fp.trade.result_time=Date.now();await saveStats();broadcastStats();await pushLogEvent(sym,'NONE',`⏭️ SL without entry`,{entry_tf:entryTf,direction,logAction:'SL_NO_ENTRY'});broadcastAll();}return res.status(200).send("OK");}
 
         return res.status(400).send("Unknown action");
     }
