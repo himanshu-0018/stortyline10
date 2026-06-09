@@ -56,60 +56,73 @@
         /* Main Content */
         .main-content { position:relative;z-index:10;padding:16px 24px;padding-bottom:60px; }
 
+        /* Scrollable table wrapper */
+        .table-wrapper { width:100%;overflow-x:auto;border-radius:12px; }
+
         /* Table */
-        .cl-table { width:100%;border-collapse:separate;border-spacing:0 5px; }
-        .cl-header { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;color:rgba(148,163,184,0.5);letter-spacing:0.06em;text-transform:uppercase;padding:6px 4px;text-align:center;white-space:nowrap; }
-        .cl-header-left { text-align:left;padding-left:10px; }
-        .cl-row { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:10px;transition:all 0.2s; }
-        .cl-row:hover { transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.3); }
-        .cl-row-bull { border-left:3px solid #10b981; }
-        .cl-row-bear { border-left:3px solid #ef4444; }
-        .cl-cell { padding:8px 4px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;vertical-align:middle; }
+        .cl-table { width:100%;min-width:1100px;border-collapse:separate;border-spacing:0 6px; }
+        .cl-header { font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700;color:rgba(148,163,184,0.6);letter-spacing:0.06em;text-transform:uppercase;padding:10px 8px;text-align:center;white-space:nowrap; }
+        .cl-header-left { text-align:left;padding-left:14px; }
+
+        .cl-row { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:12px;transition:all 0.2s; }
+        .cl-row:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.35); }
+        .cl-row-bull { border-left:4px solid #10b981; }
+        .cl-row-bear { border-left:4px solid #ef4444; }
+
+        .cl-cell { padding:12px 8px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;vertical-align:middle; }
         .cl-cell-center { text-align:center; }
 
-        .cl-sym { font-size:0.70rem;font-weight:800;color:#f1f5f9; }
-        .cl-tf { font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;display:inline-block;margin-left:4px; }
+        .cl-sym { font-size:0.90rem;font-weight:800;color:#f1f5f9; }
+        .cl-tf { font-size:0.60rem;font-weight:700;padding:3px 7px;border-radius:5px;display:inline-block;margin-left:5px; }
         .cl-tf-w { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
         .cl-tf-d { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
         .cl-tf-4h { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
-        .cl-grade-a { font-size:0.42rem;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399;margin-left:3px; }
-        .cl-grade-b { font-size:0.42rem;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;margin-left:3px; }
-        .cl-align { font-size:0.40rem;color:rgba(148,163,184,0.5);display:block;margin-top:2px; }
+        .cl-grade-a { font-size:0.58rem;font-weight:800;padding:3px 7px;border-radius:5px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399;margin-left:4px; }
+        .cl-grade-b { font-size:0.58rem;font-weight:800;padding:3px 7px;border-radius:5px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;margin-left:4px; }
+        .cl-align { font-size:0.58rem;color:rgba(148,163,184,0.55);display:block;margin-top:3px; }
         .cl-side-bull { color:#34d399; }
         .cl-side-bear { color:#f87171; }
 
-        /* Checkboxes */
-        .cl-check { width:26px;height:26px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s;margin:0 auto;border:2px solid;user-select:none; }
+        /* Checkboxes — larger */
+        .cl-check { width:36px;height:36px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.15s;margin:0 auto;border:2px solid;user-select:none; }
         .cl-check:hover { transform:scale(1.15); }
         .cl-check-off { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:rgba(71,85,105,0.3); }
-        .cl-check-on { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 8px rgba(16,185,129,0.2); }
-        /* Unclear = orange warning */
-        .cl-check-unclear { background:rgba(245,158,11,0.25);border-color:rgba(245,158,11,0.6);color:#fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.2); }
+        .cl-check-on { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 10px rgba(16,185,129,0.25); }
+        .cl-check-unclear { background:rgba(245,158,11,0.25);border-color:rgba(245,158,11,0.6);color:#fbbf24;box-shadow:0 0 10px rgba(245,158,11,0.25); }
 
         /* Progress */
-        .cl-progress { display:flex;gap:2px;justify-content:center; }
-        .cl-prog-dot { width:10px;height:4px;border-radius:2px; }
+        .cl-progress { display:flex;gap:3px;justify-content:center; }
+        .cl-prog-dot { width:14px;height:5px;border-radius:3px; }
         .cl-prog-done { background:#34d399; }
         .cl-prog-empty { background:rgba(71,85,105,0.3); }
         .cl-prog-warn { background:#fbbf24; }
 
         /* Probability */
-        .cl-prob { font-size:0.50rem;font-weight:700; }
+        .cl-prob { font-size:0.72rem;font-weight:700; }
         .cl-prob-good { color:#34d399; }
         .cl-prob-warn { color:#fbbf24; }
         .cl-prob-bad { color:#f87171; }
         .cl-prob-none { color:#64748b; }
 
         /* Status indicator */
-        .cl-status { font-size:0.42rem;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block; }
+        .cl-status { font-size:0.60rem;font-weight:700;padding:4px 8px;border-radius:6px;display:inline-block;white-space:nowrap; }
         .cl-status-ready { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
         .cl-status-watching { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
         .cl-status-unclear { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
         .cl-status-waiting { background:rgba(71,85,105,0.2);border:1px solid rgba(71,85,105,0.4);color:#94a3b8; }
 
-        .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:rgba(148,163,184,0.3);text-align:center;padding:50px 0; }
+        .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:rgba(148,163,184,0.3);text-align:center;padding:60px 0; }
 
-        ::-webkit-scrollbar { width:5px; }
+        /* Sticky first column */
+        .cl-table thead th:first-child,
+        .cl-table tbody td:first-child {
+            position:sticky;
+            left:0;
+            z-index:2;
+            background:rgba(10,14,26,0.95);
+        }
+
+        ::-webkit-scrollbar { width:6px;height:6px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.3);border-radius:4px; }
     </style>
@@ -185,26 +198,28 @@
 
 <!-- MAIN -->
 <div class="main-content">
-    <table class="cl-table">
-        <thead>
-            <tr>
-                <th class="cl-header cl-header-left" style="min-width:140px;">COIN</th>
-                <th class="cl-header" style="width:40px;">📊</th>
-                <th class="cl-header" style="width:48px;">① LIQ<br>SWEEP</th>
-                <th class="cl-header" style="width:40px;">② BO</th>
-                <th class="cl-header" style="width:48px;">③ STR<br>H/L</th>
-                <th class="cl-header" style="width:40px;">④ IDM</th>
-                <th class="cl-header" style="width:48px;">⑤ IDM<br>SWEEP</th>
-                <th class="cl-header" style="width:48px;">⑥ ENTRY</th>
-                <th class="cl-header" style="width:48px;">⚠️ UNCLEAR</th>
-                <th class="cl-header" style="width:50px;">STATUS</th>
-                <th class="cl-header" style="width:55px;">PROG</th>
-            </tr>
-        </thead>
-        <tbody id="checklistBody">
-            <tr><td colspan="11" class="empty-state">Login to start tracking...</td></tr>
-        </tbody>
-    </table>
+    <div class="table-wrapper">
+        <table class="cl-table">
+            <thead>
+                <tr>
+                    <th class="cl-header cl-header-left" style="min-width:180px;">COIN</th>
+                    <th class="cl-header" style="min-width:60px;">📊 PROB</th>
+                    <th class="cl-header" style="min-width:70px;">① LIQ SWEEP</th>
+                    <th class="cl-header" style="min-width:60px;">② BO</th>
+                    <th class="cl-header" style="min-width:70px;">③ STR H/L</th>
+                    <th class="cl-header" style="min-width:60px;">④ IDM</th>
+                    <th class="cl-header" style="min-width:80px;">⑤ IDM SWEEP</th>
+                    <th class="cl-header" style="min-width:70px;">⑥ ENTRY</th>
+                    <th class="cl-header" style="min-width:80px;">⚠️ UNCLEAR</th>
+                    <th class="cl-header" style="min-width:90px;">STATUS</th>
+                    <th class="cl-header" style="min-width:80px;">PROGRESS</th>
+                </tr>
+            </thead>
+            <tbody id="checklistBody">
+                <tr><td colspan="11" class="empty-state">Login to start tracking...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -331,7 +346,6 @@ async function toggleCheck(key, field) {
     if (!item||!currentUser) return;
     const newVal = !item.checks[field];
     item.checks[field] = newVal;
-    // If toggling unclear ON, it's separate from progress checks
     render();
     await fetch('/api/checklist-update', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -356,7 +370,6 @@ function render() {
         return true;
     });
 
-    // Sort: ready first, then watching, then waiting, unclear last
     const order = { 'READY':0, 'WATCHING':1, 'WAITING':2, 'UNCLEAR':3 };
     filtered.sort((a,b) => {
         const sa = order[getStatus(a.checks).label] || 9;
@@ -384,7 +397,6 @@ function render() {
         const probHTML = buildProbHTML(item);
         const c = item.checks;
 
-        // 6 check fields
         const checkboxes = CHECK_FIELDS.map(field => {
             const on = c[field];
             return `<td class="cl-cell cl-cell-center">
@@ -392,28 +404,24 @@ function render() {
             </td>`;
         }).join('');
 
-        // Unclear toggle (separate — orange)
         const unclearHTML = `<td class="cl-cell cl-cell-center">
             <div class="cl-check ${c.unclear?'cl-check-unclear':'cl-check-off'}" onclick="toggleCheck('${item.key}','unclear')">${c.unclear?'⚠️':'○'}</div>
         </td>`;
 
-        // Status
         const status = getStatus(c);
         const statusHTML = `<td class="cl-cell cl-cell-center">
             <span class="cl-status ${status.cls}">${status.icon} ${status.label}</span>
         </td>`;
 
-        // Progress dots
         const done = CHECK_FIELDS.filter(f => c[f]).length;
         const progDots = CHECK_FIELDS.map(f => `<div class="cl-prog-dot ${c[f]?'cl-prog-done':'cl-prog-empty'}"></div>`).join('');
-        const unclearDot = c.unclear ? '<div class="cl-prog-dot cl-prog-warn"></div>' : '';
         const progressHTML = `<td class="cl-cell cl-cell-center">
             <div class="cl-progress">${progDots}</div>
-            <div style="font-size:0.38rem;color:rgba(148,163,184,0.5);margin-top:2px;">${done}/6</div>
+            <div style="font-size:0.55rem;color:rgba(148,163,184,0.55);margin-top:3px;font-weight:600;">${done}/6</div>
         </td>`;
 
         return `<tr class="${rowCls}">
-            <td class="cl-cell" style="border-radius:10px 0 0 10px;padding-left:10px;">
+            <td class="cl-cell" style="border-radius:12px 0 0 12px;padding-left:14px;">
                 <div><span class="${sideCls}">${sideIcon}</span> <span class="cl-sym">${item.symbol}</span> <span class="cl-tf ${tfCls}">${tfLabel}</span>${gradeHTML}</div>
                 <span class="cl-align">${align}</span>
             </td>
