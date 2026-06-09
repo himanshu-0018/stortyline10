@@ -1938,24 +1938,59 @@ app.listen(PORT, () => {
 
 
 // ══════════════════════════════════════════════
-// CHECKLIST API
+// CHECKLIST API (with user identity)
 // ══════════════════════════════════════════════
 const REDIS_CHECKLIST_KEY = REDIS_STATE_KEY + '_checklist';
-let checklistState = {};
+const REDIS_USERS_KEY = REDIS_STATE_KEY + '_users';
+let checklistState = {}; // { "userId": { "BTCUSD_4H_id123": { hh_hl: true, ... } } }
+let registeredUsers = {}; // { "userId": { name: "Peter", emoji: "🐂", color: "#34d399" } }
 
-// Load checklist on boot (add this after your other Redis loads)
+// Load on boot
 const savedChecklist = await redisClient.get(REDIS_CHECKLIST_KEY);
 if (savedChecklist) {
     checklistState = JSON.parse(savedChecklist);
-    console.log(`✅ Checklist: ${Object.keys(checklistState).length} entries`);
+    console.log(`✅ Checklist: ${Object.keys(checklistState).length} users`);
 } else {
     console.log('🆕 No checklist data');
 }
 
+const savedUsers = await redisClient.get(REDIS_USERS_KEY);
+if (savedUsers) {
+    registeredUsers = JSON.parse(savedUsers);
+    console.log(`👥 Users: ${Object.keys(registeredUsers).length}`);
+} else {
+    console.log('🆕 No users');
+}
+
+// ── Register / Login ──
+app.post('/api/user-register', async (req, res) => {
+    const { userId, name, emoji, color } = req.body;
+    if (!userId || !name) return res.status(400).send("Need userId and name");
+    const id = userId.toUpperCase().trim();
+    registeredUsers[id] = {
+        name: name.trim(),
+        emoji: emoji || '👤',
+        color: color || '#38bdf8',
+        lastSeen: Date.now()
+    };
+    if (!checklistState[id]) checklistState[id] = {};
+    await redisClient.set(REDIS_USERS_KEY, JSON.stringify(registeredUsers));
+    await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    res.json({ ok: true, user: registeredUsers[id] });
+});
+
+app.get('/api/users', (req, res) => {
+    res.json({ users: registeredUsers });
+});
+
+// ── Get checklist for specific user ──
 app.get('/api/checklist-state', (req, res) => {
-    // Build checklist from active CRTs
     const profile = normalizeBoProfile(req.query.profile || 'HTF');
+    const userId = (req.query.userId || '').toUpperCase().trim();
+    if (!userId) return res.status(400).send("Need userId");
+
     const cs = getCRTState(profile);
+    const userChecklist = checklistState[userId] || {};
     const items = [];
 
     for (const sym in cs) {
@@ -1964,7 +1999,7 @@ app.get('/api/checklist-state', (req, res) => {
             for (const e of arr) {
                 if (e?.status === 'ACTIVE') {
                     const key = `${sym}_${tf}_${e.id}`;
-                    const saved = checklistState[key] || {};
+                    const saved = userChecklist[key] || {};
                     items.push({
                         key,
                         symbol: sym,
@@ -1982,38 +2017,61 @@ app.get('/api/checklist-state', (req, res) => {
                             idm_formed: saved.idm_formed || false,
                             idm_swept: saved.idm_swept || false,
                             entry_hit: saved.entry_hit || false,
-                            result: saved.result || 'PENDING'  // PENDING, TP, SL
-                        }
+                            result: saved.result || 'PENDING'
+                        },
+                        notes: saved.notes || ''
                     });
                 }
             }
         }
     }
 
-    res.json({ items, checklistState });
+    res.json({ items, user: registeredUsers[userId] || null });
 });
 
+// ── Update checklist for specific user ──
 app.post('/api/checklist-update', async (req, res) => {
-    const { key, field, value } = req.body;
-    if (!key || !field) return res.status(400).send("Invalid");
+    const { userId, key, field, value } = req.body;
+    if (!userId || !key || !field) return res.status(400).send("Invalid");
+    const id = userId.toUpperCase().trim();
 
-    if (!checklistState[key]) checklistState[key] = {};
-    checklistState[key][field] = value;
+    if (!checklistState[id]) checklistState[id] = {};
+    if (!checklistState[id][key]) checklistState[id][key] = {};
+    checklistState[id][key][field] = value;
+
+    // Update last seen
+    if (registeredUsers[id]) registeredUsers[id].lastSeen = Date.now();
 
     await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    await redisClient.set(REDIS_USERS_KEY, JSON.stringify(registeredUsers));
     res.json({ ok: true });
 });
 
+// ── Clear checklist for specific user ──
 app.post('/api/checklist-clear', async (req, res) => {
-    const { key } = req.body;
+    const { userId, key } = req.body;
+    if (!userId) return res.status(400).send("Need userId");
+    const id = userId.toUpperCase().trim();
+
     if (key === 'ALL') {
-        checklistState = {};
-    } else if (key) {
-        delete checklistState[key];
+        checklistState[id] = {};
+    } else if (key && checklistState[id]) {
+        delete checklistState[id][key];
     }
     await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
     res.json({ ok: true });
 });
 
-// Add the page route
+// ── Delete user ──
+app.post('/api/user-delete', async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).send("Need userId");
+    const id = userId.toUpperCase().trim();
+    delete registeredUsers[id];
+    delete checklistState[id];
+    await redisClient.set(REDIS_USERS_KEY, JSON.stringify(registeredUsers));
+    await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    res.json({ ok: true });
+});
+
 app.get('/checklist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checklist.html')));
