@@ -694,42 +694,33 @@ function buildActiveCRTMsg() {
     const header = [
         B_TOP,
         `║  🟢 <b>ACTIVE CRTs  —  HTF</b>`,
-        `║  Live Positions`,
-        B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  🟢 Total Active: <b>${items.length}</b>`,
+        `║  🟢 Total: <b>${items.length}</b>`,
         B_BOT,
         ``,
     ].join('\n');
 
     if (items.length === 0) {
-        return header + '\n' + B_THIN + '\n\n   📭 <i>No active CRTs right now</i>\n\n' + B_THIN;
+        return header + '\n' + B_THIN + '\n\n   📭 <i>No active CRTs</i>\n\n' + B_THIN;
     }
 
-    // Build each position block
     let blocks = [];
     for (const { sym, tf, e } of items) {
-        const tfLabel = tf === '1D' ? '📅 Daily' : tf === '1W' ? '📆 Weekly' : '⏰ 4H';
-        const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+        const tl = tf === '1D' ? 'D' : tf === '1W' ? 'W' : '4H';
+        const g = e.grade === 'A+' ? '⭐' : e.grade === 'B+' ? '🔶' : '';
+        const di = e.side === 'BULLISH' ? '🐂' : '🐻';
 
         const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
-        let probLine = '';
-        if (prob.found) {
-            probLine = `  ┃  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-        } else {
-            probLine = `  ┃  📊 <i>No data</i>`;
-        }
+        const probTxt = prob.found ? `${prob.pct}%` : '—';
 
-        blocks.push([
-            B_THIN, ``,
-            `  🟢 <b>${sym}</b>  [${tfLabel}]  ${dirIcon(e.side)}${g}`,
-            `  ┃  ${alignBadge(e.align_level)}`,
-            `  ┃  Rej <code>${e.rej}</code>  BO <code>${e.bo}</code>`,
-            `  ┃  Ext <code>${e.ext}</code>  Tgt <code>${e.tgt}</code>`,
-            probLine,
-            `  ┗  🕐 ${timeStr(e.timestamp)}`,
-        ].join('\n'));
+        // Compact alignment
+        const al = e.align_level && e.align_level !== 'NONE' ? e.align_level : 'None';
+
+        blocks.push(`${di}${g} <b>${sym}</b> [${tl}] · ${al} · 📊${probTxt}`);
     }
+
+    return header + blocks.join('\n') + '\n\n' + B_DASH;
+}
 
     // Combine header + as many blocks as fit in 4000 chars
     let result = header;
