@@ -1942,8 +1942,8 @@ app.listen(PORT, () => {
 // ══════════════════════════════════════════════
 const REDIS_CHECKLIST_KEY = REDIS_STATE_KEY + '_checklist';
 const REDIS_USERS_KEY = REDIS_STATE_KEY + '_users';
-let checklistState = {}; // { "userId": { "BTCUSD_4H_id123": { hh_hl: true, ... } } }
-let registeredUsers = {}; // { "userId": { name: "Peter", emoji: "🐂", color: "#34d399" } }
+let checklistState = {};
+let registeredUsers = {};
 
 // Load on boot
 const savedChecklist = await redisClient.get(REDIS_CHECKLIST_KEY);
@@ -1962,7 +1962,42 @@ if (savedUsers) {
     console.log('🆕 No users');
 }
 
-// ── Register / Login ──
+// Auto-clean: remove resolved CRTs from all user checklists
+function cleanResolvedFromChecklists(profile) {
+    const cs = getCRTState(profile);
+    const activeKeys = new Set();
+
+    // Build set of all active CRT keys
+    for (const sym in cs) {
+        for (const tf in cs[sym]) {
+            const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
+            for (const e of arr) {
+                if (e?.status === 'ACTIVE') {
+                    activeKeys.add(`${sym}_${tf}_${e.id}`);
+                }
+            }
+        }
+    }
+
+    // Remove non-active entries from all user checklists
+    let cleaned = 0;
+    for (const userId in checklistState) {
+        const userCl = checklistState[userId];
+        for (const key in userCl) {
+            if (!activeKeys.has(key)) {
+                delete userCl[key];
+                cleaned++;
+            }
+        }
+    }
+
+    if (cleaned > 0) {
+        console.log(`🧹 Cleaned ${cleaned} resolved CRTs from checklists`);
+        redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState)).catch(() => {});
+    }
+}
+
+// Register / Login
 app.post('/api/user-register', async (req, res) => {
     const { userId, name, emoji, color } = req.body;
     if (!userId || !name) return res.status(400).send("Need userId and name");
@@ -1983,11 +2018,14 @@ app.get('/api/users', (req, res) => {
     res.json({ users: registeredUsers });
 });
 
-// ── Get checklist for specific user ──
+// Get checklist for specific user (only ACTIVE CRTs)
 app.get('/api/checklist-state', (req, res) => {
     const profile = normalizeBoProfile(req.query.profile || 'HTF');
     const userId = (req.query.userId || '').toUpperCase().trim();
     if (!userId) return res.status(400).send("Need userId");
+
+    // Clean resolved entries first
+    cleanResolvedFromChecklists(profile);
 
     const cs = getCRTState(profile);
     const userChecklist = checklistState[userId] || {};
@@ -1997,31 +2035,33 @@ app.get('/api/checklist-state', (req, res) => {
         for (const tf in cs[sym]) {
             const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
             for (const e of arr) {
-                if (e?.status === 'ACTIVE') {
-                    const key = `${sym}_${tf}_${e.id}`;
-                    const saved = userChecklist[key] || {};
-                    items.push({
-                        key,
-                        symbol: sym,
-                        tf,
-                        side: e.side,
-                        grade: e.grade || '',
-                        align_level: e.align_level || 'NONE',
-                        rej: e.rej,
-                        bo: e.bo,
-                        ext: e.ext,
-                        tgt: e.tgt,
-                        timestamp: e.timestamp,
-                        checks: {
-                            hh_hl: saved.hh_hl || false,
-                            idm_formed: saved.idm_formed || false,
-                            idm_swept: saved.idm_swept || false,
-                            entry_hit: saved.entry_hit || false,
-                            result: saved.result || 'PENDING'
-                        },
-                        notes: saved.notes || ''
-                    });
-                }
+                // ✅ ONLY show ACTIVE CRTs
+                if (e?.status !== 'ACTIVE') continue;
+
+                const key = `${sym}_${tf}_${e.id}`;
+                const saved = userChecklist[key] || {};
+                items.push({
+                    key,
+                    symbol: sym,
+                    tf,
+                    side: e.side,
+                    grade: e.grade || '',
+                    align_level: e.align_level || 'NONE',
+                    rej: e.rej,
+                    bo: e.bo,
+                    ext: e.ext,
+                    tgt: e.tgt,
+                    timestamp: e.timestamp,
+                    checks: {
+                        liq_sweep: saved.liq_sweep || false,
+                        bo_formed: saved.bo_formed || false,
+                        strong_hl: saved.strong_hl || false,
+                        idm_formed: saved.idm_formed || false,
+                        idm_swept: saved.idm_swept || false,
+                        entry_hit: saved.entry_hit || false,
+                        unclear: saved.unclear || false,
+                    }
+                });
             }
         }
     }
@@ -2029,7 +2069,7 @@ app.get('/api/checklist-state', (req, res) => {
     res.json({ items, user: registeredUsers[userId] || null });
 });
 
-// ── Update checklist for specific user ──
+// Update checklist for specific user
 app.post('/api/checklist-update', async (req, res) => {
     const { userId, key, field, value } = req.body;
     if (!userId || !key || !field) return res.status(400).send("Invalid");
@@ -2039,7 +2079,6 @@ app.post('/api/checklist-update', async (req, res) => {
     if (!checklistState[id][key]) checklistState[id][key] = {};
     checklistState[id][key][field] = value;
 
-    // Update last seen
     if (registeredUsers[id]) registeredUsers[id].lastSeen = Date.now();
 
     await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
@@ -2047,7 +2086,7 @@ app.post('/api/checklist-update', async (req, res) => {
     res.json({ ok: true });
 });
 
-// ── Clear checklist for specific user ──
+// Clear checklist for specific user
 app.post('/api/checklist-clear', async (req, res) => {
     const { userId, key } = req.body;
     if (!userId) return res.status(400).send("Need userId");
@@ -2062,7 +2101,7 @@ app.post('/api/checklist-clear', async (req, res) => {
     res.json({ ok: true });
 });
 
-// ── Delete user ──
+// Delete user
 app.post('/api/user-delete', async (req, res) => {
     const { userId } = req.body;
     if (!userId) return res.status(400).send("Need userId");
