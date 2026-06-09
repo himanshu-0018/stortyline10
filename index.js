@@ -1067,6 +1067,24 @@ if (update.message) {
     const text    = (update.message.text || '').trim();
     const threadId = update.message.message_thread_id || null;
 
+    // ═══════════════════════════════════
+    // 🔴 DEBUG - ADD THIS TEMPORARILY
+    // ═══════════════════════════════════
+    console.log('═══════════════════════════════════');
+    console.log('[BOT DEBUG] RAW UPDATE:', JSON.stringify(update.message, null, 2));
+    console.log('[BOT DEBUG] chatId:', chatId);
+    console.log('[BOT DEBUG] text:', text);
+    console.log('[BOT DEBUG] threadId:', threadId);
+    console.log('[BOT DEBUG] chat.type:', update.message.chat.type);
+    console.log('[BOT DEBUG] is_topic_message:', update.message.is_topic_message);
+    console.log('[BOT DEBUG] isPrivateChat:', update.message.chat.type === 'private');
+    console.log('[BOT DEBUG] isTopicMessage:', update.message.is_topic_message === true);
+    console.log('[BOT DEBUG] isBotAllowed:', isBotAllowed(chatId));
+    console.log('[BOT DEBUG] TG_BOT_ALLOWED_CHAT_IDS:', TG_BOT_ALLOWED_CHAT_IDS);
+    console.log('═══════════════════════════════════');
+    // ═══════════════════════════════════
+
+
     // ✅ IGNORE messages from General (no thread ID in a forum group)
     // Only respond if it's a private chat OR a specific topic message
     const isPrivateChat = update.message.chat.type === 'private';
@@ -1213,6 +1231,13 @@ async function pollOnce() {
             offset: pollingOffset, timeout: 25,
             allowed_updates: ['message','callback_query']
         });
+
+        // 🔴 DEBUG
+        console.log('[POLL DEBUG] updates received:', data?.result?.length || 0);
+        if (data?.result?.length) {
+            console.log('[POLL DEBUG] raw:', JSON.stringify(data.result, null, 2));
+        }
+
         if (data?.result?.length) {
             for (const update of data.result) {
                 pollingOffset = update.update_id + 1;
