@@ -710,12 +710,23 @@ function buildActiveCRTMsg() {
     for (const { sym, tf, e } of items) {
         const tfLabel = tf === '1D' ? '📅 Daily' : tf === '1W' ? '📆 Weekly' : '⏰ 4H';
         const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+
+        // ✅ Calculate hit probability for this position
+        const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
+        let probLine = '';
+        if (prob.found) {
+            probLine = `  ┃  📊 Hit: <b>${prob.pct}%</b> (${prob.tp}🎯 ${prob.inv}❌ · ${prob.resolved} res · <i>${prob.label}</i>)`;
+        } else {
+            probLine = `  ┃  📊 Hit: <i>Not enough data</i>`;
+        }
+
         lines.push(B_THIN, ``,
             `  🟢 <b>${sym}</b>   [${tfLabel}]   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
             `  ┃  ${alignBadge(e.align_level)}`,
             `  ┃`,
             `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
             `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
+            probLine,
             `  ┗  🕐 ${timeStr(e.timestamp)}`, ``);
     }
 
