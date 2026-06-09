@@ -691,7 +691,7 @@ function buildActiveCRTMsg() {
         }
     }
 
-    const lines = [
+    const header = [
         B_TOP,
         `║  🟢 <b>ACTIVE CRTs  —  HTF</b>`,
         `║  Live Positions`,
@@ -700,38 +700,52 @@ function buildActiveCRTMsg() {
         `║  🟢 Total Active: <b>${items.length}</b>`,
         B_BOT,
         ``,
-    ];
+    ].join('\n');
 
     if (items.length === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No active CRTs right now</i>`, `   <i>New signals will appear here live</i>`, ``, B_THIN);
-        return lines.join('\n');
+        return header + '\n' + B_THIN + '\n\n   📭 <i>No active CRTs right now</i>\n\n' + B_THIN;
     }
 
+    // Build each position block
+    let blocks = [];
     for (const { sym, tf, e } of items) {
         const tfLabel = tf === '1D' ? '📅 Daily' : tf === '1W' ? '📆 Weekly' : '⏰ 4H';
         const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
 
-        // ✅ Calculate hit probability for this position
         const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
         let probLine = '';
         if (prob.found) {
-            probLine = `  ┃  📊 Hit: <b>${prob.pct}%</b> (${prob.tp}🎯 ${prob.inv}❌ · ${prob.resolved} res · <i>${prob.label}</i>)`;
+            probLine = `  ┃  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
         } else {
-            probLine = `  ┃  📊 Hit: <i>Not enough data</i>`;
+            probLine = `  ┃  📊 <i>No data</i>`;
         }
 
-        lines.push(B_THIN, ``,
-            `  🟢 <b>${sym}</b>   [${tfLabel}]   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
+        blocks.push([
+            B_THIN, ``,
+            `  🟢 <b>${sym}</b>  [${tfLabel}]  ${dirIcon(e.side)}${g}`,
             `  ┃  ${alignBadge(e.align_level)}`,
-            `  ┃`,
-            `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
-            `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
+            `  ┃  Rej <code>${e.rej}</code>  BO <code>${e.bo}</code>`,
+            `  ┃  Ext <code>${e.ext}</code>  Tgt <code>${e.tgt}</code>`,
             probLine,
-            `  ┗  🕐 ${timeStr(e.timestamp)}`, ``);
+            `  ┗  🕐 ${timeStr(e.timestamp)}`,
+        ].join('\n'));
     }
 
-    lines.push(B_DASH);
-    return lines.join('\n');
+    // Combine header + as many blocks as fit in 4000 chars
+    let result = header;
+    for (const block of blocks) {
+        if ((result + '\n' + block).length > 3900) {
+            // Truncate — show count of remaining
+            const shown = blocks.indexOf(block);
+            const remaining = blocks.length - shown;
+            result += `\n\n⚠️ <i>+${remaining} more positions (message too long)</i>`;
+            break;
+        }
+        result += '\n' + block;
+    }
+
+    result += '\n\n' + B_DASH;
+    return result;
 }
 
 // ── CRT Stats (updated with grade breakdown) ──
