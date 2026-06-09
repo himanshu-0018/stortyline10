@@ -194,14 +194,35 @@ async function botRequest(method, body) {
         const resp = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/${method}`,
             { method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(body) });
-        return await resp.json();
-    } catch (err) { console.error(`Bot API [${method}]:`, err); return null; }
+        const data = await resp.json();
+        
+        // 🔴 DEBUG - only log errors
+        if (!data?.ok) {
+            console.error('[BOT REQUEST ERROR] method:', method);
+            console.error('[BOT REQUEST ERROR] response:', JSON.stringify(data));
+        }
+        
+        return data;
+    } catch (err) { 
+        console.error(`Bot API [${method}]:`, err); 
+        return null; 
+    }
 }
 async function botSendMessage(chatId, text, keyboard = null, threadId = null) {
     const body = { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true };
     if (keyboard) body.reply_markup = keyboard;
     if (threadId) body.message_thread_id = parseInt(threadId);
+    
+    // 🔴 DEBUG
+    console.log('[BOT SEND DEBUG] chatId:', chatId);
+    console.log('[BOT SEND DEBUG] text length:', text?.length);
+    console.log('[BOT SEND DEBUG] threadId:', threadId);
+    
     const res = await botRequest('sendMessage', body);
+    
+    // 🔴 DEBUG
+    console.log('[BOT SEND DEBUG] API response:', JSON.stringify(res));
+    
     return res?.result?.message_id || null;
 }
 async function botEditMessage(chatId, messageId, text, keyboard = null) {
@@ -1120,6 +1141,26 @@ if (cmd === '/start' || cmd === '/menu') {
 
 // ✅ FIXED: Use /fourhour as primary, keep /4h as alias
 } else if (cmd === '/fourhour' || cmd === '/4h') {
+    // 🔴 DEBUG
+    console.log('[4H DEBUG] Building FourHour message...');
+    try {
+        const msg = buildFourHourCRTMsg();
+        console.log('[4H DEBUG] Message length:', msg.length);
+        console.log('[4H DEBUG] Message preview:', msg.slice(0, 500));
+        console.log('[4H DEBUG] sess.threadId:', sess.threadId);
+        console.log('[4H DEBUG] chatId:', chatId);
+        
+        const result = await botSendMessage(chatId, msg, subKeyboard('FOURHOUR_CRT'), sess.threadId);
+        console.log('[4H DEBUG] botSendMessage result:', result);
+        
+        sess.lastMsgId = result;
+        sess.view = 'FOURHOUR';
+    } catch(err) {
+        console.error('[4H DEBUG] ERROR:', err);
+        // Send a simple test message to confirm bot works at all
+        const testResult = await botSendMessage(chatId, 'TEST: /4h received, building failed', null, null);
+        console.log('[4H DEBUG] test send result:', testResult);
+    }
     sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
     sess.view = 'FOURHOUR';
 
