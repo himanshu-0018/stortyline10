@@ -1911,3 +1911,26 @@ app.listen(PORT, () => {
     console.log(`📡 Threads: Storyline=${TG_STORYLINE_THREAD_ID||'none'} | CRT_HTF=${TG_CRT_HTF_THREAD_ID||'none'} | CRT_LTF=${TG_CRT_LTF_THREAD_ID||'none'} | Breakout=${TG_BREAKOUT_THREAD_ID||'none'} | BO5=${TG_BREAKOUT5_THREAD_ID||'none'} | BO6=${TG_BREAKOUT6_THREAD_ID||'none'}`);
     startBotPolling();
 });
+
+app.get('/api/stop-bot', (req, res) => {
+    pollingActive = false;
+    if (pollingTimeout) clearTimeout(pollingTimeout);
+    console.log('🛑 Bot polling stopped via API');
+    res.json({ ok: true, message: 'Bot polling stopped' });
+});
+
+app.get('/api/start-bot', async (req, res) => {
+    if (pollingActive) {
+        return res.json({ ok: false, message: 'Bot already running' });
+    }
+    await startBotPolling();
+    res.json({ ok: true, message: 'Bot polling started' });
+});
+
+app.get('/api/bot-status', (req, res) => {
+    res.json({ 
+        polling: pollingActive, 
+        offset: pollingOffset,
+        sessions: Object.keys(botSessions).length 
+    });
+});
