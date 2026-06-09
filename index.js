@@ -1935,3 +1935,85 @@ app.listen(PORT, () => {
     console.log(`📡 Threads: Storyline=${TG_STORYLINE_THREAD_ID||'none'} | CRT_HTF=${TG_CRT_HTF_THREAD_ID||'none'} | CRT_LTF=${TG_CRT_LTF_THREAD_ID||'none'} | Breakout=${TG_BREAKOUT_THREAD_ID||'none'} | BO5=${TG_BREAKOUT5_THREAD_ID||'none'} | BO6=${TG_BREAKOUT6_THREAD_ID||'none'}`);
     startBotPolling();
 });
+
+
+// ══════════════════════════════════════════════
+// CHECKLIST API
+// ══════════════════════════════════════════════
+const REDIS_CHECKLIST_KEY = REDIS_STATE_KEY + '_checklist';
+let checklistState = {};
+
+// Load checklist on boot (add this after your other Redis loads)
+const savedChecklist = await redisClient.get(REDIS_CHECKLIST_KEY);
+if (savedChecklist) {
+    checklistState = JSON.parse(savedChecklist);
+    console.log(`✅ Checklist: ${Object.keys(checklistState).length} entries`);
+} else {
+    console.log('🆕 No checklist data');
+}
+
+app.get('/api/checklist-state', (req, res) => {
+    // Build checklist from active CRTs
+    const profile = normalizeBoProfile(req.query.profile || 'HTF');
+    const cs = getCRTState(profile);
+    const items = [];
+
+    for (const sym in cs) {
+        for (const tf in cs[sym]) {
+            const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
+            for (const e of arr) {
+                if (e?.status === 'ACTIVE') {
+                    const key = `${sym}_${tf}_${e.id}`;
+                    const saved = checklistState[key] || {};
+                    items.push({
+                        key,
+                        symbol: sym,
+                        tf,
+                        side: e.side,
+                        grade: e.grade || '',
+                        align_level: e.align_level || 'NONE',
+                        rej: e.rej,
+                        bo: e.bo,
+                        ext: e.ext,
+                        tgt: e.tgt,
+                        timestamp: e.timestamp,
+                        checks: {
+                            hh_hl: saved.hh_hl || false,
+                            idm_formed: saved.idm_formed || false,
+                            idm_swept: saved.idm_swept || false,
+                            entry_hit: saved.entry_hit || false,
+                            result: saved.result || 'PENDING'  // PENDING, TP, SL
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    res.json({ items, checklistState });
+});
+
+app.post('/api/checklist-update', async (req, res) => {
+    const { key, field, value } = req.body;
+    if (!key || !field) return res.status(400).send("Invalid");
+
+    if (!checklistState[key]) checklistState[key] = {};
+    checklistState[key][field] = value;
+
+    await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    res.json({ ok: true });
+});
+
+app.post('/api/checklist-clear', async (req, res) => {
+    const { key } = req.body;
+    if (key === 'ALL') {
+        checklistState = {};
+    } else if (key) {
+        delete checklistState[key];
+    }
+    await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    res.json({ ok: true });
+});
+
+// Add the page route
+app.get('/checklist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checklist.html')));
