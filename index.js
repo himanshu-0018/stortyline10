@@ -1088,27 +1088,30 @@ if (update.message) {
     const sess = getSession(chatId, threadId);
     if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
 
-    const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
+const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
 
-    if (cmd === '/start' || cmd === '/menu') {
-        sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
-        sess.view = 'MAIN';
-    } else if (cmd === '/daily') {
-        sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
-        sess.view = 'DAILY';
-    } else if (cmd === '/weekly') {
-        sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
-        sess.view = 'WEEKLY';
-    } else if (cmd === '/4h' || cmd === '/fourhour') {
-        sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
-        sess.view = 'FOURHOUR';
-    } else if (cmd === '/active') {
-        sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
-        sess.view = 'ACTIVE';
-    } else if (cmd === '/stats') {
-        sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
-        sess.view = 'STATS';
-    } else if (cmd === '/help') {
+if (cmd === '/start' || cmd === '/menu') {
+    sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
+    sess.view = 'MAIN';
+} else if (cmd === '/daily') {
+    sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
+    sess.view = 'DAILY';
+} else if (cmd === '/weekly') {
+    sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
+    sess.view = 'WEEKLY';
+
+// ✅ FIXED: Use /fourhour as primary, keep /4h as alias
+} else if (cmd === '/fourhour' || cmd === '/4h') {
+    sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
+    sess.view = 'FOURHOUR';
+
+} else if (cmd === '/active') {
+    sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
+    sess.view = 'ACTIVE';
+} else if (cmd === '/stats') {
+    sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
+    sess.view = 'STATS';
+} else if (cmd === '/help') {
         sess.lastMsgId = await botSendMessage(chatId, [
             B_TOP,
             `║  🤖 <b>GOD-MODE CRT BOT</b>`,
