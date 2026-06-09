@@ -12,107 +12,104 @@
         .bg-container { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
         .bg-gradient { position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.20) 0%,transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(16,185,129,0.15) 0%,transparent 50%),linear-gradient(135deg,rgba(10,14,26,0.90) 0%,rgba(15,20,40,0.85) 100%); }
 
-        /* Top Bar */
         .top-bar { position:sticky;top:0;z-index:50;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(10,14,26,0.90);backdrop-filter:blur(20px); }
-        .brand-name { font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#818cf8,#38bdf8,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
-        .brand-sub { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.6);letter-spacing:0.10em;margin-top:2px; }
-        .ctrl-btn { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;font-size:0.70rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid;font-family:'JetBrains Mono',monospace;text-decoration:none; }
+        .brand-name { font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#818cf8,#38bdf8,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+        .brand-sub { font-family:'JetBrains Mono',monospace;font-size:0.50rem;color:rgba(148,163,184,0.6);letter-spacing:0.08em;margin-top:2px; }
+        .ctrl-btn { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;font-size:0.68rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid;font-family:'JetBrains Mono',monospace;text-decoration:none; }
         .ctrl-btn:hover { transform:translateY(-2px); }
         .btn-back { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(14,165,233,0.15));border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
         .btn-crt { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
-        .stat-chip { display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace;font-size:0.65rem; }
+        .stat-chip { display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace;font-size:0.62rem; }
 
-        /* User bar */
         .user-bar { display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07); }
-        .user-avatar { width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem; }
-        .user-name { font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700; }
-        .user-switch { font-family:'JetBrains Mono',monospace;font-size:0.50rem;color:rgba(148,163,184,0.5);cursor:pointer;text-decoration:underline; }
+        .user-avatar { width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.95rem; }
+        .user-name { font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700; }
+        .user-switch { font-family:'JetBrains Mono',monospace;font-size:0.45rem;color:rgba(148,163,184,0.5);cursor:pointer;text-decoration:underline; }
         .user-switch:hover { color:#a5b4fc; }
 
-        /* Filter Bar */
-        .filter-bar { position:sticky;top:62px;z-index:49;display:flex;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.90);backdrop-filter:blur(10px);flex-wrap:wrap; }
-        .filter-btn { padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid rgba(71,85,105,0.4);background:rgba(71,85,105,0.15);color:#94a3b8; }
+        .filter-bar { position:sticky;top:58px;z-index:49;display:flex;align-items:center;gap:7px;padding:8px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.90);backdrop-filter:blur(10px);flex-wrap:wrap; }
+        .filter-btn { padding:4px 10px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid rgba(71,85,105,0.4);background:rgba(71,85,105,0.15);color:#94a3b8; }
         .filter-btn:hover { background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#a5b4fc; }
         .filter-btn.active { background:rgba(99,102,241,0.25);border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
-        .filter-label { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.35);letter-spacing:0.10em;text-transform:uppercase; }
-        .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
+        .filter-label { font-family:'JetBrains Mono',monospace;font-size:0.50rem;color:rgba(148,163,184,0.35);letter-spacing:0.08em;text-transform:uppercase; }
+        .divider-v { width:1px;height:14px;background:rgba(255,255,255,0.1); }
 
         /* Login Modal */
         .login-overlay { position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center; }
-        .login-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:32px;width:90%;max-width:400px;text-align:center;box-shadow:0 0 60px rgba(99,102,241,0.2); }
+        .login-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:32px;width:90%;max-width:380px;text-align:center;box-shadow:0 0 60px rgba(99,102,241,0.2); }
         .login-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:#e2e8f0;margin-bottom:4px; }
-        .login-sub { font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.5);margin-bottom:24px; }
+        .login-sub { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.5);margin-bottom:20px; }
         .login-input { width:100%;padding:12px 16px;background:rgba(15,23,42,0.8);border:1px solid rgba(99,102,241,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;margin-bottom:12px;text-align:center; }
         .login-input:focus { border-color:rgba(99,102,241,0.6);box-shadow:0 0 0 3px rgba(99,102,241,0.1); }
-        .emoji-grid { display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap; }
-        .emoji-pick { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;transition:all 0.2s;border:2px solid rgba(71,85,105,0.3);background:rgba(15,23,42,0.5); }
+        .emoji-grid { display:flex;gap:6px;justify-content:center;margin-bottom:14px;flex-wrap:wrap; }
+        .emoji-pick { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:all 0.2s;border:2px solid rgba(71,85,105,0.3);background:rgba(15,23,42,0.5); }
         .emoji-pick:hover { border-color:rgba(99,102,241,0.5);transform:scale(1.1); }
-        .emoji-pick.active { border-color:rgba(99,102,241,0.8);background:rgba(99,102,241,0.2);box-shadow:0 0 12px rgba(99,102,241,0.3); }
-        .login-btn { width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,0.4),rgba(14,165,233,0.3));border:1px solid rgba(99,102,241,0.5);color:#c7d2fe;font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:800;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em; }
-        .login-btn:hover { background:linear-gradient(135deg,rgba(99,102,241,0.6),rgba(14,165,233,0.4));transform:translateY(-2px);box-shadow:0 4px 20px rgba(99,102,241,0.3); }
-        .existing-users { margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06); }
-        .existing-label { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.4);margin-bottom:10px; }
-        .existing-btn { padding:8px 16px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;margin:4px; }
+        .emoji-pick.active { border-color:rgba(99,102,241,0.8);background:rgba(99,102,241,0.2);box-shadow:0 0 10px rgba(99,102,241,0.3); }
+        .login-btn { width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,0.4),rgba(14,165,233,0.3));border:1px solid rgba(99,102,241,0.5);color:#c7d2fe;font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:800;cursor:pointer;transition:all 0.2s; }
+        .login-btn:hover { background:linear-gradient(135deg,rgba(99,102,241,0.6),rgba(14,165,233,0.4));transform:translateY(-2px); }
+        .existing-users { margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06); }
+        .existing-label { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.4);margin-bottom:8px; }
+        .existing-btn { padding:8px 14px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;margin:3px; }
         .existing-btn:hover { border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.15);transform:translateY(-1px); }
-        .existing-btn-emoji { font-size:1rem; }
-        .existing-btn-name { font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700;color:#e2e8f0; }
+        .existing-btn-name { font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;color:#e2e8f0; }
 
         /* Main Content */
-        .main-content { position:relative;z-index:10;padding:20px 24px;padding-bottom:60px; }
+        .main-content { position:relative;z-index:10;padding:16px 24px;padding-bottom:60px; }
 
-        /* Checklist Table */
-        .cl-table { width:100%;border-collapse:separate;border-spacing:0 6px; }
-        .cl-header { font-family:'JetBrains Mono',monospace;font-size:0.50rem;font-weight:700;color:rgba(148,163,184,0.5);letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:center; }
-        .cl-header-left { text-align:left; }
-        .cl-row { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:12px;transition:all 0.2s; }
-        .cl-row:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+        /* Table */
+        .cl-table { width:100%;border-collapse:separate;border-spacing:0 5px; }
+        .cl-header { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;color:rgba(148,163,184,0.5);letter-spacing:0.06em;text-transform:uppercase;padding:6px 4px;text-align:center;white-space:nowrap; }
+        .cl-header-left { text-align:left;padding-left:10px; }
+        .cl-row { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:10px;transition:all 0.2s; }
+        .cl-row:hover { transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.3); }
         .cl-row-bull { border-left:3px solid #10b981; }
         .cl-row-bear { border-left:3px solid #ef4444; }
-        .cl-cell { padding:10px;font-family:'JetBrains Mono',monospace;font-size:0.60rem;vertical-align:middle; }
+        .cl-cell { padding:8px 4px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;vertical-align:middle; }
         .cl-cell-center { text-align:center; }
-        .cl-sym { font-size:0.75rem;font-weight:800;color:#f1f5f9; }
-        .cl-tf { font-size:0.48rem;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block;margin-left:6px; }
+
+        .cl-sym { font-size:0.70rem;font-weight:800;color:#f1f5f9; }
+        .cl-tf { font-size:0.42rem;font-weight:700;padding:2px 5px;border-radius:4px;display:inline-block;margin-left:4px; }
         .cl-tf-w { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
         .cl-tf-d { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
         .cl-tf-4h { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
-        .cl-grade-aplus { font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399;margin-left:4px; }
-        .cl-grade-bplus { font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;margin-left:4px; }
-        .cl-align { font-size:0.45rem;color:rgba(148,163,184,0.6);display:block;margin-top:2px; }
+        .cl-grade-a { font-size:0.42rem;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399;margin-left:3px; }
+        .cl-grade-b { font-size:0.42rem;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;margin-left:3px; }
+        .cl-align { font-size:0.40rem;color:rgba(148,163,184,0.5);display:block;margin-top:2px; }
         .cl-side-bull { color:#34d399; }
         .cl-side-bear { color:#f87171; }
 
         /* Checkboxes */
-        .cl-check { width:28px;height:28px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;transition:all 0.2s;margin:0 auto;border:2px solid;user-select:none; }
+        .cl-check { width:26px;height:26px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s;margin:0 auto;border:2px solid;user-select:none; }
         .cl-check:hover { transform:scale(1.15); }
-        .cl-check-off { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:rgba(71,85,105,0.4); }
-        .cl-check-on { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 10px rgba(16,185,129,0.2); }
-
-        /* Result buttons */
-        .cl-result-row { display:flex;gap:4px;justify-content:center; }
-        .cl-result-btn { padding:4px 8px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid; }
-        .cl-result-tp { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
-        .cl-result-tp.active { background:rgba(16,185,129,0.35);border-color:rgba(16,185,129,0.7);color:#a7f3d0;box-shadow:0 0 8px rgba(16,185,129,0.3); }
-        .cl-result-sl { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171; }
-        .cl-result-sl.active { background:rgba(239,68,68,0.35);border-color:rgba(239,68,68,0.7);color:#fecaca;box-shadow:0 0 8px rgba(239,68,68,0.3); }
+        .cl-check-off { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:rgba(71,85,105,0.3); }
+        .cl-check-on { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 8px rgba(16,185,129,0.2); }
+        /* Unclear = orange warning */
+        .cl-check-unclear { background:rgba(245,158,11,0.25);border-color:rgba(245,158,11,0.6);color:#fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.2); }
 
         /* Progress */
-        .cl-progress { display:flex;gap:2px;margin-top:4px; }
-        .cl-prog-dot { width:14px;height:4px;border-radius:2px;transition:all 0.2s; }
+        .cl-progress { display:flex;gap:2px;justify-content:center; }
+        .cl-prog-dot { width:10px;height:4px;border-radius:2px; }
         .cl-prog-done { background:#34d399; }
         .cl-prog-empty { background:rgba(71,85,105,0.3); }
-        .cl-prog-tp { background:#34d399; }
-        .cl-prog-sl { background:#ef4444; }
+        .cl-prog-warn { background:#fbbf24; }
 
-        /* Hit probability */
-        .cl-prob { font-size:0.52rem;font-weight:700;text-align:center; }
+        /* Probability */
+        .cl-prob { font-size:0.50rem;font-weight:700; }
         .cl-prob-good { color:#34d399; }
         .cl-prob-warn { color:#fbbf24; }
         .cl-prob-bad { color:#f87171; }
         .cl-prob-none { color:#64748b; }
 
-        .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);text-align:center;padding:60px 0; }
+        /* Status indicator */
+        .cl-status { font-size:0.42rem;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block; }
+        .cl-status-ready { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
+        .cl-status-watching { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .cl-status-unclear { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .cl-status-waiting { background:rgba(71,85,105,0.2);border:1px solid rgba(71,85,105,0.4);color:#94a3b8; }
 
-        ::-webkit-scrollbar { width:6px; }
+        .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:rgba(148,163,184,0.3);text-align:center;padding:50px 0; }
+
+        ::-webkit-scrollbar { width:5px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.3);border-radius:4px; }
     </style>
@@ -121,34 +118,30 @@
 
 <div class="bg-container"><div class="bg-gradient"></div></div>
 
-<!-- LOGIN MODAL -->
+<!-- LOGIN -->
 <div class="login-overlay" id="loginOverlay">
     <div class="login-box">
-        <div style="font-size:2.5rem;margin-bottom:12px;">✅</div>
+        <div style="font-size:2.2rem;margin-bottom:10px;">✅</div>
         <div class="login-title">CRT CHECKLIST</div>
         <div class="login-sub">Enter your name to start tracking</div>
-
-        <input type="text" id="loginName" class="login-input" placeholder="Your name (e.g. Peter)" maxlength="20" autocomplete="off">
-
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.4);margin-bottom:8px;">Pick your avatar:</div>
+        <input type="text" id="loginName" class="login-input" placeholder="Your name" maxlength="20" autocomplete="off">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.50rem;color:rgba(148,163,184,0.4);margin-bottom:6px;">Pick avatar:</div>
         <div class="emoji-grid" id="emojiGrid"></div>
-
-        <button class="login-btn" onclick="doLogin()">START TRACKING ✅</button>
-
+        <button class="login-btn" onclick="doLogin()">START ✅</button>
         <div class="existing-users" id="existingUsers"></div>
     </div>
 </div>
 
 <!-- TOP BAR -->
 <div class="top-bar">
-    <div style="display:flex;align-items:center;gap:14px;">
-        <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">✅</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">✅</div>
         <div>
             <div class="brand-name">CRT CHECKLIST</div>
-            <div class="brand-sub">STRONG HIGH/LOW → IDM → SWEEP → ENTRY → RESULT</div>
+            <div class="brand-sub">LIQ SWEEP → BO → STRONG H/L → IDM → IDM SWEEP → ENTRY</div>
         </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
         <a href="/" class="ctrl-btn btn-back"><span>⚡</span> MAIN</a>
         <a href="/crt" class="ctrl-btn btn-crt"><span>🔄</span> CRT</a>
         <div class="stat-chip">
@@ -159,53 +152,57 @@
             <div class="user-avatar" id="userAvatar">👤</div>
             <div>
                 <div class="user-name" id="userName">—</div>
-                <div class="user-switch" onclick="switchUser()">switch user</div>
+                <div class="user-switch" onclick="switchUser()">switch</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- FILTER BAR -->
+<!-- FILTERS -->
 <div class="filter-bar">
     <span class="filter-label">TF</span>
     <button id="fAll" class="filter-btn active" onclick="setFilter('ALL')">ALL</button>
-    <button id="fW" class="filter-btn" onclick="setFilter('1W')">📆 W</button>
-    <button id="fD" class="filter-btn" onclick="setFilter('1D')">📅 D</button>
-    <button id="f4H" class="filter-btn" onclick="setFilter('4H')">⏰ 4H</button>
+    <button id="fW" class="filter-btn" onclick="setFilter('1W')">W</button>
+    <button id="fD" class="filter-btn" onclick="setFilter('1D')">D</button>
+    <button id="f4H" class="filter-btn" onclick="setFilter('4H')">4H</button>
     <div class="divider-v"></div>
     <span class="filter-label">Grade</span>
     <button id="gAll" class="filter-btn active" onclick="setGrade('ALL')">ALL</button>
-    <button id="gA" class="filter-btn" onclick="setGrade('A+')">⭐ A+</button>
-    <button id="gB" class="filter-btn" onclick="setGrade('B+')">🔶 B+</button>
+    <button id="gA" class="filter-btn" onclick="setGrade('A+')">⭐A+</button>
+    <button id="gB" class="filter-btn" onclick="setGrade('B+')">🔶B+</button>
     <div class="divider-v"></div>
     <span class="filter-label">Side</span>
     <button id="sAll" class="filter-btn active" onclick="setSide('ALL')">ALL</button>
     <button id="sBull" class="filter-btn" onclick="setSide('BULLISH')">🐂</button>
     <button id="sBear" class="filter-btn" onclick="setSide('BEARISH')">🐻</button>
     <div class="divider-v"></div>
-    <span class="filter-label">Status</span>
-    <button id="stAll" class="filter-btn active" onclick="setStatus('ALL')">ALL</button>
-    <button id="stPend" class="filter-btn" onclick="setStatus('PENDING')">⏳</button>
-    <button id="stDone" class="filter-btn" onclick="setStatus('DONE')">✅</button>
+    <span class="filter-label">Progress</span>
+    <button id="pAll" class="filter-btn active" onclick="setProgress('ALL')">ALL</button>
+    <button id="pReady" class="filter-btn" onclick="setProgress('READY')">🎯 Ready</button>
+    <button id="pWatch" class="filter-btn" onclick="setProgress('WATCHING')">👀 Watch</button>
+    <button id="pUnclear" class="filter-btn" onclick="setProgress('UNCLEAR')">⚠️ Unclear</button>
 </div>
 
-<!-- MAIN CONTENT -->
+<!-- MAIN -->
 <div class="main-content">
     <table class="cl-table">
         <thead>
             <tr>
-                <th class="cl-header cl-header-left" style="width:180px;">SYMBOL</th>
-                <th class="cl-header" style="width:50px;">📊</th>
-                <th class="cl-header" style="width:55px;">① STRONG HIGH/LOW</th>
-                <th class="cl-header" style="width:55px;">② IDM</th>
-                <th class="cl-header" style="width:55px;">③ SWEEP</th>
-                <th class="cl-header" style="width:55px;">④ ENTRY</th>
-                <th class="cl-header" style="width:85px;">⑤ RESULT</th>
-                <th class="cl-header" style="width:65px;">PROG</th>
+                <th class="cl-header cl-header-left" style="min-width:140px;">COIN</th>
+                <th class="cl-header" style="width:40px;">📊</th>
+                <th class="cl-header" style="width:48px;">① LIQ<br>SWEEP</th>
+                <th class="cl-header" style="width:40px;">② BO</th>
+                <th class="cl-header" style="width:48px;">③ STR<br>H/L</th>
+                <th class="cl-header" style="width:40px;">④ IDM</th>
+                <th class="cl-header" style="width:48px;">⑤ IDM<br>SWEEP</th>
+                <th class="cl-header" style="width:48px;">⑥ ENTRY</th>
+                <th class="cl-header" style="width:48px;">⚠️ UNCLEAR</th>
+                <th class="cl-header" style="width:50px;">STATUS</th>
+                <th class="cl-header" style="width:55px;">PROG</th>
             </tr>
         </thead>
         <tbody id="checklistBody">
-            <tr><td colspan="8" class="empty-state">Login to start tracking...</td></tr>
+            <tr><td colspan="11" class="empty-state">Login to start tracking...</td></tr>
         </tbody>
     </table>
 </div>
@@ -215,151 +212,130 @@
 // STATE
 // ══════════════════════════════════════════════
 let items = [];
-let currentUser = null; // { id, name, emoji, color }
-let filterTF = 'ALL', filterGrade = 'ALL', filterSide = 'ALL', filterStatus = 'ALL';
+let currentUser = null;
+let filterTF='ALL', filterGrade='ALL', filterSide='ALL', filterProgress='ALL';
 
 const EMOJIS = ['🐂','🐻','🦁','🐺','🦅','🐉','🎯','⚡','🔥','💎','🚀','👑','🏆','💰','📊','🌟'];
 let selectedEmoji = '🐂';
 
+const CHECK_FIELDS = ['liq_sweep','bo_formed','strong_hl','idm_formed','idm_swept','entry_hit'];
+
 // ══════════════════════════════════════════════
-// LOGIN SYSTEM
+// LOGIN
 // ══════════════════════════════════════════════
 function buildEmojiGrid() {
-    const grid = document.getElementById('emojiGrid');
-    grid.innerHTML = EMOJIS.map(e =>
-        `<div class="emoji-pick ${e === selectedEmoji ? 'active' : ''}" onclick="pickEmoji('${e}')">${e}</div>`
+    document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e =>
+        `<div class="emoji-pick ${e===selectedEmoji?'active':''}" onclick="pickEmoji('${e}')">${e}</div>`
     ).join('');
 }
-
-function pickEmoji(e) {
-    selectedEmoji = e;
-    buildEmojiGrid();
-}
+function pickEmoji(e) { selectedEmoji = e; buildEmojiGrid(); }
 
 async function loadExistingUsers() {
     try {
-        const res = await fetch('/api/users').then(r => r.json());
+        const res = await fetch('/api/users').then(r=>r.json());
         const users = res.users || {};
         const div = document.getElementById('existingUsers');
         const ids = Object.keys(users);
-        if (!ids.length) { div.style.display = 'none'; return; }
-        div.style.display = 'block';
-        div.innerHTML = `<div class="existing-label">Quick login — existing users:</div>` +
-            ids.map(id => {
-                const u = users[id];
-                return `<button class="existing-btn" onclick="quickLogin('${id}')">
-                    <span class="existing-btn-emoji">${u.emoji || '👤'}</span>
-                    <span class="existing-btn-name">${u.name}</span>
-                </button>`;
-            }).join('');
+        if (!ids.length) { div.style.display='none'; return; }
+        div.style.display='block';
+        div.innerHTML = `<div class="existing-label">Quick login:</div>` +
+            ids.map(id => `<button class="existing-btn" onclick="quickLogin('${id}')">
+                <span style="font-size:0.9rem;">${users[id].emoji||'👤'}</span>
+                <span class="existing-btn-name">${users[id].name}</span>
+            </button>`).join('');
     } catch(e) {}
 }
 
 async function quickLogin(userId) {
     try {
-        const res = await fetch('/api/users').then(r => r.json());
+        const res = await fetch('/api/users').then(r=>r.json());
         const u = res.users?.[userId];
         if (!u) return;
-        currentUser = { id: userId, name: u.name, emoji: u.emoji, color: u.color };
+        currentUser = { id:userId, name:u.name, emoji:u.emoji, color:u.color };
         localStorage.setItem('cl_userId', userId);
         localStorage.setItem('cl_userName', u.name);
         localStorage.setItem('cl_userEmoji', u.emoji);
-        hideLogin();
-        loadData();
+        hideLogin(); loadData();
     } catch(e) {}
 }
 
 async function doLogin() {
     const name = document.getElementById('loginName').value.trim();
-    if (!name) return alert('Please enter your name');
-    const userId = name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-
+    if (!name) return alert('Enter your name');
+    const userId = name.toUpperCase().replace(/[^A-Z0-9]/g,'_');
     try {
         await fetch('/api/user-register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, name, emoji: selectedEmoji, color: '#38bdf8' })
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ userId, name, emoji:selectedEmoji, color:'#38bdf8' })
         });
-        currentUser = { id: userId, name, emoji: selectedEmoji, color: '#38bdf8' };
+        currentUser = { id:userId, name, emoji:selectedEmoji, color:'#38bdf8' };
         localStorage.setItem('cl_userId', userId);
         localStorage.setItem('cl_userName', name);
         localStorage.setItem('cl_userEmoji', selectedEmoji);
-        hideLogin();
-        loadData();
-    } catch(e) { alert('Login failed'); }
+        hideLogin(); loadData();
+    } catch(e) { alert('Failed'); }
 }
 
 function hideLogin() {
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('userBar').style.display = 'flex';
-    document.getElementById('userAvatar').textContent = currentUser.emoji;
-    document.getElementById('userName').textContent = currentUser.name;
-    document.getElementById('userName').style.color = currentUser.color;
+    document.getElementById('loginOverlay').style.display='none';
+    document.getElementById('userBar').style.display='flex';
+    document.getElementById('userAvatar').textContent=currentUser.emoji;
+    document.getElementById('userName').textContent=currentUser.name;
+    document.getElementById('userName').style.color=currentUser.color;
 }
-
 function showLogin() {
-    document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('userBar').style.display = 'none';
-    buildEmojiGrid();
-    loadExistingUsers();
+    document.getElementById('loginOverlay').style.display='flex';
+    document.getElementById('userBar').style.display='none';
+    buildEmojiGrid(); loadExistingUsers();
 }
-
 function switchUser() {
     localStorage.removeItem('cl_userId');
     localStorage.removeItem('cl_userName');
     localStorage.removeItem('cl_userEmoji');
-    currentUser = null;
-    showLogin();
+    currentUser=null; showLogin();
 }
 
-// Check saved user on load
-(function checkSavedUser() {
-    const id = localStorage.getItem('cl_userId');
-    const name = localStorage.getItem('cl_userName');
-    const emoji = localStorage.getItem('cl_userEmoji');
-    if (id && name) {
-        currentUser = { id, name, emoji: emoji || '👤', color: '#38bdf8' };
-        hideLogin();
-        loadData();
-    } else {
-        showLogin();
-    }
+// Auto-login check
+(function() {
+    const id=localStorage.getItem('cl_userId');
+    const name=localStorage.getItem('cl_userName');
+    const emoji=localStorage.getItem('cl_userEmoji');
+    if (id&&name) { currentUser={id,name,emoji:emoji||'👤',color:'#38bdf8'}; hideLogin(); loadData(); }
+    else showLogin();
 })();
 
 // ══════════════════════════════════════════════
 // FILTERS
 // ══════════════════════════════════════════════
-function setFilter(tf) { filterTF = tf; ['fAll','fW','fD','f4H'].forEach(id => document.getElementById(id).classList.remove('active')); document.getElementById({'ALL':'fAll','1W':'fW','1D':'fD','4H':'f4H'}[tf]).classList.add('active'); render(); }
-function setGrade(g) { filterGrade = g; ['gAll','gA','gB'].forEach(id => document.getElementById(id).classList.remove('active')); document.getElementById({'ALL':'gAll','A+':'gA','B+':'gB'}[g]).classList.add('active'); render(); }
-function setSide(s) { filterSide = s; ['sAll','sBull','sBear'].forEach(id => document.getElementById(id).classList.remove('active')); document.getElementById({'ALL':'sAll','BULLISH':'sBull','BEARISH':'sBear'}[s]).classList.add('active'); render(); }
-function setStatus(st) { filterStatus = st; ['stAll','stPend','stDone'].forEach(id => document.getElementById(id).classList.remove('active')); document.getElementById({'ALL':'stAll','PENDING':'stPend','DONE':'stDone'}[st]).classList.add('active'); render(); }
+function setFilter(v) { filterTF=v; ['fAll','fW','fD','f4H'].forEach(i=>document.getElementById(i).classList.remove('active')); document.getElementById({'ALL':'fAll','1W':'fW','1D':'fD','4H':'f4H'}[v]).classList.add('active'); render(); }
+function setGrade(v) { filterGrade=v; ['gAll','gA','gB'].forEach(i=>document.getElementById(i).classList.remove('active')); document.getElementById({'ALL':'gAll','A+':'gA','B+':'gB'}[v]).classList.add('active'); render(); }
+function setSide(v) { filterSide=v; ['sAll','sBull','sBear'].forEach(i=>document.getElementById(i).classList.remove('active')); document.getElementById({'ALL':'sAll','BULLISH':'sBull','BEARISH':'sBear'}[v]).classList.add('active'); render(); }
+function setProgress(v) { filterProgress=v; ['pAll','pReady','pWatch','pUnclear'].forEach(i=>document.getElementById(i).classList.remove('active')); document.getElementById({'ALL':'pAll','READY':'pReady','WATCHING':'pWatch','UNCLEAR':'pUnclear'}[v]).classList.add('active'); render(); }
 
 // ══════════════════════════════════════════════
-// TOGGLE CHECK
+// STATUS CALCULATION
 // ══════════════════════════════════════════════
-async function toggleCheck(key, field) {
-    const item = items.find(i => i.key === key);
-    if (!item || !currentUser) return;
-    const newVal = !item.checks[field];
-    item.checks[field] = newVal;
-    render();
-    await fetch('/api/checklist-update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, key, field, value: newVal })
-    });
+function getStatus(c) {
+    if (c.unclear) return { label:'UNCLEAR', cls:'cl-status-unclear', icon:'⚠️' };
+    const done = CHECK_FIELDS.filter(f => c[f]).length;
+    if (done >= 5) return { label:'READY', cls:'cl-status-ready', icon:'🎯' };
+    if (done >= 3) return { label:'WATCHING', cls:'cl-status-watching', icon:'👀' };
+    return { label:'WAITING', cls:'cl-status-waiting', icon:'⏳' };
 }
 
-async function setResult(key, result) {
-    const item = items.find(i => i.key === key);
-    if (!item || !currentUser) return;
-    const newVal = item.checks.result === result ? 'PENDING' : result;
-    item.checks.result = newVal;
+// ══════════════════════════════════════════════
+// TOGGLE
+// ══════════════════════════════════════════════
+async function toggleCheck(key, field) {
+    const item = items.find(i => i.key===key);
+    if (!item||!currentUser) return;
+    const newVal = !item.checks[field];
+    item.checks[field] = newVal;
+    // If toggling unclear ON, it's separate from progress checks
     render();
     await fetch('/api/checklist-update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, key, field: 'result', value: newVal })
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ userId:currentUser.id, key, field, value:newVal })
     });
 }
 
@@ -368,63 +344,83 @@ async function setResult(key, result) {
 // ══════════════════════════════════════════════
 function render() {
     const filtered = items.filter(item => {
-        if (filterTF !== 'ALL' && item.tf !== filterTF) return false;
-        if (filterGrade !== 'ALL' && item.grade !== filterGrade) return false;
-        if (filterSide !== 'ALL' && item.side !== filterSide) return false;
-        if (filterStatus === 'PENDING' && item.checks.result !== 'PENDING') return false;
-        if (filterStatus === 'DONE' && item.checks.result === 'PENDING') return false;
+        if (filterTF!=='ALL' && item.tf!==filterTF) return false;
+        if (filterGrade!=='ALL' && item.grade!==filterGrade) return false;
+        if (filterSide!=='ALL' && item.side!==filterSide) return false;
+        if (filterProgress!=='ALL') {
+            const st = getStatus(item.checks);
+            if (filterProgress==='READY' && st.label!=='READY') return false;
+            if (filterProgress==='WATCHING' && st.label!=='WATCHING') return false;
+            if (filterProgress==='UNCLEAR' && st.label!=='UNCLEAR') return false;
+        }
         return true;
+    });
+
+    // Sort: ready first, then watching, then waiting, unclear last
+    const order = { 'READY':0, 'WATCHING':1, 'WAITING':2, 'UNCLEAR':3 };
+    filtered.sort((a,b) => {
+        const sa = order[getStatus(a.checks).label] || 9;
+        const sb = order[getStatus(b.checks).label] || 9;
+        return sa - sb;
     });
 
     document.getElementById('activeCount').textContent = filtered.length;
     const tbody = document.getElementById('checklistBody');
 
     if (!filtered.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No positions match filters.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No active CRTs match filters.</td></tr>';
         return;
     }
 
     tbody.innerHTML = filtered.map(item => {
-        const isBull = item.side === 'BULLISH';
+        const isBull = item.side==='BULLISH';
         const rowCls = isBull ? 'cl-row cl-row-bull' : 'cl-row cl-row-bear';
         const sideIcon = isBull ? '🐂' : '🐻';
         const sideCls = isBull ? 'cl-side-bull' : 'cl-side-bear';
-        const tfMap = { '1W':['W','cl-tf-w'], '1D':['D','cl-tf-d'], '4H':['4H','cl-tf-4h'] };
-        const [tfLabel, tfCls] = tfMap[item.tf] || ['?',''];
-        const gradeHTML = item.grade === 'A+' ? '<span class="cl-grade-aplus">⭐A+</span>' :
-                          item.grade === 'B+' ? '<span class="cl-grade-bplus">🔶B+</span>' : '';
-        const align = item.align_level !== 'NONE' ? item.align_level : 'None';
+        const tfMap = {'1W':['W','cl-tf-w'],'1D':['D','cl-tf-d'],'4H':['4H','cl-tf-4h']};
+        const [tfLabel,tfCls] = tfMap[item.tf]||['?',''];
+        const gradeHTML = item.grade==='A+'?'<span class="cl-grade-a">⭐A+</span>':item.grade==='B+'?'<span class="cl-grade-b">🔶B+</span>':'';
+        const align = item.align_level!=='NONE' ? item.align_level : '—';
         const probHTML = buildProbHTML(item);
         const c = item.checks;
-        const checks = ['hh_hl','idm_formed','idm_swept','entry_hit'];
-        const checkboxes = checks.map(field => {
+
+        // 6 check fields
+        const checkboxes = CHECK_FIELDS.map(field => {
             const on = c[field];
             return `<td class="cl-cell cl-cell-center">
-                <div class="cl-check ${on?'cl-check-on':'cl-check-off'}" onclick="toggleCheck('${item.key}','${field}')">${on?'✅':'○'}</div>
+                <div class="cl-check ${on?'cl-check-on':'cl-check-off'}" onclick="toggleCheck('${item.key}','${field}')">${on?'✓':'○'}</div>
             </td>`;
         }).join('');
-        const resultHTML = `<td class="cl-cell cl-cell-center">
-            <div class="cl-result-row">
-                <button class="cl-result-btn cl-result-tp ${c.result==='TP'?'active':''}" onclick="setResult('${item.key}','TP')">🎯 TP</button>
-                <button class="cl-result-btn cl-result-sl ${c.result==='SL'?'active':''}" onclick="setResult('${item.key}','SL')">💀 SL</button>
-            </div>
+
+        // Unclear toggle (separate — orange)
+        const unclearHTML = `<td class="cl-cell cl-cell-center">
+            <div class="cl-check ${c.unclear?'cl-check-unclear':'cl-check-off'}" onclick="toggleCheck('${item.key}','unclear')">${c.unclear?'⚠️':'○'}</div>
         </td>`;
-        const done = checks.filter(f => c[f]).length + (c.result !== 'PENDING' ? 1 : 0);
-        const progDots = checks.map(f => `<div class="cl-prog-dot ${c[f]?'cl-prog-done':'cl-prog-empty'}"></div>`).join('');
-        const resDot = c.result==='TP'?'<div class="cl-prog-dot cl-prog-tp"></div>':c.result==='SL'?'<div class="cl-prog-dot cl-prog-sl"></div>':'<div class="cl-prog-dot cl-prog-empty"></div>';
+
+        // Status
+        const status = getStatus(c);
+        const statusHTML = `<td class="cl-cell cl-cell-center">
+            <span class="cl-status ${status.cls}">${status.icon} ${status.label}</span>
+        </td>`;
+
+        // Progress dots
+        const done = CHECK_FIELDS.filter(f => c[f]).length;
+        const progDots = CHECK_FIELDS.map(f => `<div class="cl-prog-dot ${c[f]?'cl-prog-done':'cl-prog-empty'}"></div>`).join('');
+        const unclearDot = c.unclear ? '<div class="cl-prog-dot cl-prog-warn"></div>' : '';
         const progressHTML = `<td class="cl-cell cl-cell-center">
-            <div class="cl-progress">${progDots}${resDot}</div>
-            <div style="font-size:0.42rem;color:rgba(148,163,184,0.5);margin-top:3px;">${done}/5</div>
+            <div class="cl-progress">${progDots}</div>
+            <div style="font-size:0.38rem;color:rgba(148,163,184,0.5);margin-top:2px;">${done}/6</div>
         </td>`;
 
         return `<tr class="${rowCls}">
-            <td class="cl-cell" style="border-radius:12px 0 0 12px;">
+            <td class="cl-cell" style="border-radius:10px 0 0 10px;padding-left:10px;">
                 <div><span class="${sideCls}">${sideIcon}</span> <span class="cl-sym">${item.symbol}</span> <span class="cl-tf ${tfCls}">${tfLabel}</span>${gradeHTML}</div>
                 <span class="cl-align">${align}</span>
             </td>
             <td class="cl-cell cl-cell-center">${probHTML}</td>
             ${checkboxes}
-            ${resultHTML}
+            ${unclearHTML}
+            ${statusHTML}
             ${progressHTML}
         </tr>`;
     }).join('');
@@ -432,41 +428,33 @@ function render() {
 
 function buildProbHTML(item) {
     if (!window._crtStats) return '<span class="cl-prob cl-prob-none">—</span>';
-    const s = window._crtStats, tf = item.tf, al = item.align_level || 'NONE', g = item.grade || '';
-    const buckets = [];
-    if (tf === '1D') {
-        if (g==='A+') { if(al==='MO+W')buckets.push('daily_mo_w_aplus'); if(al==='MO')buckets.push('daily_mo_aplus'); if(al==='W')buckets.push('daily_w_aplus'); buckets.push('daily_aplus'); }
-        else if (g==='B+') { if(al==='MO+W')buckets.push('daily_mo_w_bplus'); if(al==='MO')buckets.push('daily_mo_bplus'); if(al==='W')buckets.push('daily_w_bplus'); buckets.push('daily_bplus'); }
-        buckets.push('daily');
-    } else if (tf === '1W') { if(g==='A+')buckets.push('weekly_mo_aplus'); if(g==='B+')buckets.push('weekly_mo_bplus'); buckets.push('weekly');
-    } else if (tf === '4H') {
-        const km={'D+W+MO':'fourh_dwm','D+W':'fourh_dw','D+MO':'fourh_dmo','D':'fourh_d','W+MO':'fourh_wmo','W':'fourh_w','MO':'fourh_mo'};
-        if(g==='A+'&&km[al])buckets.push(km[al]+'_aplus'); if(g==='B+'&&km[al])buckets.push(km[al]+'_bplus'); if(km[al])buckets.push(km[al]);
-        if(g==='A+')buckets.push('fourh_aplus'); if(g==='B+')buckets.push('fourh_bplus'); buckets.push('fourh');
-    }
+    const s=window._crtStats, tf=item.tf, al=item.align_level||'NONE', g=item.grade||'';
+    const buckets=[];
+    if(tf==='1D'){if(g==='A+'){if(al==='MO+W')buckets.push('daily_mo_w_aplus');if(al==='MO')buckets.push('daily_mo_aplus');if(al==='W')buckets.push('daily_w_aplus');buckets.push('daily_aplus');}else if(g==='B+'){if(al==='MO+W')buckets.push('daily_mo_w_bplus');if(al==='MO')buckets.push('daily_mo_bplus');if(al==='W')buckets.push('daily_w_bplus');buckets.push('daily_bplus');}buckets.push('daily');}
+    else if(tf==='1W'){if(g==='A+')buckets.push('weekly_mo_aplus');if(g==='B+')buckets.push('weekly_mo_bplus');buckets.push('weekly');}
+    else if(tf==='4H'){const km={'D+W+MO':'fourh_dwm','D+W':'fourh_dw','D+MO':'fourh_dmo','D':'fourh_d','W+MO':'fourh_wmo','W':'fourh_w','MO':'fourh_mo'};if(g==='A+'&&km[al])buckets.push(km[al]+'_aplus');if(g==='B+'&&km[al])buckets.push(km[al]+'_bplus');if(km[al])buckets.push(km[al]);if(g==='A+')buckets.push('fourh_aplus');if(g==='B+')buckets.push('fourh_bplus');buckets.push('fourh');}
     buckets.push('overall');
-    for (const key of buckets) { const b = s[key]; if(!b)continue; const res=b.tp+b.inv; if(res>=5){ const pct=((b.tp/res)*100).toFixed(0); const cls=pct>=60?'cl-prob-good':pct>=40?'cl-prob-warn':'cl-prob-bad'; return `<span class="cl-prob ${cls}">${pct}%</span>`; } }
+    for(const key of buckets){const b=s[key];if(!b)continue;const res=b.tp+b.inv;if(res>=5){const pct=((b.tp/res)*100).toFixed(0);const cls=pct>=60?'cl-prob-good':pct>=40?'cl-prob-warn':'cl-prob-bad';return `<span class="cl-prob ${cls}">${pct}%</span>`;}}
     return '<span class="cl-prob cl-prob-none">—</span>';
 }
 
 // ══════════════════════════════════════════════
-// LOAD DATA
+// LOAD
 // ══════════════════════════════════════════════
 async function loadData() {
     if (!currentUser) return;
     try {
-        const [clRes, statsRes] = await Promise.all([
-            fetch(`/api/checklist-state?profile=HTF&userId=${currentUser.id}`).then(r => r.json()),
-            fetch('/api/crt-stats?profile=HTF').then(r => r.json())
+        const [clRes,statsRes] = await Promise.all([
+            fetch(`/api/checklist-state?profile=HTF&userId=${currentUser.id}`).then(r=>r.json()),
+            fetch('/api/crt-stats?profile=HTF').then(r=>r.json())
         ]);
         items = clRes.items || [];
         window._crtStats = statsRes.crtStats || {};
         render();
-    } catch(e) { console.error('Load failed:', e); }
+    } catch(e) { console.error('Load failed:',e); }
 }
 
-// Auto-refresh
-setInterval(() => { if (currentUser) loadData(); }, 30000);
+setInterval(() => { if(currentUser) loadData(); }, 30000);
 </script>
 </body>
 </html>
