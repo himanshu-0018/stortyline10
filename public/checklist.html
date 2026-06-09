@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRT Checklist — God-Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing:border-box;margin:0;padding:0; }
+        body { font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh; }
+
+        /* Background */
+        .bg-container { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
+        .bg-gradient { position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.20) 0%,transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(16,185,129,0.15) 0%,transparent 50%),linear-gradient(135deg,rgba(10,14,26,0.90) 0%,rgba(15,20,40,0.85) 100%); }
+
+        /* Top Bar */
+        .top-bar { position:sticky;top:0;z-index:50;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(10,14,26,0.90);backdrop-filter:blur(20px); }
+        .brand-name { font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#818cf8,#38bdf8,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+        .brand-sub { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.6);letter-spacing:0.10em;margin-top:2px; }
+
+        .ctrl-btn { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;font-size:0.70rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid;font-family:'JetBrains Mono',monospace;text-decoration:none; }
+        .ctrl-btn:hover { transform:translateY(-2px); }
+        .btn-back { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(14,165,233,0.15));border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
+        .btn-crt { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
+
+        .stat-chip { display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace;font-size:0.65rem; }
+
+        /* Filter Bar */
+        .filter-bar { position:sticky;top:62px;z-index:49;display:flex;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.90);backdrop-filter:blur(10px);flex-wrap:wrap; }
+        .filter-btn { padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid rgba(71,85,105,0.4);background:rgba(71,85,105,0.15);color:#94a3b8; }
+        .filter-btn:hover { background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#a5b4fc; }
+        .filter-btn.active { background:rgba(99,102,241,0.25);border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
+        .filter-label { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.35);letter-spacing:0.10em;text-transform:uppercase; }
+        .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
+
+        /* Main Content */
+        .main-content { position:relative;z-index:10;padding:20px 24px;padding-bottom:60px; }
+
+        /* Checklist Table */
+        .cl-table { width:100%;border-collapse:separate;border-spacing:0 6px; }
+        .cl-header { font-family:'JetBrains Mono',monospace;font-size:0.50rem;font-weight:700;color:rgba(148,163,184,0.5);letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:center; }
+        .cl-header-left { text-align:left; }
+
+        .cl-row { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:12px;transition:all 0.2s; }
+        .cl-row:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+        .cl-row-bull { border-left:3px solid #10b981; }
+        .cl-row-bear { border-left:3px solid #ef4444; }
+
+        .cl-cell { padding:10px;font-family:'JetBrains Mono',monospace;font-size:0.60rem;vertical-align:middle; }
+        .cl-cell-center { text-align:center; }
+
+        /* Symbol cell */
+        .cl-sym { font-size:0.75rem;font-weight:800;color:#f1f5f9; }
+        .cl-tf { font-size:0.48rem;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block;margin-left:6px; }
+        .cl-tf-w { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
+        .cl-tf-d { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .cl-tf-4h { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+
+        .cl-grade-aplus { font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399;margin-left:4px; }
+        .cl-grade-bplus { font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;margin-left:4px; }
+
+        .cl-align { font-size:0.45rem;color:rgba(148,163,184,0.6);display:block;margin-top:2px; }
+        .cl-side-bull { color:#34d399; }
+        .cl-side-bear { color:#f87171; }
+
+        /* Checkboxes */
+        .cl-check { width:28px;height:28px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;transition:all 0.2s;margin:0 auto;border:2px solid;user-select:none; }
+        .cl-check:hover { transform:scale(1.15); }
+
+        .cl-check-off { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:rgba(71,85,105,0.4); }
+        .cl-check-on { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 10px rgba(16,185,129,0.2); }
+
+        /* Result buttons */
+        .cl-result-row { display:flex;gap:4px;justify-content:center; }
+        .cl-result-btn { padding:4px 8px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid; }
+        .cl-result-pending { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:#94a3b8; }
+        .cl-result-tp { background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399; }
+        .cl-result-tp.active { background:rgba(16,185,129,0.35);border-color:rgba(16,185,129,0.7);color:#a7f3d0;box-shadow:0 0 8px rgba(16,185,129,0.3); }
+        .cl-result-sl { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171; }
+        .cl-result-sl.active { background:rgba(239,68,68,0.35);border-color:rgba(239,68,68,0.7);color:#fecaca;box-shadow:0 0 8px rgba(239,68,68,0.3); }
+
+        /* Progress bar */
+        .cl-progress { display:flex;gap:2px;margin-top:4px; }
+        .cl-prog-dot { width:14px;height:4px;border-radius:2px;transition:all 0.2s; }
+        .cl-prog-done { background:#34d399; }
+        .cl-prog-empty { background:rgba(71,85,105,0.3); }
+        .cl-prog-tp { background:#34d399; }
+        .cl-prog-sl { background:#ef4444; }
+
+        /* Hit probability */
+        .cl-prob { font-size:0.52rem;font-weight:700;text-align:center; }
+        .cl-prob-good { color:#34d399; }
+        .cl-prob-warn { color:#fbbf24; }
+        .cl-prob-bad { color:#f87171; }
+        .cl-prob-none { color:#64748b; }
+
+        .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);text-align:center;padding:60px 0; }
+
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.3);border-radius:4px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-container"><div class="bg-gradient"></div></div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">✅</div>
+        <div>
+            <div class="brand-name">CRT CHECKLIST</div>
+            <div class="brand-sub">ACTIVE POSITIONS · TRADE MANAGEMENT · HH/HL → IDM → SWEEP → ENTRY → RESULT</div>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <a href="/" class="ctrl-btn btn-back"><span>⚡</span> MAIN</a>
+        <a href="/crt" class="ctrl-btn btn-crt"><span>🔄</span> CRT</a>
+        <div class="stat-chip">
+            <span style="color:rgba(148,163,184,0.5);">ACTIVE</span>
+            <span id="activeCount" style="font-weight:800;color:#38bdf8;">0</span>
+        </div>
+    </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+    <span class="filter-label">TF</span>
+    <button id="fAll" class="filter-btn active" onclick="setFilter('ALL')">ALL</button>
+    <button id="fW" class="filter-btn" onclick="setFilter('1W')">📆 W</button>
+    <button id="fD" class="filter-btn" onclick="setFilter('1D')">📅 D</button>
+    <button id="f4H" class="filter-btn" onclick="setFilter('4H')">⏰ 4H</button>
+    <div class="divider-v"></div>
+    <span class="filter-label">Grade</span>
+    <button id="gAll" class="filter-btn active" onclick="setGrade('ALL')">ALL</button>
+    <button id="gA" class="filter-btn" onclick="setGrade('A+')">⭐ A+</button>
+    <button id="gB" class="filter-btn" onclick="setGrade('B+')">🔶 B+</button>
+    <div class="divider-v"></div>
+    <span class="filter-label">Side</span>
+    <button id="sAll" class="filter-btn active" onclick="setSide('ALL')">ALL</button>
+    <button id="sBull" class="filter-btn" onclick="setSide('BULLISH')">🐂</button>
+    <button id="sBear" class="filter-btn" onclick="setSide('BEARISH')">🐻</button>
+    <div class="divider-v"></div>
+    <span class="filter-label">Status</span>
+    <button id="stAll" class="filter-btn active" onclick="setStatus('ALL')">ALL</button>
+    <button id="stPend" class="filter-btn" onclick="setStatus('PENDING')">⏳ Pending</button>
+    <button id="stDone" class="filter-btn" onclick="setStatus('DONE')">✅ Done</button>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <table class="cl-table" id="checklistTable">
+        <thead>
+            <tr>
+                <th class="cl-header cl-header-left" style="width:180px;">SYMBOL</th>
+                <th class="cl-header" style="width:55px;">📊 PROB</th>
+                <th class="cl-header" style="width:65px;">① HH/HL</th>
+                <th class="cl-header" style="width:65px;">② IDM</th>
+                <th class="cl-header" style="width:65px;">③ SWEEP</th>
+                <th class="cl-header" style="width:65px;">④ ENTRY</th>
+                <th class="cl-header" style="width:90px;">⑤ RESULT</th>
+                <th class="cl-header" style="width:70px;">PROGRESS</th>
+            </tr>
+        </thead>
+        <tbody id="checklistBody">
+            <tr><td colspan="8" class="empty-state">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let items = [];
+let filterTF = 'ALL', filterGrade = 'ALL', filterSide = 'ALL', filterStatus = 'ALL';
+
+// ══════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════
+function setFilter(tf) {
+    filterTF = tf;
+    ['fAll','fW','fD','f4H'].forEach(id => document.getElementById(id).classList.remove('active'));
+    const map = {'ALL':'fAll','1W':'fW','1D':'fD','4H':'f4H'};
+    document.getElementById(map[tf]).classList.add('active');
+    render();
+}
+function setGrade(g) {
+    filterGrade = g;
+    ['gAll','gA','gB'].forEach(id => document.getElementById(id).classList.remove('active'));
+    const map = {'ALL':'gAll','A+':'gA','B+':'gB'};
+    document.getElementById(map[g]).classList.add('active');
+    render();
+}
+function setSide(s) {
+    filterSide = s;
+    ['sAll','sBull','sBear'].forEach(id => document.getElementById(id).classList.remove('active'));
+    const map = {'ALL':'sAll','BULLISH':'sBull','BEARISH':'sBear'};
+    document.getElementById(map[s]).classList.add('active');
+    render();
+}
+function setStatus(st) {
+    filterStatus = st;
+    ['stAll','stPend','stDone'].forEach(id => document.getElementById(id).classList.remove('active'));
+    const map = {'ALL':'stAll','PENDING':'stPend','DONE':'stDone'};
+    document.getElementById(map[st]).classList.add('active');
+    render();
+}
+
+// ══════════════════════════════════════════════
+// TOGGLE CHECK
+// ══════════════════════════════════════════════
+async function toggleCheck(key, field) {
+    const item = items.find(i => i.key === key);
+    if (!item) return;
+    const newVal = !item.checks[field];
+    item.checks[field] = newVal;
+    render();
+    await fetch('/api/checklist-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, field, value: newVal })
+    });
+}
+
+async function setResult(key, result) {
+    const item = items.find(i => i.key === key);
+    if (!item) return;
+    const newVal = item.checks.result === result ? 'PENDING' : result;
+    item.checks.result = newVal;
+    render();
+    await fetch('/api/checklist-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, field: 'result', value: newVal })
+    });
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function render() {
+    const filtered = items.filter(item => {
+        if (filterTF !== 'ALL' && item.tf !== filterTF) return false;
+        if (filterGrade !== 'ALL' && item.grade !== filterGrade) return false;
+        if (filterSide !== 'ALL' && item.side !== filterSide) return false;
+        if (filterStatus === 'PENDING' && item.checks.result !== 'PENDING') return false;
+        if (filterStatus === 'DONE' && item.checks.result === 'PENDING') return false;
+        return true;
+    });
+
+    document.getElementById('activeCount').textContent = filtered.length;
+
+    const tbody = document.getElementById('checklistBody');
+
+    if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No active CRTs match filters.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(item => {
+        const isBull = item.side === 'BULLISH';
+        const rowCls = isBull ? 'cl-row cl-row-bull' : 'cl-row cl-row-bear';
+        const sideIcon = isBull ? '🐂' : '🐻';
+        const sideCls = isBull ? 'cl-side-bull' : 'cl-side-bear';
+
+        // TF badge
+        const tfMap = { '1W': ['W','cl-tf-w'], '1D': ['D','cl-tf-d'], '4H': ['4H','cl-tf-4h'] };
+        const [tfLabel, tfCls] = tfMap[item.tf] || ['?',''];
+
+        // Grade
+        const gradeHTML = item.grade === 'A+' ? '<span class="cl-grade-aplus">⭐A+</span>' :
+                          item.grade === 'B+' ? '<span class="cl-grade-bplus">🔶B+</span>' : '';
+
+        // Align
+        const align = item.align_level && item.align_level !== 'NONE' ? item.align_level : 'None';
+
+        // Probability (calculate from API stats via crtStats)
+        const probHTML = buildProbHTML(item);
+
+        // Checks
+        const c = item.checks;
+        const checks = ['hh_hl', 'idm_formed', 'idm_swept', 'entry_hit'];
+        const checkboxes = checks.map(field => {
+            const on = c[field];
+            return `<td class="cl-cell cl-cell-center">
+                <div class="cl-check ${on ? 'cl-check-on' : 'cl-check-off'}" onclick="toggleCheck('${item.key}','${field}')">
+                    ${on ? '✅' : '○'}
+                </div>
+            </td>`;
+        }).join('');
+
+        // Result
+        const resultHTML = `<td class="cl-cell cl-cell-center">
+            <div class="cl-result-row">
+                <button class="cl-result-btn cl-result-tp ${c.result==='TP'?'active':''}" onclick="setResult('${item.key}','TP')">🎯 TP</button>
+                <button class="cl-result-btn cl-result-sl ${c.result==='SL'?'active':''}" onclick="setResult('${item.key}','SL')">💀 SL</button>
+            </div>
+        </td>`;
+
+        // Progress
+        const done = checks.filter(f => c[f]).length;
+        const total = 5;
+        const resultDone = c.result !== 'PENDING' ? 1 : 0;
+        const allDone = done + resultDone;
+        const progDots = checks.map(f => {
+            return `<div class="cl-prog-dot ${c[f] ? 'cl-prog-done' : 'cl-prog-empty'}"></div>`;
+        }).join('');
+        const resultDot = c.result === 'TP' ? '<div class="cl-prog-dot cl-prog-tp"></div>' :
+                          c.result === 'SL' ? '<div class="cl-prog-dot cl-prog-sl"></div>' :
+                          '<div class="cl-prog-dot cl-prog-empty"></div>';
+
+        const progressHTML = `<td class="cl-cell cl-cell-center">
+            <div class="cl-progress">${progDots}${resultDot}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.42rem;color:rgba(148,163,184,0.5);margin-top:3px;">${allDone}/${total}</div>
+        </td>`;
+
+        return `<tr class="${rowCls}" style="border-radius:12px;">
+            <td class="cl-cell" style="border-radius:12px 0 0 12px;">
+                <div>
+                    <span class="${sideCls}">${sideIcon}</span>
+                    <span class="cl-sym">${item.symbol}</span>
+                    <span class="cl-tf ${tfCls}">${tfLabel}</span>
+                    ${gradeHTML}
+                </div>
+                <span class="cl-align">${align}</span>
+            </td>
+            <td class="cl-cell cl-cell-center">${probHTML}</td>
+            ${checkboxes}
+            ${resultHTML}
+            ${progressHTML}
+        </tr>`;
+    }).join('');
+}
+
+function buildProbHTML(item) {
+    // We'll calculate from crtStats if available
+    if (!window._crtStats) return '<span class="cl-prob cl-prob-none">—</span>';
+
+    const s = window._crtStats;
+    // Try to find the most specific bucket
+    const tf = item.tf, al = item.align_level || 'NONE', g = item.grade || '';
+    const buckets = [];
+
+    if (tf === '1D') {
+        if (g === 'A+') {
+            if (al === 'MO+W') buckets.push('daily_mo_w_aplus');
+            if (al === 'MO') buckets.push('daily_mo_aplus');
+            if (al === 'W') buckets.push('daily_w_aplus');
+            buckets.push('daily_aplus');
+        } else if (g === 'B+') {
+            if (al === 'MO+W') buckets.push('daily_mo_w_bplus');
+            if (al === 'MO') buckets.push('daily_mo_bplus');
+            if (al === 'W') buckets.push('daily_w_bplus');
+            buckets.push('daily_bplus');
+        }
+        buckets.push('daily');
+    } else if (tf === '1W') {
+        if (g === 'A+') buckets.push('weekly_mo_aplus');
+        if (g === 'B+') buckets.push('weekly_mo_bplus');
+        buckets.push('weekly');
+    } else if (tf === '4H') {
+        const km = {'D+W+MO':'fourh_dwm','D+W':'fourh_dw','D+MO':'fourh_dmo','D':'fourh_d','W+MO':'fourh_wmo','W':'fourh_w','MO':'fourh_mo'};
+        if (g === 'A+' && km[al]) buckets.push(km[al]+'_aplus');
+        if (g === 'B+' && km[al]) buckets.push(km[al]+'_bplus');
+        if (km[al]) buckets.push(km[al]);
+        if (g === 'A+') buckets.push('fourh_aplus');
+        if (g === 'B+') buckets.push('fourh_bplus');
+        buckets.push('fourh');
+    }
+    buckets.push('overall');
+
+    for (const key of buckets) {
+        const b = s[key];
+        if (!b) continue;
+        const res = b.tp + b.inv;
+        if (res >= 5) {
+            const pct = ((b.tp / res) * 100).toFixed(0);
+            const cls = pct >= 60 ? 'cl-prob-good' : pct >= 40 ? 'cl-prob-warn' : 'cl-prob-bad';
+            return `<span class="cl-prob ${cls}">${pct}%</span>`;
+        }
+    }
+    return '<span class="cl-prob cl-prob-none">—</span>';
+}
+
+// ══════════════════════════════════════════════
+// LOAD DATA
+// ══════════════════════════════════════════════
+async function loadData() {
+    try {
+        const [clRes, statsRes] = await Promise.all([
+            fetch('/api/checklist-state?profile=HTF').then(r => r.json()),
+            fetch('/api/crt-stats?profile=HTF').then(r => r.json())
+        ]);
+        items = clRes.items || [];
+        window._crtStats = statsRes.crtStats || {};
+        render();
+    } catch(e) {
+        console.error('Load failed:', e);
+    }
+}
+
+// Initial load
+loadData();
+
+// Auto-refresh every 30 seconds
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
