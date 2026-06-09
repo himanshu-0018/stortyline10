@@ -211,10 +211,34 @@ async function botSendMessage(chatId, text, keyboard = null, threadId = null) {
     if (safeText && safeText.length > TG_MAX_LENGTH) {
         safeText = safeText.slice(0, TG_MAX_LENGTH - 100) + '\n\n⚠️ <i>Truncated — see web dashboard for full view</i>';
     }
-    const body = { chat_id: chatId, text: safeText, parse_mode: 'HTML', disable_web_page_preview: true };
+    const body = {
+        chat_id: chatId,
+        text: safeText,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+    };
     if (keyboard) body.reply_markup = keyboard;
     if (threadId) body.message_thread_id = parseInt(threadId);
     const res = await botRequest('sendMessage', body);
+
+    // ✅ If HTML parse error, retry as plain text
+    if (!res?.ok && res?.description?.includes('parse entities')) {
+        console.error(`[SEND HTML ERROR] Retrying as plain text. Length: ${safeText?.length}`);
+        const plainText = safeText
+            .replace(/<[^>]*>/g, '')
+            .slice(0, TG_MAX_LENGTH - 100)
+            + '\n\n⚠️ Display error — check web dashboard';
+        const fallbackBody = {
+            chat_id: chatId,
+            text: plainText,
+            disable_web_page_preview: true
+        };
+        if (keyboard) fallbackBody.reply_markup = keyboard;
+        if (threadId) fallbackBody.message_thread_id = parseInt(threadId);
+        const fallback = await botRequest('sendMessage', fallbackBody);
+        return fallback?.result?.message_id || null;
+    }
+
     return res?.result?.message_id || null;
 }
 
@@ -223,10 +247,35 @@ async function botEditMessage(chatId, messageId, text, keyboard = null) {
     if (safeText && safeText.length > TG_MAX_LENGTH) {
         safeText = safeText.slice(0, TG_MAX_LENGTH - 100) + '\n\n⚠️ <i>Truncated — see web dashboard for full view</i>';
     }
-    const body = { chat_id: chatId, message_id: messageId, text: safeText,
-                   parse_mode: 'HTML', disable_web_page_preview: true };
+    const body = {
+        chat_id: chatId,
+        message_id: messageId,
+        text: safeText,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+    };
     if (keyboard) body.reply_markup = keyboard;
     const res = await botRequest('editMessageText', body);
+
+    // ✅ If HTML parse error, retry WITHOUT parse_mode to at least show something
+    if (!res?.ok && res?.description?.includes('parse entities')) {
+        console.error(`[EDIT HTML ERROR] Retrying as plain text. Length: ${safeText?.length}`);
+        // Strip all HTML tags for fallback
+        const plainText = safeText
+            .replace(/<[^>]*>/g, '')
+            .slice(0, TG_MAX_LENGTH - 100)
+            + '\n\n⚠️ Display error — check web dashboard';
+        const fallbackBody = {
+            chat_id: chatId,
+            message_id: messageId,
+            text: plainText,
+            disable_web_page_preview: true
+        };
+        if (keyboard) fallbackBody.reply_markup = keyboard;
+        const fallback = await botRequest('editMessageText', fallbackBody);
+        return fallback?.ok || false;
+    }
+
     return res?.ok || false;
 }
 
@@ -993,6 +1042,9 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { 
 // ══════════════════════════════════════════════
 // AUTO-REFRESH ALL OPEN PANELS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// AUTO-REFRESH ALL OPEN PANELS — with error recovery
+// ══════════════════════════════════════════════
 async function autoRefreshBotPanels() {
     for (const chatId of Object.keys(botSessions)) {
         const sess = botSessions[chatId];
@@ -1005,8 +1057,18 @@ async function autoRefreshBotPanels() {
             else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg(); kb = subKeyboard('FOURHOUR_CRT'); }
             else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();   kb = subKeyboard('ACTIVE_CRT');   }
             else if (sess.view === 'STATS')    { text = buildStatsMsg();       kb = subKeyboard('CRT_STATS');    }
-            if (text) await botEditMessage(chatId, sess.lastMsgId, text, kb);
-        } catch(e) { /* ignore */ }
+            if (text) {
+                const ok = await botEditMessage(chatId, sess.lastMsgId, text, kb);
+                if (!ok) {
+                    // ✅ If edit fails, clear lastMsgId so it doesn't keep retrying broken message
+                    console.warn(`[PANEL REFRESH] Edit failed for ${chatId} view=${sess.view}, clearing lastMsgId`);
+                    sess.lastMsgId = null;
+                    await saveBotSessions();
+                }
+            }
+        } catch(e) {
+            console.error(`[PANEL REFRESH ERROR] chatId=${chatId}:`, e);
+        }
     }
 }
 
@@ -1982,4 +2044,23 @@ app.listen(PORT, () => {
     console.log(`🤖 Allowed: ${TG_BOT_ALLOWED_CHAT_IDS.length ? TG_BOT_ALLOWED_CHAT_IDS.join(', ') : 'ALL'}`);
     console.log(`📡 Threads: Storyline=${TG_STORYLINE_THREAD_ID||'none'} | CRT_HTF=${TG_CRT_HTF_THREAD_ID||'none'} | CRT_LTF=${TG_CRT_LTF_THREAD_ID||'none'} | Breakout=${TG_BREAKOUT_THREAD_ID||'none'} | BO5=${TG_BREAKOUT5_THREAD_ID||'none'} | BO6=${TG_BREAKOUT6_THREAD_ID||'none'}`);
     startBotPolling();
+});
+
+
+app.get('/api/debug-crt-html', (req, res) => {
+    const badEntries = [];
+    for (const sym in crtStateHTF) {
+        for (const tf in crtStateHTF[sym]) {
+            const arr = Array.isArray(crtStateHTF[sym][tf]) ? crtStateHTF[sym][tf] : [];
+            for (const e of arr) {
+                const fields = [sym, e.rej, e.bo, e.ext, e.tgt, e.align_label, e.side, e.grade, e.status];
+                for (const f of fields) {
+                    if (f && /[<>&]/.test(String(f))) {
+                        badEntries.push({ sym, tf, field: f, entry_id: e.id });
+                    }
+                }
+            }
+        }
+    }
+    res.json({ count: badEntries.length, badEntries });
 });
