@@ -681,61 +681,107 @@ function buildFourHourCRTMsg() {
 
 // ── Active CRTs: all active HTF regardless of alignment ──
 function buildActiveCRTMsg() {
+    const TF_PRIORITY = { '1W': 0, '1D': 1, '4H': 2 };
+    const TF_LABELS   = { '1W': '📆 Weekly', '1D': '📅 Daily', '4H': '⏰ 4H' };
+
     const items = [];
+
     for (const sym in crtStateHTF) {
         for (const tf in crtStateHTF[sym]) {
             const arr = Array.isArray(crtStateHTF[sym][tf]) ? crtStateHTF[sym][tf] : [];
             for (const e of arr) {
-                if (e?.status === 'ACTIVE') items.push({ sym, tf, e });
+                if (e?.status !== 'ACTIVE') continue;
+
+                const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
+                const probValue = prob.found ? parseFloat(prob.pct) : -1;
+                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+
+                items.push({
+                    sym,
+                    tf,
+                    e,
+                    prob,
+                    probValue,
+                    tfRank: TF_PRIORITY[tf] ?? 99,
+                    gradeRank
+                });
             }
         }
     }
 
+    items.sort((a, b) => {
+        // 1) Weekly -> Daily -> 4H
+        if (a.tfRank !== b.tfRank) return a.tfRank - b.tfRank;
+
+        // 2) Higher hit probability first
+        if (b.probValue !== a.probValue) return b.probValue - a.probValue;
+
+        // 3) A+ before B+
+        if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
+
+        // 4) Newer first
+        return (b.e.timestamp || 0) - (a.e.timestamp || 0);
+    });
+
+    const weeklyCount = items.filter(x => x.tf === '1W').length;
+    const dailyCount  = items.filter(x => x.tf === '1D').length;
+    const fourHCount  = items.filter(x => x.tf === '4H').length;
+
     const header = [
         B_TOP,
         `║  🟢 <b>ACTIVE CRTs  —  HTF</b>`,
+        `║  Sorted by TF + Hit Probability`,
+        B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  🟢 Total: <b>${items.length}</b>`,
+        `║  🟢 Total Active: <b>${items.length}</b>`,
+        `║  📆 Weekly: <b>${weeklyCount}</b>   📅 Daily: <b>${dailyCount}</b>   ⏰ 4H: <b>${fourHCount}</b>`,
         B_BOT,
         ``,
     ].join('\n');
 
     if (items.length === 0) {
-        return header + '\n' + B_THIN + '\n\n   📭 <i>No active CRTs</i>\n\n' + B_THIN;
+        return header + '\n' + B_THIN + '\n\n   📭 <i>No active CRTs right now</i>\n\n' + B_THIN;
     }
 
-    let blocks = [];
-    for (const { sym, tf, e } of items) {
-        const tl = tf === '1D' ? 'D' : tf === '1W' ? 'W' : '4H';
-        const g = e.grade === 'A+' ? '⭐' : e.grade === 'B+' ? '🔶' : '';
-        const di = e.side === 'BULLISH' ? '🐂' : '🐻';
-
-        const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
-        const probTxt = prob.found ? `${prob.pct}%` : '—';
-
-        // Compact alignment
-        const al = e.align_level && e.align_level !== 'NONE' ? e.align_level : 'None';
-
-        blocks.push(`${di}${g} <b>${sym}</b> [${tl}] · ${al} · 📊${probTxt}`);
-    }
-
-    return header + blocks.join('\n') + '\n\n' + B_DASH;
-}
-
-    // Combine header + as many blocks as fit in 4000 chars
     let result = header;
-    for (const block of blocks) {
+    let lastTf = null;
+    let shown = 0;
+
+    for (const { sym, tf, e, prob } of items) {
+        const tfLabel = TF_LABELS[tf] || tf;
+        const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+
+        let probLine = '';
+        if (prob.found) {
+            probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
+        } else {
+            probLine = `  ┗  📊 <i>No data</i>`;
+        }
+
+        const sectionHeader = tf !== lastTf
+            ? `\n${B_THIN}\n\n<b>${tfLabel.toUpperCase()}</b>\n${B_THIN}\n`
+            : '';
+
+        const block = [
+            sectionHeader,
+            `  🟢 <b>${sym}</b>  ${dirIcon(e.side)}${g}`,
+            `  ┃  ${alignBadge(e.align_level)}`,
+            probLine,
+            ``
+        ].join('\n');
+
         if ((result + '\n' + block).length > 3900) {
-            // Truncate — show count of remaining
-            const shown = blocks.indexOf(block);
-            const remaining = blocks.length - shown;
-            result += `\n\n⚠️ <i>+${remaining} more positions (message too long)</i>`;
+            const remaining = items.length - shown;
+            result += `\n⚠️ <i>+${remaining} more positions</i>`;
             break;
         }
+
         result += '\n' + block;
+        lastTf = tf;
+        shown++;
     }
 
-    result += '\n\n' + B_DASH;
+    result += '\n' + B_DASH;
     return result;
 }
 
