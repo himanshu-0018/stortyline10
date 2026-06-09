@@ -53,16 +53,12 @@ const REDIS_BREAKOUT_KEY   = REDIS_STATE_KEY + '_breakout';
 const REDIS_BOT_SESSIONS   = REDIS_STATE_KEY + '_bot_sessions';
 const REDIS_CRT_KEY_LEGACY = REDIS_STATE_KEY + '_crt';
 
-// ══════════════════════════════════════════════
-// 3 storyline timeframes (MO + W + D)
-// ══════════════════════════════════════════════
 const ZONE_TIMEFRAMES   = ["1MO", "1W", "1D"];
 const GOD_THRESHOLD     = 3;
 const STRONG_THRESHOLD  = 2;
 const PARTIAL_THRESHOLD = 1;
 const ENTRY_TFS         = ["1M", "3M", "5M"];
 
-// Updated: returns {chatId, threadId} for thread support
 const TG_CHANNEL_MAP = {
     "1M": () => ({ chatId: TG_1M_ENTRIES, threadId: TG_1M_THREAD_ID }),
     "3M": () => ({ chatId: TG_3M_ENTRIES, threadId: TG_3M_THREAD_ID }),
@@ -76,13 +72,12 @@ const ALIGNMENT_COMBOS = [
     { id: "W_D",    label: "W+D",    tfs: ["1W","1D"] },
 ];
 
-// ══════════════════════════════════════════════
-// CRT now includes 4H (1H breakout)
-// ══════════════════════════════════════════════
 const CRT_VALID_TFS     = ['1W', '1D', '4H'];
 const VALID_BO_PROFILES = ['HTF', 'LTF'];
 const BREAKOUT_PAGE_TFS = ['1MO', '1W'];
 const CRT_GRADES        = ['A+', 'B+'];
+
+const TG_MAX_LENGTH = 3800;
 
 let marketState   = {};
 let activityLog   = [];
@@ -149,7 +144,7 @@ function getCRTTGChannel(profile)    { return profile === 'HTF' ? TG_CRT_HTF_CHA
 function getCRTTGThreadId(profile)   { return profile === 'HTF' ? TG_CRT_HTF_THREAD_ID : TG_CRT_LTF_THREAD_ID; }
 
 // ══════════════════════════════════════════════
-// TELEGRAM CORE (updated with threadId support)
+// TELEGRAM CORE
 // ══════════════════════════════════════════════
 async function sendTelegramTracked(chatId, message, threadId = null) {
     if (!TELEGRAM_TOKEN || !chatId) return { ok: false, messageId: null };
@@ -195,38 +190,31 @@ async function botRequest(method, body) {
             { method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(body) });
         const data = await resp.json();
-        
-        // 🔴 DEBUG - only log errors
-        if (!data?.ok) {
-            console.error('[BOT REQUEST ERROR] method:', method);
-            console.error('[BOT REQUEST ERROR] response:', JSON.stringify(data));
+        if (!data?.ok && method !== 'deleteMessage') {
+            console.error(`[BOT REQUEST ERROR] method: ${method} | response: ${JSON.stringify(data)}`);
         }
-        
         return data;
-    } catch (err) { 
-        console.error(`Bot API [${method}]:`, err); 
-        return null; 
-    }
+    } catch (err) { console.error(`Bot API [${method}]:`, err); return null; }
 }
 async function botSendMessage(chatId, text, keyboard = null, threadId = null) {
-    const body = { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true };
+    // ✅ Safety: truncate if over limit
+    let safeText = text;
+    if (safeText && safeText.length > TG_MAX_LENGTH) {
+        safeText = safeText.slice(0, TG_MAX_LENGTH - 100) + '\n\n⚠️ <i>Truncated — see web dashboard for full view</i>';
+    }
+    const body = { chat_id: chatId, text: safeText, parse_mode: 'HTML', disable_web_page_preview: true };
     if (keyboard) body.reply_markup = keyboard;
     if (threadId) body.message_thread_id = parseInt(threadId);
-    
-    // 🔴 DEBUG
-    console.log('[BOT SEND DEBUG] chatId:', chatId);
-    console.log('[BOT SEND DEBUG] text length:', text?.length);
-    console.log('[BOT SEND DEBUG] threadId:', threadId);
-    
     const res = await botRequest('sendMessage', body);
-    
-    // 🔴 DEBUG
-    console.log('[BOT SEND DEBUG] API response:', JSON.stringify(res));
-    
     return res?.result?.message_id || null;
 }
 async function botEditMessage(chatId, messageId, text, keyboard = null) {
-    const body = { chat_id: chatId, message_id: messageId, text,
+    // ✅ Safety: truncate if over limit
+    let safeText = text;
+    if (safeText && safeText.length > TG_MAX_LENGTH) {
+        safeText = safeText.slice(0, TG_MAX_LENGTH - 100) + '\n\n⚠️ <i>Truncated — see web dashboard for full view</i>';
+    }
+    const body = { chat_id: chatId, message_id: messageId, text: safeText,
                    parse_mode: 'HTML', disable_web_page_preview: true };
     if (keyboard) body.reply_markup = keyboard;
     const res = await botRequest('editMessageText', body);
@@ -254,7 +242,6 @@ function getSession(chatId, threadId = null) {
     if (!botSessions[chatId]) {
         botSessions[chatId] = { lastMsgId: null, view: 'MAIN', threadId: null };
     }
-    // Update threadId if provided
     if (threadId) botSessions[chatId].threadId = threadId;
     return botSessions[chatId];
 }
@@ -281,7 +268,7 @@ function gradeBar(g)    { return g === 'A+' ? '🌟🌟🌟🌟🌟' : '🔶🔶
 
 function alignBadge(lv) {
     if (lv === 'MO+W+D') return '✅ MO+W+D Aligned (GOD)';
-    if (lv === 'MO+W')   return '⚡ MO+W Aligned';
+    if (lv === 'MO+W')   return '✅ MO+W Aligned';
     if (lv === 'MO+D')   return '⚡ MO+D Aligned';
     if (lv === 'W+D')    return '⚡ W+D Aligned';
     if (lv === 'D+W+MO') return '✅ D+W+MO Aligned';
@@ -314,7 +301,6 @@ function progressBar(tp, inv) {
 
 // ══════════════════════════════════════════════
 // HIT PROBABILITY CALCULATOR
-// Used in bot push notifications
 // ══════════════════════════════════════════════
 function calcHitProbability(profile, tf, alignLevel, grade) {
     const stats = buildCRTStats(profile);
@@ -387,7 +373,7 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
 }
 
 // ══════════════════════════════════════════════
-// KEYBOARDS (updated with 4H CRT + grade filter)
+// KEYBOARDS
 // ══════════════════════════════════════════════
 function mainMenuKeyboard() {
     return { inline_keyboard: [
@@ -407,7 +393,7 @@ function subKeyboard(refreshCb) {
 }
 
 // ══════════════════════════════════════════════
-// CRT ALIGNMENT CHECK (updated for 3 TFs + 4H)
+// CRT ALIGNMENT CHECK
 // ══════════════════════════════════════════════
 function checkCRTAlignment(symbol, tf, side) {
     const sl = marketState[symbol]?.timeframes || {};
@@ -442,7 +428,7 @@ function checkCRTAlignment(symbol, tf, side) {
 }
 
 // ══════════════════════════════════════════════
-// BOT MESSAGE BUILDERS (updated with grade + 4H)
+// BOT MESSAGE BUILDERS
 // ══════════════════════════════════════════════
 function buildMainMenuMsg() {
     let totalActive = 0;
@@ -545,7 +531,7 @@ function buildMainMenuMsg() {
     ].join('\n');
 }
 
-// ── Daily CRT: MO+W, MO, W aligned only ──
+// ── Daily CRT ──
 function buildDailyCRTMsg() {
     const TF = '1D';
     const grouped = { 'MO+W': [], 'MO': [], 'W': [] };
@@ -563,7 +549,6 @@ function buildDailyCRTMsg() {
         }
     }
 
-    // Sort each group: higher prob first, then A+ before B+
     for (const key in grouped) {
         grouped[key].sort((a, b) => {
             if (b.probValue !== a.probValue) return b.probValue - a.probValue;
@@ -573,7 +558,6 @@ function buildDailyCRTMsg() {
     }
 
     const total = grouped['MO+W'].length + grouped['MO'].length + grouped['W'].length;
-
     const activeCount = Object.values(grouped).reduce((s, arr) =>
         s + arr.filter(x => x.e.status === 'ACTIVE').length, 0);
     const tpCount = Object.values(grouped).reduce((s, arr) =>
@@ -581,7 +565,7 @@ function buildDailyCRTMsg() {
     const invCount = Object.values(grouped).reduce((s, arr) =>
         s + arr.filter(x => x.e.status === 'INVALID').length, 0);
 
-    const lines = [
+    const header = [
         B_TOP,
         `║  📅 <b>DAILY CRT  —  HTF</b>`,
         `║  Aligned Signals Only`,
@@ -590,42 +574,49 @@ function buildDailyCRTMsg() {
         `║  📊 Aligned: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
-    ];
+    ].join('\n');
 
     if (total === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No aligned Daily CRTs</i>`, `   <i>Waiting for MO / W signals...</i>`, ``, B_THIN);
-        return lines.join('\n');
+        return header + '\n' + B_THIN + '\n\n   📭 <i>No aligned Daily CRTs</i>\n   <i>Waiting for MO / W signals...</i>\n\n' + B_THIN;
     }
 
+    let result = header;
+    let truncated = false;
+
     function renderGroup(label, emoji, items) {
-        if (items.length === 0) return;
-        lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
-        lines.push(B_THIN);
-        for (const { sym, e, prob } of items) {
-            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-            let probLine = '';
-            if (prob.found) {
-                probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-            } else {
-                probLine = `  ┗  📊 <i>No data</i>`;
-            }
-            lines.push(``,
-                `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-                `  ┃  Status: <b>${e.status}</b>`,
-                probLine);
+        if (truncated || items.length === 0) return;
+        const groupHeader = `\n${emoji} <b>${label}</b>  (${items.length})\n${B_THIN}\n`;
+        if ((result + groupHeader).length > TG_MAX_LENGTH) {
+            result += `\n⚠️ <i>More entries — see web dashboard</i>`;
+            truncated = true;
+            return;
         }
-        lines.push(``);
+        result += groupHeader;
+        for (const { sym, e, prob } of items) {
+            if (truncated) break;
+            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            const probLine = prob.found
+                ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+                : `  ┗  📊 <i>No data</i>`;
+            const block = `\n  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}\n  ┃  Status: <b>${e.status}</b>\n${probLine}`;
+            if ((result + block).length > TG_MAX_LENGTH) {
+                result += `\n\n⚠️ <i>More entries — see web dashboard</i>`;
+                truncated = true;
+                break;
+            }
+            result += block;
+        }
     }
 
     renderGroup('MO + W  ALIGNED', '✅', grouped['MO+W']);
     renderGroup('MO  ALIGNED',     '⚡', grouped['MO']);
     renderGroup('W   ALIGNED',     '⚡', grouped['W']);
 
-    lines.push(B_DASH);
-    return lines.join('\n');
+    result += '\n\n' + B_DASH;
+    return result;
 }
 
-// ── Weekly CRT: MO aligned only ──
+// ── Weekly CRT ──
 function buildWeeklyCRTMsg() {
     const TF = '1W';
     const items = [];
@@ -642,7 +633,6 @@ function buildWeeklyCRTMsg() {
         }
     }
 
-    // Sort: higher prob first, A+ before B+, newer first
     items.sort((a, b) => {
         if (b.probValue !== a.probValue) return b.probValue - a.probValue;
         if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
@@ -653,7 +643,7 @@ function buildWeeklyCRTMsg() {
     const tpCount     = items.filter(x => x.e.status === 'TP_HIT').length;
     const invCount    = items.filter(x => x.e.status === 'INVALID').length;
 
-    const lines = [
+    const header = [
         B_TOP,
         `║  📆 <b>WEEKLY CRT  —  HTF</b>`,
         `║  MO-Aligned Only`,
@@ -662,35 +652,34 @@ function buildWeeklyCRTMsg() {
         `║  ⚡ MO Aligned: <b>${items.length}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
-    ];
+    ].join('\n');
 
     if (items.length === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No MO-aligned Weekly CRTs</i>`, `   <i>Waiting for Monthly alignment...</i>`, ``, B_THIN);
-        return lines.join('\n');
+        return header + '\n' + B_THIN + '\n\n   📭 <i>No MO-aligned Weekly CRTs</i>\n   <i>Waiting for Monthly alignment...</i>\n\n' + B_THIN;
     }
 
-    lines.push(`⚡ <b>MO  ALIGNED  WEEKLY</b>`);
-    lines.push(B_THIN);
+    let result = header;
+    const groupHeader = `\n⚡ <b>MO  ALIGNED  WEEKLY</b>\n${B_THIN}\n`;
+    result += groupHeader;
 
     for (const { sym, e, prob } of items) {
         const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-        let probLine = '';
-        if (prob.found) {
-            probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-        } else {
-            probLine = `  ┗  📊 <i>No data</i>`;
+        const probLine = prob.found
+            ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+            : `  ┗  📊 <i>No data</i>`;
+        const block = `\n  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}\n  ┃  Status: <b>${e.status}</b>\n${probLine}`;
+        if ((result + block).length > TG_MAX_LENGTH) {
+            result += `\n\n⚠️ <i>More entries — see web dashboard</i>`;
+            break;
         }
-        lines.push(``,
-            `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-            `  ┃  Status: <b>${e.status}</b>`,
-            probLine);
+        result += block;
     }
 
-    lines.push(``, B_DASH);
-    return lines.join('\n');
+    result += '\n\n' + B_DASH;
+    return result;
 }
 
-// ── 4H CRT: all alignment levels ──
+// ── 4H CRT ── FIXED: proper truncation to stay under 4096
 function buildFourHourCRTMsg() {
     const TF = '4H';
     const groupOrder = ['D+W+MO', 'D+W', 'D+MO', 'D', 'W+MO', 'W', 'MO'];
@@ -710,7 +699,6 @@ function buildFourHourCRTMsg() {
         }
     }
 
-    // Sort each group: higher prob first, A+ before B+, newer first
     for (const key in grouped) {
         grouped[key].sort((a, b) => {
             if (b.probValue !== a.probValue) return b.probValue - a.probValue;
@@ -727,7 +715,7 @@ function buildFourHourCRTMsg() {
     const invCount = Object.values(grouped).reduce((s, arr) =>
         s + arr.filter(x => x.e.status === 'INVALID').length, 0);
 
-    const lines = [
+    const header = [
         B_TOP,
         `║  ⏰ <b>4H CRT  —  HTF</b>`,
         `║  Aligned Signals Only (1H BO)`,
@@ -736,11 +724,10 @@ function buildFourHourCRTMsg() {
         `║  📊 Aligned: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
-    ];
+    ].join('\n');
 
     if (total === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No aligned 4H CRTs</i>`, `   <i>Waiting for D / W / MO alignment...</i>`, ``, B_THIN);
-        return lines.join('\n');
+        return header + '\n' + B_THIN + '\n\n   📭 <i>No aligned 4H CRTs</i>\n   <i>Waiting for D / W / MO alignment...</i>\n\n' + B_THIN;
     }
 
     const groupLabels = {
@@ -753,76 +740,72 @@ function buildFourHourCRTMsg() {
         'MO':     { label: 'MO  ALIGNED',           emoji: '⚡' },
     };
 
-    function renderGroup(key, items) {
-        if (items.length === 0) return;
-        const { label, emoji } = groupLabels[key];
-        lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
-        lines.push(B_THIN);
-        for (const { sym, e, prob } of items) {
-            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-            let probLine = '';
-            if (prob.found) {
-                probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-            } else {
-                probLine = `  ┗  📊 <i>No data</i>`;
-            }
-            lines.push(``,
-                `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-                `  ┃  Status: <b>${e.status}</b>`,
-                probLine);
-        }
-        lines.push(``);
-    }
+    let result = header;
+    let truncated = false;
+    let shownCount = 0;
 
     for (const key of groupOrder) {
-        renderGroup(key, grouped[key]);
+        if (truncated) break;
+        const items = grouped[key];
+        if (items.length === 0) continue;
+
+        const { label, emoji } = groupLabels[key];
+        const groupHeader = `\n${emoji} <b>${label}</b>  (${items.length})\n${B_THIN}\n`;
+
+        if ((result + groupHeader).length > TG_MAX_LENGTH) {
+            const remaining = total - shownCount;
+            result += `\n⚠️ <i>+${remaining} more — see web dashboard for full view</i>`;
+            truncated = true;
+            break;
+        }
+        result += groupHeader;
+
+        for (const { sym, e, prob } of items) {
+            if (truncated) break;
+            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            const probLine = prob.found
+                ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+                : `  ┗  📊 <i>No data</i>`;
+            const block = `\n  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}\n  ┃  Status: <b>${e.status}</b>\n${probLine}`;
+
+            if ((result + block).length > TG_MAX_LENGTH) {
+                const remaining = total - shownCount;
+                result += `\n\n⚠️ <i>+${remaining} more — see web dashboard for full view</i>`;
+                truncated = true;
+                break;
+            }
+            result += block;
+            shownCount++;
+        }
     }
 
-    lines.push(B_DASH);
-    return lines.join('\n');
+    result += '\n' + B_DASH;
+    return result;
 }
 
-// ── Active CRTs: all active HTF regardless of alignment ──
+// ── Active CRTs ──
 function buildActiveCRTMsg() {
     const TF_PRIORITY = { '1W': 0, '1D': 1, '4H': 2 };
     const TF_LABELS   = { '1W': '📆 Weekly', '1D': '📅 Daily', '4H': '⏰ 4H' };
 
     const items = [];
-
     for (const sym in crtStateHTF) {
         for (const tf in crtStateHTF[sym]) {
             const arr = Array.isArray(crtStateHTF[sym][tf]) ? crtStateHTF[sym][tf] : [];
             for (const e of arr) {
                 if (e?.status !== 'ACTIVE') continue;
-
                 const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
                 const probValue = prob.found ? parseFloat(prob.pct) : -1;
                 const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
-
-                items.push({
-                    sym,
-                    tf,
-                    e,
-                    prob,
-                    probValue,
-                    tfRank: TF_PRIORITY[tf] ?? 99,
-                    gradeRank
-                });
+                items.push({ sym, tf, e, prob, probValue, tfRank: TF_PRIORITY[tf] ?? 99, gradeRank });
             }
         }
     }
 
     items.sort((a, b) => {
-        // 1) Weekly -> Daily -> 4H
         if (a.tfRank !== b.tfRank) return a.tfRank - b.tfRank;
-
-        // 2) Higher hit probability first
         if (b.probValue !== a.probValue) return b.probValue - a.probValue;
-
-        // 3) A+ before B+
         if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
-
-        // 4) Newer first
         return (b.e.timestamp || 0) - (a.e.timestamp || 0);
     });
 
@@ -853,33 +836,23 @@ function buildActiveCRTMsg() {
     for (const { sym, tf, e, prob } of items) {
         const tfLabel = TF_LABELS[tf] || tf;
         const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-
-        let probLine = '';
-        if (prob.found) {
-            probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-        } else {
-            probLine = `  ┗  📊 <i>No data</i>`;
-        }
+        const probLine = prob.found
+            ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+            : `  ┗  📊 <i>No data</i>`;
 
         const sectionHeader = tf !== lastTf
             ? `\n${B_THIN}\n\n<b>${tfLabel.toUpperCase()}</b>\n${B_THIN}\n`
             : '';
 
-        const block = [
-            sectionHeader,
-            `  🟢 <b>${sym}</b>  ${dirIcon(e.side)}${g}`,
-            `  ┃  ${alignBadge(e.align_level)}`,
-            probLine,
-            ``
-        ].join('\n');
+        const block = `${sectionHeader}\n  🟢 <b>${sym}</b>  ${dirIcon(e.side)}${g}\n  ┃  ${alignBadge(e.align_level)}\n${probLine}\n`;
 
-        if ((result + '\n' + block).length > 3900) {
+        if ((result + block).length > TG_MAX_LENGTH) {
             const remaining = items.length - shown;
-            result += `\n⚠️ <i>+${remaining} more positions</i>`;
+            result += `\n⚠️ <i>+${remaining} more — see web dashboard for full view</i>`;
             break;
         }
 
-        result += '\n' + block;
+        result += block;
         lastTf = tf;
         shown++;
     }
@@ -888,7 +861,7 @@ function buildActiveCRTMsg() {
     return result;
 }
 
-// ── CRT Stats (updated with grade breakdown) ──
+// ── CRT Stats ──
 function buildStatsMsg() {
     const s  = buildCRTStats('HTF');
     const ts = nowUTC();
@@ -902,7 +875,7 @@ function buildStatsMsg() {
         ].join('\n');
     }
 
-    return [
+    const fullMsg = [
         B_TOP,
         `║  📈 <b>CRT STATISTICS  —  HTF</b>`,
         `║  Performance Breakdown`,
@@ -984,10 +957,17 @@ function buildStatsMsg() {
         ``,
         B_DASH,
     ].join('\n');
+
+    // ✅ Safety truncation
+    if (fullMsg.length > TG_MAX_LENGTH) {
+        return fullMsg.slice(0, TG_MAX_LENGTH - 150) + '\n\n⚠️ <i>Truncated — see web dashboard for full stats</i>\n' + B_DASH;
+    }
+
+    return fullMsg;
 }
 
 // ══════════════════════════════════════════════
-// BOT PUSH NOTIFICATION (with grade + hit prob)
+// BOT PUSH NOTIFICATION
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
     if (tf === '1D' && !['MO+W','MO','W'].includes(alignLevel)) return;
@@ -1049,13 +1029,11 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { 
     for (const chatId of Object.keys(botSessions)) {
         try {
             const sess = botSessions[chatId];
-            // ✅ Use the stored thread ID from session
             const threadId = sess.threadId || null;
             await botSendMessage(chatId, text, null, threadId);
         } catch(e) {}
     }
 }
-
 
 // ══════════════════════════════════════════════
 // AUTO-REFRESH ALL OPEN PANELS
@@ -1083,174 +1061,126 @@ async function autoRefreshBotPanels() {
 async function handleBotUpdate(update) {
 
     // ── COMMANDS ──
-if (update.message) {
-    const chatId  = String(update.message.chat.id);
-    const text    = (update.message.text || '').trim();
-    const threadId = update.message.message_thread_id || null;
+    if (update.message) {
+        const chatId   = String(update.message.chat.id);
+        const text     = (update.message.text || '').trim();
+        const threadId = update.message.message_thread_id || null;
 
-    // ═══════════════════════════════════
-    // 🔴 DEBUG - ADD THIS TEMPORARILY
-    // ═══════════════════════════════════
-    console.log('═══════════════════════════════════');
-    console.log('[BOT DEBUG] RAW UPDATE:', JSON.stringify(update.message, null, 2));
-    console.log('[BOT DEBUG] chatId:', chatId);
-    console.log('[BOT DEBUG] text:', text);
-    console.log('[BOT DEBUG] threadId:', threadId);
-    console.log('[BOT DEBUG] chat.type:', update.message.chat.type);
-    console.log('[BOT DEBUG] is_topic_message:', update.message.is_topic_message);
-    console.log('[BOT DEBUG] isPrivateChat:', update.message.chat.type === 'private');
-    console.log('[BOT DEBUG] isTopicMessage:', update.message.is_topic_message === true);
-    console.log('[BOT DEBUG] isBotAllowed:', isBotAllowed(chatId));
-    console.log('[BOT DEBUG] TG_BOT_ALLOWED_CHAT_IDS:', TG_BOT_ALLOWED_CHAT_IDS);
-    console.log('═══════════════════════════════════');
-    // ═══════════════════════════════════
+        const isPrivateChat  = update.message.chat.type === 'private';
+        const isTopicMessage = update.message.is_topic_message === true;
 
+        if (!isPrivateChat && !isTopicMessage) return;
+        if (!text.startsWith('/')) return;
 
-    // ✅ IGNORE messages from General (no thread ID in a forum group)
-    // Only respond if it's a private chat OR a specific topic message
-    const isPrivateChat = update.message.chat.type === 'private';
-    const isTopicMessage = update.message.is_topic_message === true;
+        if (!isBotAllowed(chatId)) {
+            await botSendMessage(chatId, `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
+            return;
+        }
 
-    if (!isPrivateChat && !isTopicMessage) {
-        // Message is in General — ignore it completely
+        const sess = getSession(chatId, threadId);
+        if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
+
+        const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
+
+        if (cmd === '/start' || cmd === '/menu') {
+            sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
+            sess.view = 'MAIN';
+        } else if (cmd === '/daily') {
+            sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
+            sess.view = 'DAILY';
+        } else if (cmd === '/weekly') {
+            sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
+            sess.view = 'WEEKLY';
+        } else if (cmd === '/fourhour' || cmd === '/4h') {
+            // ✅ FIXED: both /fourhour and /4h work
+            sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
+            sess.view = 'FOURHOUR';
+        } else if (cmd === '/active') {
+            sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
+            sess.view = 'ACTIVE';
+        } else if (cmd === '/stats') {
+            sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
+            sess.view = 'STATS';
+        } else if (cmd === '/help') {
+            sess.lastMsgId = await botSendMessage(chatId, [
+                B_TOP,
+                `║  🤖 <b>GOD-MODE CRT BOT</b>`,
+                `║  Command Reference`,
+                B_BOT,
+                ``,
+                `  /start      🏠 Main terminal`,
+                `  /daily      📅 Daily CRTs (aligned)`,
+                `  /weekly     📆 Weekly CRTs (MO)`,
+                `  /fourhour   ⏰ 4H CRTs (aligned)`,
+                `  /active     🟢 Active positions`,
+                `  /stats      📊 Performance stats`,
+                `  /help       ❓ This help`,
+                ``,
+                B_THIN,
+                ``,
+                `  <b>🔔 Grades:</b>`,
+                `  ⭐ A+ = Sweep + SNR Rejection + BO`,
+                `  🔶 B+ = Sweep + BO (no rejection)`,
+                ``,
+                `  <b>🔔 Auto-Notifications:</b>`,
+                `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
+                `  📆 Weekly →  MO aligned ⚡ only`,
+                `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
+                ``,
+                `  <b>📊 Hit Probability:</b>`,
+                `  New CRT alerts show historical`,
+                `  hit rate for that exact combo`,
+                ``,
+                `  <b>📡 Live Auto-Refresh:</b>`,
+                `  Panels update automatically`,
+                ``,
+                B_DASH,
+            ].join('\n'), subKeyboard('MAIN_REFRESH'), sess.threadId);
+            sess.view = 'HELP';
+        } else {
+            sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`, null, sess.threadId);
+        }
+
+        await saveBotSessions();
         return;
     }
-
-    // ✅ Only respond to commands (messages starting with /)
-    if (!text.startsWith('/')) return;
-
-    if (!isBotAllowed(chatId)) {
-        await botSendMessage(chatId, `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
-        return;
-    }
-
-    const sess = getSession(chatId, threadId);
-    if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
-
-const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
-
-if (cmd === '/start' || cmd === '/menu') {
-    sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
-    sess.view = 'MAIN';
-} else if (cmd === '/daily') {
-    sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
-    sess.view = 'DAILY';
-} else if (cmd === '/weekly') {
-    sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
-    sess.view = 'WEEKLY';
-
-// ✅ FIXED: Use /fourhour as primary, keep /4h as alias
-} else if (cmd === '/fourhour' || cmd === '/4h') {
-    // 🔴 DEBUG
-    console.log('[4H DEBUG] Building FourHour message...');
-    try {
-        const msg = buildFourHourCRTMsg();
-        console.log('[4H DEBUG] Message length:', msg.length);
-        console.log('[4H DEBUG] Message preview:', msg.slice(0, 500));
-        console.log('[4H DEBUG] sess.threadId:', sess.threadId);
-        console.log('[4H DEBUG] chatId:', chatId);
-        
-        const result = await botSendMessage(chatId, msg, subKeyboard('FOURHOUR_CRT'), sess.threadId);
-        console.log('[4H DEBUG] botSendMessage result:', result);
-        
-        sess.lastMsgId = result;
-        sess.view = 'FOURHOUR';
-    } catch(err) {
-        console.error('[4H DEBUG] ERROR:', err);
-        // Send a simple test message to confirm bot works at all
-        const testResult = await botSendMessage(chatId, 'TEST: /4h received, building failed', null, null);
-        console.log('[4H DEBUG] test send result:', testResult);
-    }
-    sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
-    sess.view = 'FOURHOUR';
-
-} else if (cmd === '/active') {
-    sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
-    sess.view = 'ACTIVE';
-} else if (cmd === '/stats') {
-    sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
-    sess.view = 'STATS';
-} else if (cmd === '/help') {
-        sess.lastMsgId = await botSendMessage(chatId, [
-            B_TOP,
-            `║  🤖 <b>GOD-MODE CRT BOT</b>`,
-            `║  Command Reference`,
-            B_BOT,
-            ``,
-            `  /start      🏠 Main terminal`,
-            `  /daily      📅 Daily CRTs (aligned)`,
-            `  /weekly     📆 Weekly CRTs (MO)`,
-            `  /4h         ⏰ 4H CRTs (aligned)`,
-            `  /active     🟢 Active positions`,
-            `  /stats      📊 Performance stats`,
-            `  /help       ❓ This help`,
-            ``,
-            B_THIN,
-            ``,
-            `  <b>🔔 Grades:</b>`,
-            `  ⭐ A+ = Sweep + SNR Rejection + BO`,
-            `  🔶 B+ = Sweep + BO (no rejection)`,
-            ``,
-            `  <b>🔔 Auto-Notifications:</b>`,
-            `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
-            `  📆 Weekly →  MO aligned ⚡ only`,
-            `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
-            ``,
-            `  <b>📊 Hit Probability:</b>`,
-            `  New CRT alerts show historical`,
-            `  hit rate for that exact combo`,
-            ``,
-            `  <b>📡 Live Auto-Refresh:</b>`,
-            `  Panels update automatically`,
-            ``,
-            B_DASH,
-        ].join('\n'), subKeyboard('MAIN_REFRESH'), sess.threadId);
-        sess.view = 'HELP';
-    } else {
-        sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`, null, sess.threadId);
-    }
-
-    await saveBotSessions();
-    return;
-}
 
     // ── CALLBACKS ──
-if (update.callback_query) {
-    const cb     = update.callback_query;
-    const chatId = String(cb.message.chat.id);
-    const msgId  = cb.message.message_id;
-    const data   = cb.data;
-    // ✅ Capture thread ID from callback message
-    const threadId = cb.message.message_thread_id || null;
+    if (update.callback_query) {
+        const cb     = update.callback_query;
+        const chatId = String(cb.message.chat.id);
+        const msgId  = cb.message.message_id;
+        const data   = cb.data;
+        const threadId = cb.message.message_thread_id || null;
 
-    if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
+        if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
 
-    const sess = getSession(chatId, threadId); // ✅ Pass threadId
-    sess.lastMsgId = msgId;
-    await botAnswerCallback(cb.id, '✅');
+        const sess = getSession(chatId, threadId);
+        sess.lastMsgId = msgId;
+        await botAnswerCallback(cb.id, '✅');
 
-    if (data === 'MAIN' || data === 'MAIN_REFRESH') {
-        await botEditMessage(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard());
-        sess.view = 'MAIN';
-    } else if (data === 'DAILY_CRT') {
-        await botEditMessage(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
-        sess.view = 'DAILY';
-    } else if (data === 'WEEKLY_CRT') {
-        await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
-        sess.view = 'WEEKLY';
-    } else if (data === 'FOURHOUR_CRT') {
-        await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
-        sess.view = 'FOURHOUR';
-    } else if (data === 'ACTIVE_CRT') {
-        await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
-        sess.view = 'ACTIVE';
-    } else if (data === 'CRT_STATS') {
-        await botEditMessage(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'));
-        sess.view = 'STATS';
+        if (data === 'MAIN' || data === 'MAIN_REFRESH') {
+            await botEditMessage(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard());
+            sess.view = 'MAIN';
+        } else if (data === 'DAILY_CRT') {
+            await botEditMessage(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
+            sess.view = 'DAILY';
+        } else if (data === 'WEEKLY_CRT') {
+            await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
+            sess.view = 'WEEKLY';
+        } else if (data === 'FOURHOUR_CRT') {
+            await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
+            sess.view = 'FOURHOUR';
+        } else if (data === 'ACTIVE_CRT') {
+            await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
+            sess.view = 'ACTIVE';
+        } else if (data === 'CRT_STATS') {
+            await botEditMessage(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'));
+            sess.view = 'STATS';
+        }
+
+        await saveBotSessions();
     }
-
-    await saveBotSessions();
-}
 }
 
 // ══════════════════════════════════════════════
@@ -1272,13 +1202,6 @@ async function pollOnce() {
             offset: pollingOffset, timeout: 25,
             allowed_updates: ['message','callback_query']
         });
-
-        // 🔴 DEBUG
-        console.log('[POLL DEBUG] updates received:', data?.result?.length || 0);
-        if (data?.result?.length) {
-            console.log('[POLL DEBUG] raw:', JSON.stringify(data.result, null, 2));
-        }
-
         if (data?.result?.length) {
             for (const update of data.result) {
                 pollingOffset = update.update_id + 1;
@@ -1488,7 +1411,7 @@ function migrateCRTState(state){
 }
 
 // ══════════════════════════════════════════════
-// BUILD CRT STATS (fully updated with grade buckets)
+// BUILD CRT STATS
 // ══════════════════════════════════════════════
 function buildCRTStats(profile) {
     const cs = getCRTState(profile);
@@ -1621,7 +1544,6 @@ async function processBreakoutUpdate(sym,moDir,wDir,source='WEBHOOK'){
     if(changed){
         await saveBreakoutState();
         const tgMsg=buildBreakoutTelegramMessage(sym,moDir,wDir,marketState[sym]?tfInfoString(sym):null);
-        // ✅ Thread support
         if(TG_BREAKOUT_PAGE)await sendTelegram(TG_BREAKOUT_PAGE,tgMsg,TG_BREAKOUT_THREAD_ID);
         const tfl=[];if(moDir!=='NONE')tfl.push(`MO:${moDir}`);if(wDir!=='NONE')tfl.push(`W:${wDir}`);
         await pushLogEvent(sym,moDir!=='NONE'?moDir:wDir,`💥 BREAKOUT: ${tfl.join(' + ')}`,{logAction:'BREAKOUT_PAGE'});
@@ -1770,7 +1692,6 @@ app.post('/webhook', async (req, res) => {
         if(dominantState!=="NONE"&&dominantState!==prev){
             marketState[sym].lastAlertedState=dominantState;
             marketState[sym].lastGodModeStartTime=Date.now();
-            // ✅ Thread support
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                 `<b>${dominantState==="BULLISH"?"🚀 🐂":"🩸 🐻"} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (3/3 — MO+W+D)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly + Daily aligned!`,
                 TG_STORYLINE_THREAD_ID);
@@ -1778,7 +1699,6 @@ app.post('/webhook', async (req, res) => {
         }
         if(dominantState==="NONE"&&prev!=="NONE"){
             marketState[sym].lastAlertedState="NONE";
-            // ✅ Thread support
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                 `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (3/3)\nNow: ${partialState!=="NONE"?partialState+` (${partialCount}/3)`:`${alignCount}/3`}\n${tfInfoString(sym)}`,
                 TG_STORYLINE_THREAD_ID);
@@ -1789,7 +1709,6 @@ app.post('/webhook', async (req, res) => {
             const ppc=marketState[sym]._lastPartialCount||0;
             if(pp!==partialState||ppc!==partialCount||(prev!=="NONE"&&dominantState==="NONE")){
                 const levelLabel=partialCount>=STRONG_THRESHOLD?'STRONG':'PARTIAL';
-                // ✅ Thread support
                 await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                     `<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} ${levelLabel}: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/3)\n${tfInfoString(sym)}`,
                     TG_STORYLINE_THREAD_ID);
@@ -1813,7 +1732,6 @@ app.post('/webhook', async (req, res) => {
         if(!align.aligned)return res.status(200).send("OK");
         const tgMsg=`<b>${direction==="BULLISH"?"🚀 🐂":"🩸 🐻"} BREAKOUT: ${sym}</b>\n\n<b>Direction:</b> ${direction}\n<b>Chart TF:</b> ${chartTf||'?'}\n\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`}</b>\n${tfInfoString(sym)}`;
         const sc=[];
-        // ✅ Thread support for all breakout channels
         if(align.count>=PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg,TG_BREAKOUT5_THREAD_ID);sc.push('PARTIAL');}
         if((align.type==='GOD'||align.type==='STRONG')&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg,TG_BREAKOUT6_THREAD_ID);sc.push(align.type);}
         if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg,TG_CUSTOM_THREAD_ID);sc.push('CUSTOM');}
@@ -1836,7 +1754,7 @@ app.post('/webhook', async (req, res) => {
         if(!crtState[sym])crtState[sym]={};
         if(!Array.isArray(crtState[sym][tf]))crtState[sym][tf]=crtState[sym][tf]?[crtState[sym][tf]]:[];
         const tgCh=getCRTTGChannel(profile);
-        const tgThread=getCRTTGThreadId(profile); // ✅ Get thread ID
+        const tgThread=getCRTTGThreadId(profile);
 
         if(payload.kind==='CRT'){
             const ac=checkCRTAlignment(sym,tf,side);
@@ -1858,9 +1776,6 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
                 {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
-            //const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,grade,profile,{rej,bo,ext,tgt,alignInfo:at});
-            // ✅ Send with thread ID
-            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT',sym,tf,side,ac.level,grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1878,9 +1793,6 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `🎯 ${tf} CRT${gradeTag} TARGET HIT [${profile}]: ${side}|Tgt:${tgt}`,
                 {tf,tgt,action:'CRT_TARGET',grade:target.grade});
-            //const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
-            // ✅ Send with thread ID
-            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_TARGET',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1898,9 +1810,6 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `❌ ${tf} CRT${gradeTag} INVALIDATED [${profile}]: ${side}|Ext:${ext}`,
                 {tf,ext,action:'CRT_INVALID',grade:target.grade});
-            //const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
-            // ✅ Send with thread ID
-            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_INVALID',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1929,7 +1838,6 @@ app.post('/webhook', async (req, res) => {
             const stats=ensureStats(sym,entryTf);stats.total_signals++;
             const trade={id:makeTradeId(sym,entryTf),direction,entry:parseFloat(entry)||entry,sl:parseFloat(sl)||sl,tp:parseFloat(tp)||tp,rr:parseFloat(rr)||rr,alignment:align.type,align_combos:align.combos,align_count:align.count,status:'PENDING',signal_time:Date.now(),entry_time:null,result_time:null,entry_tf:entryTf,telegram_chat_id:null,telegram_message_id:null,telegram_deleted:false,cancelled_time:null,cancelled_reason:null};
             stats.trades.push(trade);if(stats.trades.length>500)stats.trades=stats.trades.slice(-500);
-            // ✅ Updated to use {chatId, threadId} from channel map
             const ch=TG_CHANNEL_MAP[entryTf]?.();let snd=false;
             if(ch?.chatId){
                 const al=align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`;
@@ -1938,7 +1846,6 @@ app.post('/webhook', async (req, res) => {
                 if(tp)msg+=`<b>TP:</b> <code>${tp}</code>\n`;
                 if(rr)msg+=`<b>R:R:</b> ${rr}\n`;
                 msg+=`\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${al}</b>\n${tfInfoString(sym)}`;
-                // ✅ Send with thread ID
                 const sent=await sendTelegramTracked(ch.chatId,msg,ch.threadId);
                 if(sent.ok){snd=true;trade.telegram_chat_id=ch.chatId;trade.telegram_message_id=sent.messageId;}
             }
