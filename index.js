@@ -526,17 +526,39 @@ function buildMainMenuMsg() {
 
 // ── Daily CRT: MO+W, MO, W aligned only ──
 function buildDailyCRTMsg() {
+    const TF = '1D';
     const grouped = { 'MO+W': [], 'MO': [], 'W': [] };
 
     for (const sym in crtStateHTF) {
-        const arr = Array.isArray(crtStateHTF[sym]?.['1D']) ? crtStateHTF[sym]['1D'] : [];
+        const arr = Array.isArray(crtStateHTF[sym]?.[TF]) ? crtStateHTF[sym][TF] : [];
         for (const e of arr) {
             if (!e?.side) continue;
-            if (grouped[e.align_level]) grouped[e.align_level].push({ sym, e });
+            if (grouped[e.align_level]) {
+                const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
+                const probValue = prob.found ? parseFloat(prob.pct) : -1;
+                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+                grouped[e.align_level].push({ sym, e, prob, probValue, gradeRank });
+            }
         }
     }
 
+    // Sort each group: higher prob first, then A+ before B+
+    for (const key in grouped) {
+        grouped[key].sort((a, b) => {
+            if (b.probValue !== a.probValue) return b.probValue - a.probValue;
+            if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
+            return (b.e.timestamp || 0) - (a.e.timestamp || 0);
+        });
+    }
+
     const total = grouped['MO+W'].length + grouped['MO'].length + grouped['W'].length;
+
+    const activeCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'ACTIVE').length, 0);
+    const tpCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'TP_HIT').length, 0);
+    const invCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'INVALID').length, 0);
 
     const lines = [
         B_TOP,
@@ -544,7 +566,7 @@ function buildDailyCRTMsg() {
         `║  Aligned Signals Only`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  📊 Aligned Total: <b>${total}</b>`,
+        `║  📊 Aligned: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
     ];
@@ -558,14 +580,18 @@ function buildDailyCRTMsg() {
         if (items.length === 0) return;
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
-        for (const { sym, e } of items) {
+        for (const { sym, e, prob } of items) {
             const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            let probLine = '';
+            if (prob.found) {
+                probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
+            } else {
+                probLine = `  ┗  📊 <i>No data</i>`;
+            }
             lines.push(``,
                 `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-                `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
-                `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
                 `  ┃  Status: <b>${e.status}</b>`,
-                `  ┗  🕐 ${timeStr(e.timestamp)}`);
+                probLine);
         }
         lines.push(``);
     }
@@ -580,13 +606,31 @@ function buildDailyCRTMsg() {
 
 // ── Weekly CRT: MO aligned only ──
 function buildWeeklyCRTMsg() {
+    const TF = '1W';
     const items = [];
+
     for (const sym in crtStateHTF) {
-        const arr = Array.isArray(crtStateHTF[sym]?.['1W']) ? crtStateHTF[sym]['1W'] : [];
+        const arr = Array.isArray(crtStateHTF[sym]?.[TF]) ? crtStateHTF[sym][TF] : [];
         for (const e of arr) {
-            if (e?.side && e.align_level === 'MO') items.push({ sym, e });
+            if (e?.side && e.align_level === 'MO') {
+                const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
+                const probValue = prob.found ? parseFloat(prob.pct) : -1;
+                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+                items.push({ sym, e, prob, probValue, gradeRank });
+            }
         }
     }
+
+    // Sort: higher prob first, A+ before B+, newer first
+    items.sort((a, b) => {
+        if (b.probValue !== a.probValue) return b.probValue - a.probValue;
+        if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
+        return (b.e.timestamp || 0) - (a.e.timestamp || 0);
+    });
+
+    const activeCount = items.filter(x => x.e.status === 'ACTIVE').length;
+    const tpCount     = items.filter(x => x.e.status === 'TP_HIT').length;
+    const invCount    = items.filter(x => x.e.status === 'INVALID').length;
 
     const lines = [
         B_TOP,
@@ -594,7 +638,7 @@ function buildWeeklyCRTMsg() {
         `║  MO-Aligned Only`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  ⚡ MO Aligned: <b>${items.length}</b>`,
+        `║  ⚡ MO Aligned: <b>${items.length}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
     ];
@@ -607,14 +651,18 @@ function buildWeeklyCRTMsg() {
     lines.push(`⚡ <b>MO  ALIGNED  WEEKLY</b>`);
     lines.push(B_THIN);
 
-    for (const { sym, e } of items) {
+    for (const { sym, e, prob } of items) {
         const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+        let probLine = '';
+        if (prob.found) {
+            probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
+        } else {
+            probLine = `  ┗  📊 <i>No data</i>`;
+        }
         lines.push(``,
             `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-            `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
-            `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
             `  ┃  Status: <b>${e.status}</b>`,
-            `  ┗  🕐 ${timeStr(e.timestamp)}`);
+            probLine);
     }
 
     lines.push(``, B_DASH);
@@ -623,17 +671,40 @@ function buildWeeklyCRTMsg() {
 
 // ── 4H CRT: all alignment levels ──
 function buildFourHourCRTMsg() {
-    const grouped = { 'D+W+MO': [], 'D+W': [], 'D+MO': [], 'D': [], 'W+MO': [], 'W': [], 'MO': [] };
+    const TF = '4H';
+    const groupOrder = ['D+W+MO', 'D+W', 'D+MO', 'D', 'W+MO', 'W', 'MO'];
+    const grouped = {};
+    for (const k of groupOrder) grouped[k] = [];
 
     for (const sym in crtStateHTF) {
-        const arr = Array.isArray(crtStateHTF[sym]?.['4H']) ? crtStateHTF[sym]['4H'] : [];
+        const arr = Array.isArray(crtStateHTF[sym]?.[TF]) ? crtStateHTF[sym][TF] : [];
         for (const e of arr) {
             if (!e?.side) continue;
-            if (grouped[e.align_level]) grouped[e.align_level].push({ sym, e });
+            if (grouped[e.align_level]) {
+                const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
+                const probValue = prob.found ? parseFloat(prob.pct) : -1;
+                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+                grouped[e.align_level].push({ sym, e, prob, probValue, gradeRank });
+            }
         }
     }
 
+    // Sort each group: higher prob first, A+ before B+, newer first
+    for (const key in grouped) {
+        grouped[key].sort((a, b) => {
+            if (b.probValue !== a.probValue) return b.probValue - a.probValue;
+            if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
+            return (b.e.timestamp || 0) - (a.e.timestamp || 0);
+        });
+    }
+
     const total = Object.values(grouped).reduce((s, a) => s + a.length, 0);
+    const activeCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'ACTIVE').length, 0);
+    const tpCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'TP_HIT').length, 0);
+    const invCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'INVALID').length, 0);
 
     const lines = [
         B_TOP,
@@ -641,7 +712,7 @@ function buildFourHourCRTMsg() {
         `║  Aligned Signals Only (1H BO)`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  📊 Aligned Total: <b>${total}</b>`,
+        `║  📊 Aligned: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
     ];
@@ -651,29 +722,40 @@ function buildFourHourCRTMsg() {
         return lines.join('\n');
     }
 
-    function renderGroup(label, emoji, items) {
+    const groupLabels = {
+        'D+W+MO': { label: 'D + W + MO  ALIGNED', emoji: '✅' },
+        'D+W':    { label: 'D + W  ALIGNED',       emoji: '⚡' },
+        'D+MO':   { label: 'D + MO  ALIGNED',      emoji: '⚡' },
+        'D':      { label: 'D  ALIGNED',            emoji: '⚡' },
+        'W+MO':   { label: 'W + MO  ALIGNED',       emoji: '⚡' },
+        'W':      { label: 'W  ALIGNED',            emoji: '⚡' },
+        'MO':     { label: 'MO  ALIGNED',           emoji: '⚡' },
+    };
+
+    function renderGroup(key, items) {
         if (items.length === 0) return;
+        const { label, emoji } = groupLabels[key];
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
-        for (const { sym, e } of items) {
+        for (const { sym, e, prob } of items) {
             const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            let probLine = '';
+            if (prob.found) {
+                probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
+            } else {
+                probLine = `  ┗  📊 <i>No data</i>`;
+            }
             lines.push(``,
                 `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-                `  ┃  Rej <code>${e.rej}</code>   BO <code>${e.bo}</code>`,
-                `  ┃  Ext <code>${e.ext}</code>   Tgt <code>${e.tgt}</code>`,
                 `  ┃  Status: <b>${e.status}</b>`,
-                `  ┗  🕐 ${timeStr(e.timestamp)}`);
+                probLine);
         }
         lines.push(``);
     }
 
-    renderGroup('D + W + MO  ALIGNED', '✅', grouped['D+W+MO']);
-    renderGroup('D + W  ALIGNED',      '⚡', grouped['D+W']);
-    renderGroup('D + MO  ALIGNED',     '⚡', grouped['D+MO']);
-    renderGroup('D  ALIGNED',          '⚡', grouped['D']);
-    renderGroup('W + MO  ALIGNED',     '⚡', grouped['W+MO']);
-    renderGroup('W  ALIGNED',          '⚡', grouped['W']);
-    renderGroup('MO  ALIGNED',         '⚡', grouped['MO']);
+    for (const key of groupOrder) {
+        renderGroup(key, grouped[key]);
+    }
 
     lines.push(B_DASH);
     return lines.join('\n');
