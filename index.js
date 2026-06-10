@@ -2061,7 +2061,6 @@ app.get('/api/checklist-state', (req, res) => {
     const userChecklist = checklistState[userId] || {};
     const items = [];
 
-    // Build set of all CRT entry IDs that still exist in crtState
     const existingKeys = new Set();
 
     for (const sym in cs) {
@@ -2073,6 +2072,9 @@ app.get('/api/checklist-state', (req, res) => {
                 const key = `${sym}_${tf}_${e.id}`;
                 existingKeys.add(key);
                 const saved = userChecklist[key] || {};
+
+                // ── THE ONLY CHANGE: expose _dismissed directly on item ──
+                const isDismissed = saved._dismissed === true;
 
                 items.push({
                     key,
@@ -2086,24 +2088,27 @@ app.get('/api/checklist-state', (req, res) => {
                     ext: e.ext,
                     tgt: e.tgt,
                     timestamp: e.timestamp,
-                    status: e.status,           // ACTIVE, TP_HIT, or INVALID
+                    status: e.status,
                     tp_time: e.tp_time || null,
                     inv_time: e.inv_time || null,
+                    _dismissed: isDismissed,    // ← now explicitly returned
                     checks: {
-                        liq_sweep: saved.liq_sweep || false,
-                        bo_formed: saved.bo_formed || false,
-                        strong_hl: saved.strong_hl || false,
+                        liq_sweep:  saved.liq_sweep  || false,
+                        bo_formed:  saved.bo_formed  || false,
+                        strong_hl:  saved.strong_hl  || false,
                         idm_formed: saved.idm_formed || false,
-                        idm_swept: saved.idm_swept || false,
-                        entry_hit: saved.entry_hit || false,
-                        unclear: saved.unclear || false,
+                        idm_swept:  saved.idm_swept  || false,
+                        entry_hit:  saved.entry_hit  || false,
+                        unclear:    saved.unclear    || false,
+                        // _dismissed is NOT inside checks anymore
+                        // it's a top-level field on the item
                     }
                 });
             }
         }
     }
 
-    // Clean up checklist keys that no longer exist in CRT state (entry was fully removed/purged)
+    // Clean up stale checklist keys (entries fully purged from CRT state)
     let cleaned = false;
     for (const key in userChecklist) {
         if (!existingKeys.has(key)) {
@@ -2158,9 +2163,16 @@ app.post('/api/checklist-dismiss', async (req, res) => {
 
     if (!checklistState[id]) checklistState[id] = {};
     if (!checklistState[id][key]) checklistState[id][key] = {};
+
+    // Store _dismissed at the root level of the key object
     checklistState[id][key]._dismissed = true;
 
+    if (registeredUsers[id]) registeredUsers[id].lastSeen = Date.now();
+
     await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    await redisClient.set(REDIS_USERS_KEY, JSON.stringify(registeredUsers));
+
+    console.log(`[DISMISS] User ${id} dismissed key: ${key}`);
     res.json({ ok: true });
 });
 
