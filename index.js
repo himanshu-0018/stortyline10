@@ -220,6 +220,84 @@ async function botAnswerCallback(callbackQueryId, text = '') {
 }
 
 // ══════════════════════════════════════════════
+// MESSAGE CHUNKER (split long messages)
+// ══════════════════════════════════════════════
+async function botSendMessageChunked(chatId, text, keyboard = null, threadId = null) {
+    const LIMIT = 4000; // safe buffer below Telegram's 4096 limit
+
+    if (text.length <= LIMIT) {
+        return await botSendMessage(chatId, text, keyboard, threadId);
+    }
+
+    // Split into chunks by lines to avoid breaking HTML tags mid-way
+    const lines = text.split('\n');
+    const chunks = [];
+    let current = '';
+
+    for (const line of lines) {
+        const candidate = current.length === 0 ? line : current + '\n' + line;
+        if (candidate.length > LIMIT && current.length > 0) {
+            chunks.push(current);
+            current = line;
+        } else {
+            current = candidate;
+        }
+    }
+    if (current.length > 0) chunks.push(current);
+
+    // Send all chunks; only last chunk gets the keyboard
+    let lastMsgId = null;
+    for (let i = 0; i < chunks.length; i++) {
+        const isLast = i === chunks.length - 1;
+        const kb = isLast ? keyboard : null;
+        const msgId = await botSendMessage(chatId, chunks[i], kb, threadId);
+        if (isLast) lastMsgId = msgId;
+    }
+
+    return lastMsgId;
+}
+
+async function botEditMessageChunked(chatId, messageId, text, keyboard = null, threadId = null) {
+    const LIMIT = 4000;
+
+    if (text.length <= LIMIT) {
+        await botEditMessage(chatId, messageId, text, keyboard);
+        return messageId;
+    }
+
+    // Split into chunks by lines
+    const lines = text.split('\n');
+    const chunks = [];
+    let current = '';
+
+    for (const line of lines) {
+        const candidate = current.length === 0 ? line : current + '\n' + line;
+        if (candidate.length > LIMIT && current.length > 0) {
+            chunks.push(current);
+            current = line;
+        } else {
+            current = candidate;
+        }
+    }
+    if (current.length > 0) chunks.push(current);
+
+    // Edit original message with first chunk (no keyboard on first if more chunks follow)
+    const firstKb = chunks.length === 1 ? keyboard : null;
+    await botEditMessage(chatId, messageId, chunks[0], firstKb);
+
+    // Send remaining chunks as new messages; keyboard only on the last
+    let lastMsgId = messageId;
+    for (let i = 1; i < chunks.length; i++) {
+        const isLast = i === chunks.length - 1;
+        const kb = isLast ? keyboard : null;
+        const msgId = await botSendMessage(chatId, chunks[i], kb, threadId);
+        if (msgId) lastMsgId = msgId;
+    }
+
+    return lastMsgId;
+}
+
+// ══════════════════════════════════════════════
 // BOT SESSION HELPERS
 // ══════════════════════════════════════════════
 function isBotAllowed(chatId) {
@@ -260,7 +338,7 @@ function gradeBar(g)    { return g === 'A+' ? '🌟🌟🌟🌟🌟' : '🔶🔶
 
 function alignBadge(lv) {
     if (lv === 'MO+W+D') return '✅ MO+W+D Aligned (GOD)';
-    if (lv === 'MO+W')   return '⚡ MO+W Aligned';
+    if (lv === 'MO+W')   return '✅ MO+W Aligned';
     if (lv === 'MO+D')   return '⚡ MO+D Aligned';
     if (lv === 'W+D')    return '⚡ W+D Aligned';
     if (lv === 'D+W+MO') return '✅ D+W+MO Aligned';
@@ -792,16 +870,9 @@ function buildActiveCRTMsg() {
     }
 
     items.sort((a, b) => {
-        // 1) Weekly -> Daily -> 4H
         if (a.tfRank !== b.tfRank) return a.tfRank - b.tfRank;
-
-        // 2) Higher hit probability first
         if (b.probValue !== a.probValue) return b.probValue - a.probValue;
-
-        // 3) A+ before B+
         if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
-
-        // 4) Newer first
         return (b.e.timestamp || 0) - (a.e.timestamp || 0);
     });
 
@@ -809,7 +880,7 @@ function buildActiveCRTMsg() {
     const dailyCount  = items.filter(x => x.tf === '1D').length;
     const fourHCount  = items.filter(x => x.tf === '4H').length;
 
-    const header = [
+    const lines = [
         B_TOP,
         `║  🟢 <b>ACTIVE CRTs  —  HTF</b>`,
         `║  Sorted by TF + Hit Probability`,
@@ -819,15 +890,14 @@ function buildActiveCRTMsg() {
         `║  📆 Weekly: <b>${weeklyCount}</b>   📅 Daily: <b>${dailyCount}</b>   ⏰ 4H: <b>${fourHCount}</b>`,
         B_BOT,
         ``,
-    ].join('\n');
+    ];
 
     if (items.length === 0) {
-        return header + '\n' + B_THIN + '\n\n   📭 <i>No active CRTs right now</i>\n\n' + B_THIN;
+        lines.push(B_THIN, ``, `   📭 <i>No active CRTs right now</i>`, ``, B_THIN);
+        return lines.join('\n');
     }
 
-    let result = header;
     let lastTf = null;
-    let shown = 0;
 
     for (const { sym, tf, e, prob } of items) {
         const tfLabel = TF_LABELS[tf] || tf;
@@ -840,31 +910,21 @@ function buildActiveCRTMsg() {
             probLine = `  ┗  📊 <i>No data</i>`;
         }
 
-        const sectionHeader = tf !== lastTf
-            ? `\n${B_THIN}\n\n<b>${tfLabel.toUpperCase()}</b>\n${B_THIN}\n`
-            : '';
-
-        const block = [
-            sectionHeader,
-            `  🟢 <b>${sym}</b>  ${dirIcon(e.side)}${g}`,
-            `  ┃  ${alignBadge(e.align_level)}`,
-            probLine,
-            ``
-        ].join('\n');
-
-        if ((result + '\n' + block).length > 3900) {
-            const remaining = items.length - shown;
-            result += `\n⚠️ <i>+${remaining} more positions</i>`;
-            break;
+        if (tf !== lastTf) {
+            lines.push(``, B_THIN, ``, `<b>${tfLabel.toUpperCase()}</b>`, B_THIN);
+            lastTf = tf;
         }
 
-        result += '\n' + block;
-        lastTf = tf;
-        shown++;
+        lines.push(
+            ``,
+            `  🟢 <b>${sym}</b>  ${dirIcon(e.side)}${g}`,
+            `  ┃  ${alignBadge(e.align_level)}`,
+            probLine
+        );
     }
 
-    result += '\n' + B_DASH;
-    return result;
+    lines.push(``, B_DASH);
+    return lines.join('\n');
 }
 
 // ── CRT Stats (updated with grade breakdown) ──
@@ -1028,13 +1088,11 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { 
     for (const chatId of Object.keys(botSessions)) {
         try {
             const sess = botSessions[chatId];
-            // ✅ Use the stored thread ID from session
             const threadId = sess.threadId || null;
             await botSendMessage(chatId, text, null, threadId);
         } catch(e) {}
     }
 }
-
 
 // ══════════════════════════════════════════════
 // AUTO-REFRESH ALL OPEN PANELS
@@ -1051,7 +1109,9 @@ async function autoRefreshBotPanels() {
             else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg(); kb = subKeyboard('FOURHOUR_CRT'); }
             else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();   kb = subKeyboard('ACTIVE_CRT');   }
             else if (sess.view === 'STATS')    { text = buildStatsMsg();       kb = subKeyboard('CRT_STATS');    }
-            if (text) await botEditMessage(chatId, sess.lastMsgId, text, kb);
+            if (text) {
+                sess.lastMsgId = await botEditMessageChunked(chatId, sess.lastMsgId, text, kb, sess.threadId);
+            }
         } catch(e) { /* ignore */ }
     }
 }
@@ -1062,133 +1122,125 @@ async function autoRefreshBotPanels() {
 async function handleBotUpdate(update) {
 
     // ── COMMANDS ──
-if (update.message) {
-    const chatId  = String(update.message.chat.id);
-    const text    = (update.message.text || '').trim();
-    const threadId = update.message.message_thread_id || null;
+    if (update.message) {
+        const chatId   = String(update.message.chat.id);
+        const text     = (update.message.text || '').trim();
+        const threadId = update.message.message_thread_id || null;
 
-    // ✅ IGNORE messages from General (no thread ID in a forum group)
-    // Only respond if it's a private chat OR a specific topic message
-    const isPrivateChat = update.message.chat.type === 'private';
-    const isTopicMessage = update.message.is_topic_message === true;
+        const isPrivateChat  = update.message.chat.type === 'private';
+        const isTopicMessage = update.message.is_topic_message === true;
 
-    if (!isPrivateChat && !isTopicMessage) {
-        // Message is in General — ignore it completely
+        if (!isPrivateChat && !isTopicMessage) return;
+        if (!text.startsWith('/')) return;
+
+        if (!isBotAllowed(chatId)) {
+            await botSendMessage(chatId, `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
+            return;
+        }
+
+        const sess = getSession(chatId, threadId);
+        if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
+
+        const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
+
+        if (cmd === '/start' || cmd === '/menu') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
+            sess.view = 'MAIN';
+        } else if (cmd === '/daily') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
+            sess.view = 'DAILY';
+        } else if (cmd === '/weekly') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
+            sess.view = 'WEEKLY';
+        } else if (cmd === '/4h' || cmd === '/fourhour') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
+            sess.view = 'FOURHOUR';
+        } else if (cmd === '/active') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
+            sess.view = 'ACTIVE';
+        } else if (cmd === '/stats') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
+            sess.view = 'STATS';
+        } else if (cmd === '/help') {
+            sess.lastMsgId = await botSendMessageChunked(chatId, [
+                B_TOP,
+                `║  🤖 <b>GOD-MODE CRT BOT</b>`,
+                `║  Command Reference`,
+                B_BOT,
+                ``,
+                `  /start      🏠 Main terminal`,
+                `  /daily      📅 Daily CRTs (aligned)`,
+                `  /weekly     📆 Weekly CRTs (MO)`,
+                `  /4h         ⏰ 4H CRTs (aligned)`,
+                `  /active     🟢 Active positions`,
+                `  /stats      📊 Performance stats`,
+                `  /help       ❓ This help`,
+                ``,
+                B_THIN,
+                ``,
+                `  <b>🔔 Grades:</b>`,
+                `  ⭐ A+ = Sweep + SNR Rejection + BO`,
+                `  🔶 B+ = Sweep + BO (no rejection)`,
+                ``,
+                `  <b>🔔 Auto-Notifications:</b>`,
+                `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
+                `  📆 Weekly →  MO aligned ⚡ only`,
+                `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
+                ``,
+                `  <b>📊 Hit Probability:</b>`,
+                `  New CRT alerts show historical`,
+                `  hit rate for that exact combo`,
+                ``,
+                `  <b>📡 Live Auto-Refresh:</b>`,
+                `  Panels update automatically`,
+                ``,
+                B_DASH,
+            ].join('\n'), subKeyboard('MAIN_REFRESH'), sess.threadId);
+            sess.view = 'HELP';
+        } else {
+            sess.lastMsgId = await botSendMessageChunked(chatId, `❓ Unknown command.\n\nType /help or /start`, null, sess.threadId);
+        }
+
+        await saveBotSessions();
         return;
     }
-
-    // ✅ Only respond to commands (messages starting with /)
-    if (!text.startsWith('/')) return;
-
-    if (!isBotAllowed(chatId)) {
-        await botSendMessage(chatId, `⛔ <b>Access Denied</b>\n\nYour Chat ID: <code>${chatId}</code>\nContact admin to get access.`);
-        return;
-    }
-
-    const sess = getSession(chatId, threadId);
-    if (sess.lastMsgId) { await botDeleteMessage(chatId, sess.lastMsgId); sess.lastMsgId = null; }
-
-    const cmd = text.split(' ')[0].split('@')[0].toLowerCase();
-
-    if (cmd === '/start' || cmd === '/menu') {
-        sess.lastMsgId = await botSendMessage(chatId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
-        sess.view = 'MAIN';
-    } else if (cmd === '/daily') {
-        sess.lastMsgId = await botSendMessage(chatId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
-        sess.view = 'DAILY';
-    } else if (cmd === '/weekly') {
-        sess.lastMsgId = await botSendMessage(chatId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
-        sess.view = 'WEEKLY';
-    } else if (cmd === '/4h' || cmd === '/fourhour') {
-        sess.lastMsgId = await botSendMessage(chatId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
-        sess.view = 'FOURHOUR';
-    } else if (cmd === '/active') {
-        sess.lastMsgId = await botSendMessage(chatId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
-        sess.view = 'ACTIVE';
-    } else if (cmd === '/stats') {
-        sess.lastMsgId = await botSendMessage(chatId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
-        sess.view = 'STATS';
-    } else if (cmd === '/help') {
-        sess.lastMsgId = await botSendMessage(chatId, [
-            B_TOP,
-            `║  🤖 <b>GOD-MODE CRT BOT</b>`,
-            `║  Command Reference`,
-            B_BOT,
-            ``,
-            `  /start      🏠 Main terminal`,
-            `  /daily      📅 Daily CRTs (aligned)`,
-            `  /weekly     📆 Weekly CRTs (MO)`,
-            `  /4h         ⏰ 4H CRTs (aligned)`,
-            `  /active     🟢 Active positions`,
-            `  /stats      📊 Performance stats`,
-            `  /help       ❓ This help`,
-            ``,
-            B_THIN,
-            ``,
-            `  <b>🔔 Grades:</b>`,
-            `  ⭐ A+ = Sweep + SNR Rejection + BO`,
-            `  🔶 B+ = Sweep + BO (no rejection)`,
-            ``,
-            `  <b>🔔 Auto-Notifications:</b>`,
-            `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
-            `  📆 Weekly →  MO aligned ⚡ only`,
-            `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
-            ``,
-            `  <b>📊 Hit Probability:</b>`,
-            `  New CRT alerts show historical`,
-            `  hit rate for that exact combo`,
-            ``,
-            `  <b>📡 Live Auto-Refresh:</b>`,
-            `  Panels update automatically`,
-            ``,
-            B_DASH,
-        ].join('\n'), subKeyboard('MAIN_REFRESH'), sess.threadId);
-        sess.view = 'HELP';
-    } else {
-        sess.lastMsgId = await botSendMessage(chatId, `❓ Unknown command.\n\nType /help or /start`, null, sess.threadId);
-    }
-
-    await saveBotSessions();
-    return;
-}
 
     // ── CALLBACKS ──
-if (update.callback_query) {
-    const cb     = update.callback_query;
-    const chatId = String(cb.message.chat.id);
-    const msgId  = cb.message.message_id;
-    const data   = cb.data;
-    // ✅ Capture thread ID from callback message
-    const threadId = cb.message.message_thread_id || null;
+    if (update.callback_query) {
+        const cb     = update.callback_query;
+        const chatId = String(cb.message.chat.id);
+        const msgId  = cb.message.message_id;
+        const data   = cb.data;
+        const threadId = cb.message.message_thread_id || null;
 
-    if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
+        if (!isBotAllowed(chatId)) { await botAnswerCallback(cb.id, '⛔ Access denied'); return; }
 
-    const sess = getSession(chatId, threadId); // ✅ Pass threadId
-    sess.lastMsgId = msgId;
-    await botAnswerCallback(cb.id, '✅');
+        const sess = getSession(chatId, threadId);
+        sess.lastMsgId = msgId;
+        await botAnswerCallback(cb.id, '✅');
 
-    if (data === 'MAIN' || data === 'MAIN_REFRESH') {
-        await botEditMessage(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard());
-        sess.view = 'MAIN';
-    } else if (data === 'DAILY_CRT') {
-        await botEditMessage(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'));
-        sess.view = 'DAILY';
-    } else if (data === 'WEEKLY_CRT') {
-        await botEditMessage(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'));
-        sess.view = 'WEEKLY';
-    } else if (data === 'FOURHOUR_CRT') {
-        await botEditMessage(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'));
-        sess.view = 'FOURHOUR';
-    } else if (data === 'ACTIVE_CRT') {
-        await botEditMessage(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'));
-        sess.view = 'ACTIVE';
-    } else if (data === 'CRT_STATS') {
-        await botEditMessage(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'));
-        sess.view = 'STATS';
+        if (data === 'MAIN' || data === 'MAIN_REFRESH') {
+            sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildMainMenuMsg(), mainMenuKeyboard(), sess.threadId);
+            sess.view = 'MAIN';
+        } else if (data === 'DAILY_CRT') {
+            sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildDailyCRTMsg(), subKeyboard('DAILY_CRT'), sess.threadId);
+            sess.view = 'DAILY';
+        } else if (data === 'WEEKLY_CRT') {
+            sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildWeeklyCRTMsg(), subKeyboard('WEEKLY_CRT'), sess.threadId);
+            sess.view = 'WEEKLY';
+        } else if (data === 'FOURHOUR_CRT') {
+            sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildFourHourCRTMsg(), subKeyboard('FOURHOUR_CRT'), sess.threadId);
+            sess.view = 'FOURHOUR';
+        } else if (data === 'ACTIVE_CRT') {
+            sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildActiveCRTMsg(), subKeyboard('ACTIVE_CRT'), sess.threadId);
+            sess.view = 'ACTIVE';
+        } else if (data === 'CRT_STATS') {
+            sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
+            sess.view = 'STATS';
+        }
+
+        await saveBotSessions();
     }
-
-    await saveBotSessions();
-}
 }
 
 // ══════════════════════════════════════════════
@@ -1552,7 +1604,6 @@ async function processBreakoutUpdate(sym,moDir,wDir,source='WEBHOOK'){
     if(changed){
         await saveBreakoutState();
         const tgMsg=buildBreakoutTelegramMessage(sym,moDir,wDir,marketState[sym]?tfInfoString(sym):null);
-        // ✅ Thread support
         if(TG_BREAKOUT_PAGE)await sendTelegram(TG_BREAKOUT_PAGE,tgMsg,TG_BREAKOUT_THREAD_ID);
         const tfl=[];if(moDir!=='NONE')tfl.push(`MO:${moDir}`);if(wDir!=='NONE')tfl.push(`W:${wDir}`);
         await pushLogEvent(sym,moDir!=='NONE'?moDir:wDir,`💥 BREAKOUT: ${tfl.join(' + ')}`,{logAction:'BREAKOUT_PAGE'});
@@ -1701,7 +1752,6 @@ app.post('/webhook', async (req, res) => {
         if(dominantState!=="NONE"&&dominantState!==prev){
             marketState[sym].lastAlertedState=dominantState;
             marketState[sym].lastGodModeStartTime=Date.now();
-            // ✅ Thread support
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                 `<b>${dominantState==="BULLISH"?"🚀 🐂":"🩸 🐻"} GOD-MODE: ${sym}</b>\n\n<b>Alignment:</b> ${dominantState} (3/3 — MO+W+D)\n${tfInfoString(sym)}\n\n✅ Monthly + Weekly + Daily aligned!`,
                 TG_STORYLINE_THREAD_ID);
@@ -1709,7 +1759,6 @@ app.post('/webhook', async (req, res) => {
         }
         if(dominantState==="NONE"&&prev!=="NONE"){
             marketState[sym].lastAlertedState="NONE";
-            // ✅ Thread support
             await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                 `<b>⚠️ ALIGNMENT LOST: ${sym}</b>\n\nWas: ${prev} (3/3)\nNow: ${partialState!=="NONE"?partialState+` (${partialCount}/3)`:`${alignCount}/3`}\n${tfInfoString(sym)}`,
                 TG_STORYLINE_THREAD_ID);
@@ -1720,7 +1769,6 @@ app.post('/webhook', async (req, res) => {
             const ppc=marketState[sym]._lastPartialCount||0;
             if(pp!==partialState||ppc!==partialCount||(prev!=="NONE"&&dominantState==="NONE")){
                 const levelLabel=partialCount>=STRONG_THRESHOLD?'STRONG':'PARTIAL';
-                // ✅ Thread support
                 await sendTelegram(TELEGRAM_STORYLINE_CHAT_ID,
                     `<b>${partialState==="BULLISH"?"⚡ 🐂":"⚡ 🐻"} ${levelLabel}: ${sym}</b>\n\n<b>Alignment:</b> ${partialState} (${partialCount}/3)\n${tfInfoString(sym)}`,
                     TG_STORYLINE_THREAD_ID);
@@ -1744,7 +1792,6 @@ app.post('/webhook', async (req, res) => {
         if(!align.aligned)return res.status(200).send("OK");
         const tgMsg=`<b>${direction==="BULLISH"?"🚀 🐂":"🩸 🐻"} BREAKOUT: ${sym}</b>\n\n<b>Direction:</b> ${direction}\n<b>Chart TF:</b> ${chartTf||'?'}\n\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`}</b>\n${tfInfoString(sym)}`;
         const sc=[];
-        // ✅ Thread support for all breakout channels
         if(align.count>=PARTIAL_THRESHOLD&&align.type==='PARTIAL'&&TG_BREAKOUT_5OF6){await sendTelegram(TG_BREAKOUT_5OF6,tgMsg,TG_BREAKOUT5_THREAD_ID);sc.push('PARTIAL');}
         if((align.type==='GOD'||align.type==='STRONG')&&TG_BREAKOUT_6OF6){await sendTelegram(TG_BREAKOUT_6OF6,tgMsg,TG_BREAKOUT6_THREAD_ID);sc.push(align.type);}
         if(checkCustomAlignment(sym,direction)&&TG_CUSTOM_ALIGNMENT){await sendTelegram(TG_CUSTOM_ALIGNMENT,tgMsg,TG_CUSTOM_THREAD_ID);sc.push('CUSTOM');}
@@ -1767,7 +1814,7 @@ app.post('/webhook', async (req, res) => {
         if(!crtState[sym])crtState[sym]={};
         if(!Array.isArray(crtState[sym][tf]))crtState[sym][tf]=crtState[sym][tf]?[crtState[sym][tf]]:[];
         const tgCh=getCRTTGChannel(profile);
-        const tgThread=getCRTTGThreadId(profile); // ✅ Get thread ID
+        const tgThread=getCRTTGThreadId(profile);
 
         if(payload.kind==='CRT'){
             const ac=checkCRTAlignment(sym,tf,side);
@@ -1789,9 +1836,6 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
                 {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
-            //const ctm=buildCRTTelegramMessage('CRT',sym,tf,side,grade,profile,{rej,bo,ext,tgt,alignInfo:at});
-            // ✅ Send with thread ID
-            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT',sym,tf,side,ac.level,grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1809,9 +1853,6 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `🎯 ${tf} CRT${gradeTag} TARGET HIT [${profile}]: ${side}|Tgt:${tgt}`,
                 {tf,tgt,action:'CRT_TARGET',grade:target.grade});
-            //const ctm=buildCRTTelegramMessage('CRT_TARGET',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
-            // ✅ Send with thread ID
-            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_TARGET',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1829,9 +1870,6 @@ app.post('/webhook', async (req, res) => {
             await pushCRTLog(profile,sym,side,
                 `❌ ${tf} CRT${gradeTag} INVALIDATED [${profile}]: ${side}|Ext:${ext}`,
                 {tf,ext,action:'CRT_INVALID',grade:target.grade});
-            //const ctm=buildCRTTelegramMessage('CRT_INVALID',sym,tf,side,target.grade||grade,profile,{rej,bo,ext,tgt,alignInfo:target.align_label||''});
-            // ✅ Send with thread ID
-            //if(ctm)await sendTelegram(tgCh,ctm,tgThread);
             if(profile==='HTF'){
                 await sendBotCRTNotification('CRT_INVALID',sym,tf,side,target.align_level||'NONE',target.grade||grade,{rej,bo,ext,tgt});
                 await autoRefreshBotPanels();
@@ -1860,7 +1898,6 @@ app.post('/webhook', async (req, res) => {
             const stats=ensureStats(sym,entryTf);stats.total_signals++;
             const trade={id:makeTradeId(sym,entryTf),direction,entry:parseFloat(entry)||entry,sl:parseFloat(sl)||sl,tp:parseFloat(tp)||tp,rr:parseFloat(rr)||rr,alignment:align.type,align_combos:align.combos,align_count:align.count,status:'PENDING',signal_time:Date.now(),entry_time:null,result_time:null,entry_tf:entryTf,telegram_chat_id:null,telegram_message_id:null,telegram_deleted:false,cancelled_time:null,cancelled_reason:null};
             stats.trades.push(trade);if(stats.trades.length>500)stats.trades=stats.trades.slice(-500);
-            // ✅ Updated to use {chatId, threadId} from channel map
             const ch=TG_CHANNEL_MAP[entryTf]?.();let snd=false;
             if(ch?.chatId){
                 const al=align.type==='GOD'?`GOD-MODE (${align.count}/3)`:align.type==='STRONG'?`STRONG (${align.count}/3)`:`PARTIAL (${align.count}/3)`;
@@ -1869,7 +1906,6 @@ app.post('/webhook', async (req, res) => {
                 if(tp)msg+=`<b>TP:</b> <code>${tp}</code>\n`;
                 if(rr)msg+=`<b>R:R:</b> ${rr}\n`;
                 msg+=`\n${align.type==='GOD'?'✅':align.type==='STRONG'?'💪':'⚡'} <b>${al}</b>\n${tfInfoString(sym)}`;
-                // ✅ Send with thread ID
                 const sent=await sendTelegramTracked(ch.chatId,msg,ch.threadId);
                 if(sent.ok){snd=true;trade.telegram_chat_id=ch.chatId;trade.telegram_message_id=sent.messageId;}
             }
@@ -1936,7 +1972,6 @@ app.listen(PORT, () => {
     startBotPolling();
 });
 
-
 // ══════════════════════════════════════════════
 // CHECKLIST API (with user identity)
 // ══════════════════════════════════════════════
@@ -1967,7 +2002,6 @@ function cleanResolvedFromChecklists(profile) {
     const cs = getCRTState(profile);
     const activeKeys = new Set();
 
-    // Build set of all active CRT keys
     for (const sym in cs) {
         for (const tf in cs[sym]) {
             const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
@@ -1979,7 +2013,6 @@ function cleanResolvedFromChecklists(profile) {
         }
     }
 
-    // Remove non-active entries from all user checklists
     let cleaned = 0;
     for (const userId in checklistState) {
         const userCl = checklistState[userId];
@@ -2024,7 +2057,6 @@ app.get('/api/checklist-state', (req, res) => {
     const userId = (req.query.userId || '').toUpperCase().trim();
     if (!userId) return res.status(400).send("Need userId");
 
-    // Clean resolved entries first
     cleanResolvedFromChecklists(profile);
 
     const cs = getCRTState(profile);
@@ -2035,7 +2067,6 @@ app.get('/api/checklist-state', (req, res) => {
         for (const tf in cs[sym]) {
             const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
             for (const e of arr) {
-                // ✅ ONLY show ACTIVE CRTs
                 if (e?.status !== 'ACTIVE') continue;
 
                 const key = `${sym}_${tf}_${e.id}`;
