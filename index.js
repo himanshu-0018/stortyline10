@@ -6,6 +6,8 @@ import { createClient } from 'redis';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
+const MIN_PROB_THRESHOLD = 65;
+
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -896,6 +898,10 @@ function buildActiveCRTMsg() {
 
                 const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
                 const probValue = prob.found ? parseFloat(prob.pct) : -1;
+
+                // ── NEW: Skip if prob < 65% ──
+                if (probValue < MIN_PROB_THRESHOLD) continue;
+
                 const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
 
                 items.push({
@@ -925,7 +931,7 @@ function buildActiveCRTMsg() {
     const lines = [
         B_TOP,
         `║  🟢 <b>ACTIVE CRTs  —  HTF</b>`,
-        `║  Sorted by TF + Hit Probability`,
+        `║  ≥${MIN_PROB_THRESHOLD}% Hit Probability Only`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
         `║  🟢 Total Active: <b>${items.length}</b>`,
@@ -935,7 +941,7 @@ function buildActiveCRTMsg() {
     ];
 
     if (items.length === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No active CRTs right now</i>`, ``, B_THIN);
+        lines.push(B_THIN, ``, `   📭 <i>No active CRTs with ≥${MIN_PROB_THRESHOLD}% probability</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
@@ -1071,23 +1077,35 @@ function buildStatsMsg() {
 // BOT PUSH NOTIFICATION (with grade + hit prob)
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
-    // Only filter out truly invalid TFs — allow ALL alignment levels including NONE
     if (!['1D', '1W', '4H'].includes(tf)) return;
     if (Object.keys(botSessions).length === 0) return;
 
-    // rest of function unchanged...
+    // ── NEW: Skip if probability < 65% ──
+    const probCheck = calcHitProbability('HTF', tf, alignLevel, grade);
+    if (kind === 'CRT') {
+        // For new CRTs, only notify if prob >= 65%
+        if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) {
+            console.log(`[BOT SKIP] ${sym} ${tf} ${side} — prob ${probCheck.found ? probCheck.pct + '%' : 'N/A'} < ${MIN_PROB_THRESHOLD}%`);
+            return;
+        }
+    }
+    if (kind === 'CRT_TARGET' || kind === 'CRT_INVALID') {
+        // For TP/INVALID, only notify if the original CRT would have qualified
+        if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) return;
+    }
 
+    // rest of function unchanged...
     const tfLabel    = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
     const gradeLabel = grade === 'A+' ? '⭐ A+' : grade === 'B+' ? '🔶 B+' : '';
     const gradeBarStr = grade === 'A+' ? '🌟🌟🌟🌟🌟' : grade === 'B+' ? '🔶🔶🔶🔶🔶' : '';
 
-const accentBar = kind === 'CRT'
-    ? (grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' 
-     : grade === 'B+' ? '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶'
-     : '🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔')
-    : kind === 'CRT_TARGET'
-    ? '🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯'
-    : '🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥';
+    const accentBar = kind === 'CRT'
+        ? (grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' 
+         : grade === 'B+' ? '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶'
+         : '🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔')
+        : kind === 'CRT_TARGET'
+        ? '🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯'
+        : '🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥';
 
     const header = kind === 'CRT'
         ? `🔔 <b>NEW CRT SIGNAL</b>`
