@@ -2241,23 +2241,16 @@ app.post('/api/manual-crt-update', async (req, res) => {
             { tf, action: 'CRT_INVALID', grade: entry.grade }
         );
     } else if (action === 'REMOVE') {
-        // Remove from array — does NOT count in stats (splice out completely)
         entries.splice(idx, 1);
         if (entries.length === 0) {
             delete cs[sym][tf];
         } else {
             cs[sym][tf] = entries;
         }
-        // Clean up empty symbol
         if (Object.keys(cs[sym]).length === 0) delete cs[sym];
 
         setCRTState(p, cs);
         await saveCRTState(p);
-
-        let cl = getCRTLog(p);
-        setCRTLog(p, cl);
-        await redisClient.set(getCRTRedisKey(p) + '_log', JSON.stringify(cl));
-
         broadcastCRT(p);
         await autoRefreshBotPanels();
         return res.json({ ok: true, action: 'REMOVE', symbol: sym, tf, entryId });
