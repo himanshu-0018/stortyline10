@@ -193,6 +193,117 @@
         ::-webkit-scrollbar { width:6px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
+
+        /* ── MANUAL CONTROL PANEL ── */
+.manual-ctrl-panel {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: none;
+}
+.coin-card:hover .manual-ctrl-panel,
+.manual-ctrl-panel.open {
+    display: block;
+}
+.manual-ctrl-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.40rem;
+    color: rgba(148,163,184,0.4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+.manual-ctrl-btns {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.mc-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.48rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid;
+    flex: 1;
+    text-align: center;
+    min-width: 60px;
+}
+.mc-btn-tp {
+    background: rgba(16,185,129,0.15);
+    border-color: rgba(16,185,129,0.35);
+    color: #34d399;
+}
+.mc-btn-tp:hover {
+    background: rgba(16,185,129,0.35);
+    border-color: rgba(16,185,129,0.6);
+    color: #6ee7b7;
+    box-shadow: 0 0 10px rgba(16,185,129,0.2);
+}
+.mc-btn-inv {
+    background: rgba(239,68,68,0.15);
+    border-color: rgba(239,68,68,0.35);
+    color: #f87171;
+}
+.mc-btn-inv:hover {
+    background: rgba(239,68,68,0.35);
+    border-color: rgba(239,68,68,0.6);
+    color: #fca5a5;
+    box-shadow: 0 0 10px rgba(239,68,68,0.2);
+}
+.mc-btn-remove {
+    background: rgba(71,85,105,0.2);
+    border-color: rgba(71,85,105,0.4);
+    color: #64748b;
+}
+.mc-btn-remove:hover {
+    background: rgba(239,68,68,0.2);
+    border-color: rgba(239,68,68,0.4);
+    color: #f87171;
+}
+.mc-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ── ENTRY EXPAND ── */
+.entry-list { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.entry-row {
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.05);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.42rem;
+}
+.entry-row-active { border-color: rgba(14,165,233,0.25); }
+.entry-row-tp     { border-color: rgba(16,185,129,0.2); opacity: 0.7; }
+.entry-row-inv    { border-color: rgba(239,68,68,0.2); opacity: 0.6; }
+.entry-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.entry-row-prices {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 3px;
+    margin-top: 3px;
+}
+.price-cell {
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    text-align: center;
+}
+.price-label { color: rgba(148,163,184,0.4); font-size: 0.36rem; display: block; }
+.price-value { color: #e2e8f0; font-size: 0.44rem; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -387,6 +498,66 @@ async function confirmPurge() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePurgeModal(); });
 
+    // ══════════════════════════════════════════════
+// MANUAL CRT CONTROLS
+// ══════════════════════════════════════════════
+async function manualUpdate(sym, tf, entryId, action) {
+    const actionLabels = { TP_HIT: 'TP Hit', INVALID: 'Invalidate', REMOVE: 'Remove (no stats)' };
+    const label = actionLabels[action] || action;
+
+    if (!confirm(`${label}: ${sym} ${tf}?\n\n${action === 'REMOVE' ? '⚠️ This entry will be DELETED and NOT counted in statistics.' : ''}`)) return;
+
+    // Optimistic UI — disable the clicked button row
+    try {
+        const r = await fetch('/api/manual-crt-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol: sym, tf, entryId, action, profile: activeProfile })
+        });
+
+        if (!r.ok) {
+            const txt = await r.text();
+            alert(`Error: ${txt}`);
+            return;
+        }
+
+        const data = await r.json();
+
+        // Update local state immediately
+        if (action === 'REMOVE') {
+            // Remove entry from local crtState
+            if (crtState[sym]?.[tf]) {
+                const arr = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
+                const filtered = arr.filter(e => e.id !== entryId);
+                if (filtered.length === 0) {
+                    delete crtState[sym][tf];
+                } else {
+                    crtState[sym][tf] = filtered;
+                }
+                if (Object.keys(crtState[sym]).length === 0) delete crtState[sym];
+            }
+        } else {
+            // Update status in local crtState
+            if (crtState[sym]?.[tf]) {
+                const arr = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
+                const entry = arr.find(e => e.id === entryId);
+                if (entry) {
+                    entry.status = action === 'TP_HIT' ? 'TP_HIT' : 'INVALID';
+                    if (action === 'TP_HIT') entry.tp_time = Date.now();
+                    if (action === 'INVALID') entry.inv_time = Date.now();
+                }
+            }
+        }
+
+        render();
+        rebuildFeed();
+        refreshStats();
+
+    } catch(err) {
+        console.error('Manual update error:', err);
+        alert('Network error. Please try again.');
+    }
+}
 // ══════════════════════════════════════════════
 // GRADE / FILTER / PROFILE
 // ══════════════════════════════════════════════
@@ -533,10 +704,12 @@ function buildCard(sym) {
     const abCls = type==='bull'?'align-bar-bull':type==='bear'?'align-bar-bear':type==='mixed'?'align-bar-mixed':'align-bar-none';
     const abTxt = parts.length ? parts.join(' · ') : '—';
 
+    // Build TF cells with entry list per TF
     let tfCells = '';
     CRT_TFS.forEach(tf => {
-        const d = getLatestEntry(sym, tf);
-        const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
+        const allTfEntries = getTFEntries(sym, tf);
+        const entries = activeGrade === 'ALL' ? allTfEntries : allTfEntries.filter(e => e.grade === activeGrade);
+        const d = entries.length ? entries[entries.length - 1] : null;
         const emoji = d?.side === 'BULLISH' ? '🐂' : d?.side === 'BEARISH' ? '🐻' : '—';
         const cnt = entries.length;
 
@@ -550,7 +723,56 @@ function buildCard(sym) {
             countLine = `<div style="color:rgba(203,213,225,0.4);font-size:0.36rem;margin-top:1px;">${cnt} · ${b2.join(' ')}</div>`;
         }
 
-        tfCells += `<div class="tf-cell ${tfCellCls(d)}">
+        // Entry list for this TF (all entries, each with manual controls if ACTIVE)
+        let entryListHtml = '';
+        if (entries.length > 0) {
+            const rows = entries.map(entry => {
+                const isActive = entry.status === 'ACTIVE';
+                const rowCls = isActive ? 'entry-row-active' : entry.status === 'TP_HIT' ? 'entry-row-tp' : 'entry-row-inv';
+                const sideIcon = entry.side === 'BULLISH' ? '🐂' : '🐻';
+                const gb = entry.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.36rem;">⭐A+</span>' : entry.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.36rem;">🔶B+</span>' : '';
+                const at = alignTag(entry);
+                const st = statusBadge(entry.status);
+                const safeId = entry.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+                const pricesHtml = `<div class="entry-row-prices">
+                    <div class="price-cell"><span class="price-label">REJ</span><span class="price-value">${entry.rej || '—'}</span></div>
+                    <div class="price-cell"><span class="price-label">BO</span><span class="price-value">${entry.bo || '—'}</span></div>
+                    <div class="price-cell"><span class="price-label">EXT</span><span class="price-value">${entry.ext || '—'}</span></div>
+                    <div class="price-cell"><span class="price-label">TGT</span><span class="price-value">${entry.tgt || '—'}</span></div>
+                </div>`;
+
+                const manualBtns = isActive ? `
+                    <div class="manual-ctrl-btns" style="margin-top:5px;">
+                        <button class="mc-btn mc-btn-tp"
+                            onclick="event.stopPropagation();manualUpdate('${sym}','${tf}','${entry.id}','TP_HIT')"
+                            title="Mark TP Hit">🎯 TP</button>
+                        <button class="mc-btn mc-btn-inv"
+                            onclick="event.stopPropagation();manualUpdate('${sym}','${tf}','${entry.id}','INVALID')"
+                            title="Mark Invalidated">❌ INV</button>
+                        <button class="mc-btn mc-btn-remove"
+                            onclick="event.stopPropagation();manualUpdate('${sym}','${tf}','${entry.id}','REMOVE')"
+                            title="Remove (no stats impact)">🗑️ DEL</button>
+                    </div>` : '';
+
+                return `<div class="entry-row ${rowCls}">
+                    <div class="entry-row-header">
+                        <div style="display:flex;align-items:center;gap:3px;">
+                            <span>${sideIcon}</span>${gb}${at}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:3px;">
+                            ${st}
+                            <span style="color:rgba(148,163,184,0.4);font-size:0.38rem;">${fmtTime(entry.timestamp)}</span>
+                        </div>
+                    </div>
+                    ${pricesHtml}
+                    ${manualBtns}
+                </div>`;
+            }).join('');
+            entryListHtml = `<div class="entry-list">${rows}</div>`;
+        }
+
+        tfCells += `<div class="tf-cell ${tfCellCls(d)}" style="grid-column:span 1;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
                 <span style="color:rgba(203,213,225,0.5);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
                 <span style="font-size:0.6rem;">${emoji}</span>
@@ -561,6 +783,7 @@ function buildCard(sym) {
             ${alignTag(d)}
             ${countLine}
             ${d?.timestamp ? `<div style="color:rgba(203,213,225,0.6);font-size:0.42rem;margin-top:2px;">🕐 ${fmtTime(d.timestamp)}</div>` : ''}
+            ${entryListHtml}
         </div>`;
     });
 
