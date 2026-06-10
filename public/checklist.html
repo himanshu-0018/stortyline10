@@ -9,7 +9,9 @@
     <style>
         * { box-sizing:border-box;margin:0;padding:0; }
         body { font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh;overflow-x:hidden;overflow-y:auto; }
+
         #pageRoot { min-height:100vh; }
+
         .bg-container { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
         .bg-gradient { position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.20) 0%,transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(16,185,129,0.15) 0%,transparent 50%),linear-gradient(135deg,rgba(10,14,26,0.90) 0%,rgba(15,20,40,0.85) 100%); }
 
@@ -19,171 +21,202 @@
         .ctrl-btn { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;font-size:0.68rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid;font-family:'JetBrains Mono',monospace;text-decoration:none; }
         .ctrl-btn:hover { transform:translateY(-2px); }
         .btn-back { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(14,165,233,0.15));border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
-        .btn-crt  { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
+        .btn-crt { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15));border-color:rgba(245,158,11,0.5);color:#fbbf24; }
         .stat-chip { display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace;font-size:0.62rem; }
 
         .user-bar { display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:10px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07); }
         .user-avatar { width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.95rem; }
-        .user-name   { font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700; }
+        .user-name { font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700; }
         .user-switch { font-family:'JetBrains Mono',monospace;font-size:0.45rem;color:rgba(148,163,184,0.5);cursor:pointer;text-decoration:underline; }
         .user-switch:hover { color:#a5b4fc; }
 
         .filter-bar { position:sticky;top:58px;z-index:49;display:flex;align-items:center;gap:7px;padding:8px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.90);backdrop-filter:blur(10px);flex-wrap:wrap; }
         .filter-btn { padding:4px 10px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:700;cursor:pointer;transition:all 0.2s;border:1px solid rgba(71,85,105,0.4);background:rgba(71,85,105,0.15);color:#94a3b8; }
-        .filter-btn:hover  { background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#a5b4fc; }
+        .filter-btn:hover { background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#a5b4fc; }
         .filter-btn.active { background:rgba(99,102,241,0.25);border-color:rgba(99,102,241,0.5);color:#a5b4fc; }
         .filter-label { font-family:'JetBrains Mono',monospace;font-size:0.50rem;color:rgba(148,163,184,0.35);letter-spacing:0.08em;text-transform:uppercase; }
         .divider-v { width:1px;height:14px;background:rgba(255,255,255,0.1); }
 
-        /* ── Login Modal ── */
+        /* Login Modal */
         .login-overlay { position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center; }
         .login-box { background:linear-gradient(135deg,rgba(10,14,26,0.98),rgba(15,20,40,0.98));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:32px;width:90%;max-width:380px;text-align:center;box-shadow:0 0 60px rgba(99,102,241,0.2); }
         .login-title { font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:#e2e8f0;margin-bottom:4px; }
-        .login-sub   { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.5);margin-bottom:20px; }
+        .login-sub { font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:rgba(148,163,184,0.5);margin-bottom:20px; }
         .login-input { width:100%;padding:12px 16px;background:rgba(15,23,42,0.8);border:1px solid rgba(99,102,241,0.25);border-radius:10px;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.85rem;outline:none;margin-bottom:12px;text-align:center; }
         .login-input:focus { border-color:rgba(99,102,241,0.6);box-shadow:0 0 0 3px rgba(99,102,241,0.1); }
         .emoji-grid { display:flex;gap:6px;justify-content:center;margin-bottom:14px;flex-wrap:wrap; }
         .emoji-pick { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:all 0.2s;border:2px solid rgba(71,85,105,0.3);background:rgba(15,23,42,0.5); }
-        .emoji-pick:hover  { border-color:rgba(99,102,241,0.5);transform:scale(1.1); }
+        .emoji-pick:hover { border-color:rgba(99,102,241,0.5);transform:scale(1.1); }
         .emoji-pick.active { border-color:rgba(99,102,241,0.8);background:rgba(99,102,241,0.2);box-shadow:0 0 10px rgba(99,102,241,0.3); }
         .login-btn { width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,0.4),rgba(14,165,233,0.3));border:1px solid rgba(99,102,241,0.5);color:#c7d2fe;font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:800;cursor:pointer;transition:all 0.2s; }
         .login-btn:hover { background:linear-gradient(135deg,rgba(99,102,241,0.6),rgba(14,165,233,0.4));transform:translateY(-2px); }
-        .existing-users  { margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06); }
-        .existing-label  { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.4);margin-bottom:8px; }
-        .existing-btn    { padding:8px 14px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;margin:3px; }
+        .existing-users { margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06); }
+        .existing-label { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.4);margin-bottom:8px; }
+        .existing-btn { padding:8px 14px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;margin:3px; }
         .existing-btn:hover { border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.15);transform:translateY(-1px); }
         .existing-btn-name { font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;color:#e2e8f0; }
 
-        /* ── Main ── */
+        /* Main Content */
         .main-content { position:relative;z-index:10;padding:16px 24px;padding-bottom:60px; }
         .table-wrapper { width:100%;border-radius:12px; }
         .cl-table { width:100%;min-width:1100px;border-collapse:separate;border-spacing:0 6px; }
 
         .cl-table thead th {
-            position:sticky; top:0; z-index:40;
+            position:sticky;
+            top:0;
+            z-index:40;
             background:rgba(10,14,26,0.98);
             backdrop-filter:blur(10px);
             border-bottom:1px solid rgba(255,255,255,0.08);
         }
-        .cl-header       { font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700;color:rgba(148,163,184,0.6);letter-spacing:0.06em;text-transform:uppercase;padding:10px 8px;text-align:center;white-space:nowrap; }
-        .cl-header-left  { text-align:left;padding-left:14px; }
 
-        /* ── Rows ── */
-        .cl-row        { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:12px;transition:all 0.2s; }
-        .cl-row:hover  { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.35); }
-        .cl-row-bull   { border-left:4px solid #10b981; }
-        .cl-row-bear   { border-left:4px solid #ef4444; }
+        .cl-header { font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700;color:rgba(148,163,184,0.6);letter-spacing:0.06em;text-transform:uppercase;padding:10px 8px;text-align:center;white-space:nowrap; }
+        .cl-header-left { text-align:left;padding-left:14px; }
 
-        /* TP HIT pulse */
+        .cl-row { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border-radius:12px;transition:all 0.2s; }
+        .cl-row:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.35); }
+        .cl-row-bull { border-left:4px solid #10b981; }
+        .cl-row-bear { border-left:4px solid #ef4444; }
+
         .cl-row-tp {
             background:linear-gradient(135deg,rgba(16,185,129,0.18),rgba(16,185,129,0.08)) !important;
             border-left:4px solid #10b981 !important;
+            box-shadow:0 0 20px rgba(16,185,129,0.20), inset 0 0 30px rgba(16,185,129,0.05) !important;
             animation: tpPulse 2.5s ease-in-out infinite;
         }
-        @keyframes tpPulse {
-            0%,100% { box-shadow:0 0 18px rgba(16,185,129,0.18),inset 0 0 28px rgba(16,185,129,0.05); }
-            50%      { box-shadow:0 0 32px rgba(16,185,129,0.38),inset 0 0 38px rgba(16,185,129,0.12); }
-        }
-        /* INVALID pulse */
         .cl-row-invalid {
             background:linear-gradient(135deg,rgba(239,68,68,0.18),rgba(239,68,68,0.08)) !important;
             border-left:4px solid #ef4444 !important;
+            box-shadow:0 0 20px rgba(239,68,68,0.20), inset 0 0 30px rgba(239,68,68,0.05) !important;
             animation: invPulse 2.5s ease-in-out infinite;
         }
+        @keyframes tpPulse {
+            0%,100% { box-shadow:0 0 20px rgba(16,185,129,0.20), inset 0 0 30px rgba(16,185,129,0.05); }
+            50% { box-shadow:0 0 35px rgba(16,185,129,0.40), inset 0 0 40px rgba(16,185,129,0.12); }
+        }
         @keyframes invPulse {
-            0%,100% { box-shadow:0 0 18px rgba(239,68,68,0.18),inset 0 0 28px rgba(239,68,68,0.05); }
-            50%      { box-shadow:0 0 32px rgba(239,68,68,0.38),inset 0 0 38px rgba(239,68,68,0.12); }
+            0%,100% { box-shadow:0 0 20px rgba(239,68,68,0.20), inset 0 0 30px rgba(239,68,68,0.05); }
+            50% { box-shadow:0 0 35px rgba(239,68,68,0.40), inset 0 0 40px rgba(239,68,68,0.12); }
         }
 
-        .cl-cell        { padding:12px 8px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;vertical-align:middle; }
+        .cl-cell { padding:12px 8px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;vertical-align:middle; }
         .cl-cell-center { text-align:center; }
 
-        .cl-sym     { font-size:0.90rem;font-weight:800;color:#f1f5f9; }
-        .cl-tf      { font-size:0.60rem;font-weight:700;padding:3px 7px;border-radius:5px;display:inline-block;margin-left:5px; }
-        .cl-tf-w    { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
-        .cl-tf-d    { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
-        .cl-tf-4h   { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .cl-sym { font-size:0.90rem;font-weight:800;color:#f1f5f9; }
+        .cl-tf { font-size:0.60rem;font-weight:700;padding:3px 7px;border-radius:5px;display:inline-block;margin-left:5px; }
+        .cl-tf-w { background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#c4b5fd; }
+        .cl-tf-d { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .cl-tf-4h { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
         .cl-grade-a { font-size:0.58rem;font-weight:800;padding:3px 7px;border-radius:5px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399;margin-left:4px; }
         .cl-grade-b { font-size:0.58rem;font-weight:800;padding:3px 7px;border-radius:5px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;margin-left:4px; }
-        .cl-align   { font-size:0.58rem;color:rgba(148,163,184,0.55);display:block;margin-top:3px; }
+        .cl-align { font-size:0.58rem;color:rgba(148,163,184,0.55);display:block;margin-top:3px; }
         .cl-side-bull { color:#34d399; }
         .cl-side-bear { color:#f87171; }
 
-        .cl-prices       { font-size:0.55rem;color:rgba(148,163,184,0.50);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap; }
-        .cl-price-label  { color:rgba(148,163,184,0.35); }
-        .cl-price-val    { color:#94a3b8;font-weight:600; }
+        .cl-prices { font-size:0.55rem;color:rgba(148,163,184,0.50);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap; }
+        .cl-price-label { color:rgba(148,163,184,0.35); }
+        .cl-price-val { color:#94a3b8;font-weight:600; }
 
-        /* Resolved badge + remove button */
-        .resolved-badge     { display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:800;margin-top:5px;letter-spacing:0.04em; }
-        .resolved-badge-tp  { background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.5);color:#34d399; }
-        .resolved-badge-inv { background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.5);color:#f87171; }
+        .resolved-wrap { margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
+        .resolved-badge {
+            display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;
+            font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:800;
+            letter-spacing:0.04em;
+        }
+        .resolved-badge-tp {
+            background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.5);color:#34d399;
+        }
+        .resolved-badge-inv {
+            background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.5);color:#f87171;
+        }
 
-        .remove-btn      { display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:800;cursor:pointer;transition:all 0.2s;border:1px solid;margin-top:5px;margin-left:6px; }
-        .remove-btn-tp   { background:rgba(16,185,129,0.2);border-color:rgba(16,185,129,0.5);color:#34d399; }
-        .remove-btn-tp:hover  { background:rgba(16,185,129,0.4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.3); }
-        .remove-btn-inv  { background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.5);color:#f87171; }
-        .remove-btn-inv:hover { background:rgba(239,68,68,0.4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,0.3); }
+        .remove-btn {
+            display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;
+            font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:800;cursor:pointer;
+            transition:all 0.2s;border:1px solid;
+        }
+        .remove-btn-tp {
+            background:rgba(16,185,129,0.2);border-color:rgba(16,185,129,0.5);color:#34d399;
+        }
+        .remove-btn-tp:hover {
+            background:rgba(16,185,129,0.4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.3);
+        }
+        .remove-btn-inv {
+            background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.5);color:#f87171;
+        }
+        .remove-btn-inv:hover {
+            background:rgba(239,68,68,0.4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,0.3);
+        }
 
-        /* Checkboxes */
-        .cl-check          { width:36px;height:36px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.15s;margin:0 auto;border:2px solid;user-select:none; }
-        .cl-check:hover    { transform:scale(1.15); }
-        .cl-check-off      { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:rgba(71,85,105,0.3); }
-        .cl-check-on       { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 10px rgba(16,185,129,0.25); }
-        .cl-check-unclear  { background:rgba(245,158,11,0.25);border-color:rgba(245,158,11,0.6);color:#fbbf24;box-shadow:0 0 10px rgba(245,158,11,0.25); }
+        .cl-check { width:36px;height:36px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.15s;margin:0 auto;border:2px solid;user-select:none; }
+        .cl-check:hover { transform:scale(1.15); }
+        .cl-check-off { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.4);color:rgba(71,85,105,0.3); }
+        .cl-check-on { background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 10px rgba(16,185,129,0.25); }
+        .cl-check-unclear { background:rgba(245,158,11,0.25);border-color:rgba(245,158,11,0.6);color:#fbbf24;box-shadow:0 0 10px rgba(245,158,11,0.25); }
         .cl-check-disabled { opacity:0.35;cursor:not-allowed;pointer-events:none; }
 
-        /* Progress */
-        .cl-progress   { display:flex;gap:3px;justify-content:center; }
-        .cl-prog-dot   { width:14px;height:5px;border-radius:3px; }
-        .cl-prog-done  { background:#34d399; }
+        .cl-progress { display:flex;gap:3px;justify-content:center; }
+        .cl-prog-dot { width:14px;height:5px;border-radius:3px; }
+        .cl-prog-done { background:#34d399; }
         .cl-prog-empty { background:rgba(71,85,105,0.3); }
 
-        /* Probability */
-        .cl-prob      { font-size:0.72rem;font-weight:700; }
+        .cl-prob { font-size:0.72rem;font-weight:700; }
         .cl-prob-good { color:#34d399; }
         .cl-prob-warn { color:#fbbf24; }
-        .cl-prob-bad  { color:#f87171; }
+        .cl-prob-bad { color:#f87171; }
         .cl-prob-none { color:#64748b; }
 
-        /* Status */
-        .cl-status         { font-size:0.60rem;font-weight:700;padding:4px 8px;border-radius:6px;display:inline-block;white-space:nowrap; }
-        .cl-status-ready   { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
-        .cl-status-watching{ background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
-        .cl-status-unclear { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
-        .cl-status-waiting { background:rgba(71,85,105,0.2);border:1px solid rgba(71,85,105,0.4);color:#94a3b8; }
-        .cl-status-tp      { background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.6);color:#34d399; }
-        .cl-status-invalid { background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.6);color:#f87171; }
+        .cl-status { font-size:0.60rem;font-weight:700;padding:4px 8px;border-radius:6px;display:inline-block;white-space:nowrap; }
+        .cl-status-ready    { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
+        .cl-status-watching { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
+        .cl-status-unclear  { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .cl-status-waiting  { background:rgba(71,85,105,0.2);border:1px solid rgba(71,85,105,0.4);color:#94a3b8; }
+        .cl-status-tp       { background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.6);color:#34d399; }
+        .cl-status-invalid  { background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.6);color:#f87171; }
 
         .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:rgba(148,163,184,0.3);text-align:center;padding:60px 0; }
 
-        /* TF Section Headers */
         .tf-section-header td {
             padding:10px 14px 4px 14px;
             font-family:'Orbitron',sans-serif;
-            font-size:0.72rem;font-weight:900;letter-spacing:0.06em;
+            font-size:0.72rem;
+            font-weight:900;
+            letter-spacing:0.06em;
             border-bottom:1px solid rgba(255,255,255,0.05);
         }
-        .tf-section-header-w  td { color:#c4b5fd; }
-        .tf-section-header-d  td { color:#38bdf8; }
+        .tf-section-header-w td  { color:#c4b5fd; }
+        .tf-section-header-d td  { color:#38bdf8; }
         .tf-section-header-4h td { color:#fbbf24; }
 
-        /* Resolved section header */
         .resolved-section-header td {
             padding:14px 14px 4px 14px;
             font-family:'Orbitron',sans-serif;
-            font-size:0.65rem;font-weight:900;letter-spacing:0.06em;
-            color:rgba(148,163,184,0.45);
+            font-size:0.65rem;
+            font-weight:900;
+            letter-spacing:0.06em;
+            color:rgba(148,163,184,0.50);
             border-top:1px solid rgba(255,255,255,0.06);
             border-bottom:1px solid rgba(255,255,255,0.05);
         }
 
-        /* Sticky first col */
         .cl-table tbody td:first-child {
-            position:sticky;left:0;z-index:2;
+            position:sticky;
+            left:0;
+            z-index:2;
             background:rgba(10,14,26,0.95);
         }
+
+        .cl-row-tp td:first-child {
+            background:rgba(7,42,32,0.96) !important;
+        }
+        .cl-row-invalid td:first-child {
+            background:rgba(44,14,14,0.96) !important;
+        }
+
         .cl-table thead th:first-child {
-            position:sticky;left:0;z-index:45;
+            position:sticky;
+            left:0;
+            z-index:45;
             background:rgba(10,14,26,0.98);
         }
 
@@ -193,10 +226,12 @@
     </style>
 </head>
 <body>
+
 <div id="pageRoot">
+
 <div class="bg-container"><div class="bg-gradient"></div></div>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div class="login-overlay" id="loginOverlay">
     <div class="login-box">
         <div style="font-size:2.2rem;margin-bottom:10px;">✅</div>
@@ -210,7 +245,7 @@
     </div>
 </div>
 
-<!-- ══ TOP BAR ══ -->
+<!-- TOP BAR -->
 <div class="top-bar">
     <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">✅</div>
@@ -227,7 +262,7 @@
             <span id="activeCount" style="font-weight:800;color:#38bdf8;">0</span>
         </div>
         <div class="stat-chip">
-            <span style="color:rgba(148,163,184,0.5);">RESOLVED</span>
+            <span style="color:rgba(148,163,184,0.5);">TRACKED RESOLVED</span>
             <span id="resolvedCount" style="font-weight:800;color:#f87171;">0</span>
         </div>
         <div class="user-bar" id="userBar" style="display:none;">
@@ -240,41 +275,49 @@
     </div>
 </div>
 
-<!-- ══ FILTERS ══ -->
+<!-- FILTERS -->
 <div class="filter-bar">
     <span class="filter-label">TF</span>
     <button id="fAll" class="filter-btn active" onclick="setFilter('ALL')">ALL</button>
-    <button id="fW"   class="filter-btn"        onclick="setFilter('1W')">W</button>
-    <button id="fD"   class="filter-btn"        onclick="setFilter('1D')">D</button>
-    <button id="f4H"  class="filter-btn"        onclick="setFilter('4H')">4H</button>
+    <button id="fW"   class="filter-btn" onclick="setFilter('1W')">W</button>
+    <button id="fD"   class="filter-btn" onclick="setFilter('1D')">D</button>
+    <button id="f4H"  class="filter-btn" onclick="setFilter('4H')">4H</button>
+
     <div class="divider-v"></div>
+
     <span class="filter-label">Grade</span>
     <button id="gAll" class="filter-btn active" onclick="setGrade('ALL')">ALL</button>
-    <button id="gA"   class="filter-btn"        onclick="setGrade('A+')">⭐A+</button>
-    <button id="gB"   class="filter-btn"        onclick="setGrade('B+')">🔶B+</button>
+    <button id="gA"   class="filter-btn" onclick="setGrade('A+')">⭐A+</button>
+    <button id="gB"   class="filter-btn" onclick="setGrade('B+')">🔶B+</button>
+
     <div class="divider-v"></div>
+
     <span class="filter-label">Side</span>
     <button id="sAll"  class="filter-btn active" onclick="setSide('ALL')">ALL</button>
-    <button id="sBull" class="filter-btn"        onclick="setSide('BULLISH')">🐂</button>
-    <button id="sBear" class="filter-btn"        onclick="setSide('BEARISH')">🐻</button>
+    <button id="sBull" class="filter-btn" onclick="setSide('BULLISH')">🐂</button>
+    <button id="sBear" class="filter-btn" onclick="setSide('BEARISH')">🐻</button>
+
     <div class="divider-v"></div>
+
     <span class="filter-label">Progress</span>
-    <button id="pAll"     class="filter-btn active" onclick="setProgress('ALL')">ALL</button>
-    <button id="pReady"   class="filter-btn"        onclick="setProgress('READY')">🎯 Ready</button>
-    <button id="pWatch"   class="filter-btn"        onclick="setProgress('WATCHING')">👀 Watch</button>
-    <button id="pUnclear" class="filter-btn"        onclick="setProgress('UNCLEAR')">⚠️ Unclear</button>
+    <button id="pAll"    class="filter-btn active" onclick="setProgress('ALL')">ALL</button>
+    <button id="pReady"  class="filter-btn" onclick="setProgress('READY')">🎯 Ready</button>
+    <button id="pWatch"  class="filter-btn" onclick="setProgress('WATCHING')">👀 Watch</button>
+    <button id="pUnclear" class="filter-btn" onclick="setProgress('UNCLEAR')">⚠️ Unclear</button>
+
     <div class="divider-v"></div>
+
     <span class="filter-label">Show</span>
-    <button id="btnShowResolved" class="filter-btn active" onclick="toggleShowResolved()">👁 Resolved</button>
+    <button id="btnShowResolved" class="filter-btn active" onclick="toggleShowResolved()">🕐 Resolved</button>
 </div>
 
-<!-- ══ MAIN ══ -->
+<!-- MAIN -->
 <div class="main-content">
     <div class="table-wrapper">
         <table class="cl-table">
             <thead>
                 <tr>
-                    <th class="cl-header cl-header-left" style="min-width:220px;">COIN</th>
+                    <th class="cl-header cl-header-left" style="min-width:210px;">COIN</th>
                     <th class="cl-header" style="min-width:60px;">📊 PROB</th>
                     <th class="cl-header" style="min-width:70px;">① LIQ SWEEP</th>
                     <th class="cl-header" style="min-width:60px;">② BO</th>
@@ -293,25 +336,27 @@
         </table>
     </div>
 </div>
-</div><!-- #pageRoot -->
+
+</div>
 
 <script>
 // ══════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════
-let allItems      = [];   // raw items from server (all statuses)
-let currentUser   = null;
-let filterTF       = 'ALL';
-let filterGrade    = 'ALL';
-let filterSide     = 'ALL';
+let items = [];
+let currentUser = null;
+let filterTF = 'ALL';
+let filterGrade = 'ALL';
+let filterSide = 'ALL';
 let filterProgress = 'ALL';
-let showResolved   = true;
+let showResolved = true;
 
 const EMOJIS = ['🐂','🐻','🦁','🐺','🦅','🐉','🎯','⚡','🔥','💎','🚀','👑','🏆','💰','📊','🌟'];
 let selectedEmoji = '🐂';
 
 const CHECK_FIELDS = ['liq_sweep','bo_formed','strong_hl','idm_formed','idm_swept','entry_hit'];
-const TF_RANK      = { '1W':0, '1D':1, '4H':2 };
+const TF_RANK = { '1W':0, '1D':1, '4H':2 };
+const DISMISS_STORAGE_PREFIX = 'cl_dismissed_';
 
 // ══════════════════════════════════════════════
 // LOGIN
@@ -325,10 +370,10 @@ function pickEmoji(e) { selectedEmoji = e; buildEmojiGrid(); }
 
 async function loadExistingUsers() {
     try {
-        const res   = await fetch('/api/users').then(r => r.json());
+        const res = await fetch('/api/users').then(r => r.json());
         const users = res.users || {};
-        const div   = document.getElementById('existingUsers');
-        const ids   = Object.keys(users);
+        const div = document.getElementById('existingUsers');
+        const ids = Object.keys(users);
         if (!ids.length) { div.style.display = 'none'; return; }
         div.style.display = 'block';
         div.innerHTML = `<div class="existing-label">Quick login:</div>` +
@@ -342,59 +387,81 @@ async function loadExistingUsers() {
 async function quickLogin(userId) {
     try {
         const res = await fetch('/api/users').then(r => r.json());
-        const u   = res.users?.[userId];
+        const u = res.users?.[userId];
         if (!u) return;
         currentUser = { id:userId, name:u.name, emoji:u.emoji||'👤', color:u.color||'#38bdf8' };
-        localStorage.setItem('cl_userId',    userId);
-        localStorage.setItem('cl_userName',  u.name);
-        localStorage.setItem('cl_userEmoji', u.emoji||'👤');
-        hideLogin(); loadData();
+        localStorage.setItem('cl_userId', userId);
+        localStorage.setItem('cl_userName', u.name);
+        localStorage.setItem('cl_userEmoji', u.emoji || '👤');
+        hideLogin();
+        loadData();
     } catch(e) {}
 }
 
 async function doLogin() {
     const name = document.getElementById('loginName').value.trim();
     if (!name) return alert('Enter your name');
+
     const userId = name.toUpperCase().replace(/[^A-Z0-9]/g,'_');
+
     try {
         await fetch('/api/user-register', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ userId, name, emoji:selectedEmoji, color:'#38bdf8' })
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+                userId,
+                name,
+                emoji:selectedEmoji,
+                color:'#38bdf8'
+            })
         });
+
         currentUser = { id:userId, name, emoji:selectedEmoji, color:'#38bdf8' };
-        localStorage.setItem('cl_userId',    userId);
-        localStorage.setItem('cl_userName',  name);
+        localStorage.setItem('cl_userId', userId);
+        localStorage.setItem('cl_userName', name);
         localStorage.setItem('cl_userEmoji', selectedEmoji);
-        hideLogin(); loadData();
-    } catch(e) { alert('Failed to login'); }
+        hideLogin();
+        loadData();
+    } catch(e) {
+        alert('Failed');
+    }
+}
+
+function updateUserBar() {
+    if (!currentUser) return;
+    document.getElementById('userAvatar').textContent = currentUser.emoji || '👤';
+    document.getElementById('userName').textContent = currentUser.name || currentUser.id || '—';
+    document.getElementById('userName').style.color = currentUser.color || '#38bdf8';
 }
 
 function hideLogin() {
     document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('userBar').style.display      = 'flex';
-    document.getElementById('userAvatar').textContent     = currentUser.emoji;
-    document.getElementById('userName').textContent       = currentUser.name;
-    document.getElementById('userName').style.color       = currentUser.color;
+    document.getElementById('userBar').style.display = 'flex';
+    updateUserBar();
     updateStickyOffset();
 }
 function showLogin() {
     document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('userBar').style.display      = 'none';
-    buildEmojiGrid(); loadExistingUsers();
+    document.getElementById('userBar').style.display = 'none';
+    buildEmojiGrid();
+    loadExistingUsers();
 }
 function switchUser() {
-    ['cl_userId','cl_userName','cl_userEmoji'].forEach(k => localStorage.removeItem(k));
-    currentUser = null; showLogin();
+    localStorage.removeItem('cl_userId');
+    localStorage.removeItem('cl_userName');
+    localStorage.removeItem('cl_userEmoji');
+    currentUser = null;
+    showLogin();
 }
 
-// Auto-login
-(function() {
-    const id    = localStorage.getItem('cl_userId');
-    const name  = localStorage.getItem('cl_userName');
+(function init() {
+    const id = localStorage.getItem('cl_userId');
+    const name = localStorage.getItem('cl_userName');
     const emoji = localStorage.getItem('cl_userEmoji');
     if (id && name) {
-        currentUser = { id, name, emoji:emoji||'👤', color:'#38bdf8' };
-        hideLogin(); loadData();
+        currentUser = { id, name, emoji: emoji || '👤', color:'#38bdf8' };
+        hideLogin();
+        loadData();
     } else {
         showLogin();
     }
@@ -406,25 +473,25 @@ function switchUser() {
 function setFilter(v) {
     filterTF = v;
     ['fAll','fW','fD','f4H'].forEach(i => document.getElementById(i).classList.remove('active'));
-    document.getElementById({'ALL':'fAll','1W':'fW','1D':'fD','4H':'f4H'}[v]).classList.add('active');
+    document.getElementById({ 'ALL':'fAll','1W':'fW','1D':'fD','4H':'f4H' }[v]).classList.add('active');
     render();
 }
 function setGrade(v) {
     filterGrade = v;
     ['gAll','gA','gB'].forEach(i => document.getElementById(i).classList.remove('active'));
-    document.getElementById({'ALL':'gAll','A+':'gA','B+':'gB'}[v]).classList.add('active');
+    document.getElementById({ 'ALL':'gAll','A+':'gA','B+':'gB' }[v]).classList.add('active');
     render();
 }
 function setSide(v) {
     filterSide = v;
     ['sAll','sBull','sBear'].forEach(i => document.getElementById(i).classList.remove('active'));
-    document.getElementById({'ALL':'sAll','BULLISH':'sBull','BEARISH':'sBear'}[v]).classList.add('active');
+    document.getElementById({ 'ALL':'sAll','BULLISH':'sBull','BEARISH':'sBear' }[v]).classList.add('active');
     render();
 }
 function setProgress(v) {
     filterProgress = v;
     ['pAll','pReady','pWatch','pUnclear'].forEach(i => document.getElementById(i).classList.remove('active'));
-    document.getElementById({'ALL':'pAll','READY':'pReady','WATCHING':'pWatch','UNCLEAR':'pUnclear'}[v]).classList.add('active');
+    document.getElementById({ 'ALL':'pAll','READY':'pReady','WATCHING':'pWatch','UNCLEAR':'pUnclear' }[v]).classList.add('active');
     render();
 }
 function toggleShowResolved() {
@@ -434,211 +501,277 @@ function toggleShowResolved() {
 }
 
 // ══════════════════════════════════════════════
-// STATUS HELPER
+// DISMISS LOCAL FALLBACK
 // ══════════════════════════════════════════════
-function getStatus(checks, crtStatus) {
-    if (crtStatus === 'TP_HIT')  return { label:'TP HIT',   cls:'cl-status-tp',      icon:'🎯' };
-    if (crtStatus === 'INVALID') return { label:'INVALID',  cls:'cl-status-invalid',  icon:'❌' };
-    if (checks.unclear)          return { label:'UNCLEAR',  cls:'cl-status-unclear',  icon:'⚠️' };
-    const done = CHECK_FIELDS.filter(f => checks[f]).length;
-    if (done >= 5) return { label:'READY',    cls:'cl-status-ready',    icon:'🎯' };
-    if (done >= 3) return { label:'WATCHING', cls:'cl-status-watching', icon:'👀' };
-    return            { label:'WAITING',  cls:'cl-status-waiting',  icon:'⏳' };
+function dismissedStorageKey() {
+    return DISMISS_STORAGE_PREFIX + (currentUser?.id || 'ANON');
+}
+function getDismissedSet() {
+    try {
+        const raw = localStorage.getItem(dismissedStorageKey());
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+    } catch {
+        return new Set();
+    }
+}
+function saveDismissedSet(set) {
+    localStorage.setItem(dismissedStorageKey(), JSON.stringify([...set]));
+}
+function addDismissedKey(key) {
+    const set = getDismissedSet();
+    set.add(key);
+    saveDismissedSet(set);
+}
+function pruneDismissedKeys(existingKeys) {
+    const set = getDismissedSet();
+    let changed = false;
+    for (const key of [...set]) {
+        if (!existingKeys.has(key)) {
+            set.delete(key);
+            changed = true;
+        }
+    }
+    if (changed) saveDismissedSet(set);
+}
+function isDismissed(item) {
+    return item._dismissed === true || getDismissedSet().has(item.key);
 }
 
 // ══════════════════════════════════════════════
-// PROBABILITY CALCULATOR  (mirrors server logic)
+// HELPERS
+// ══════════════════════════════════════════════
+function hasAnyTrackedCheck(checks) {
+    if (!checks) return false;
+    return CHECK_FIELDS.some(f => !!checks[f]) || !!checks.unclear;
+}
+function getResolvedTime(item) {
+    return item.tp_time || item.inv_time || item.timestamp || 0;
+}
+function shortUtc(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toISOString().slice(0,16).replace('T',' ') + ' UTC';
+}
+
+function getStatus(checks, crtStatus) {
+    if (crtStatus === 'TP_HIT')  return { label:'TP HIT', cls:'cl-status-tp', icon:'🎯' };
+    if (crtStatus === 'INVALID') return { label:'INVALIDATED', cls:'cl-status-invalid', icon:'❌' };
+    if (checks.unclear) return { label:'UNCLEAR', cls:'cl-status-unclear', icon:'⚠️' };
+
+    const done = CHECK_FIELDS.filter(f => checks[f]).length;
+    if (done >= 5) return { label:'READY', cls:'cl-status-ready', icon:'🎯' };
+    if (done >= 3) return { label:'WATCHING', cls:'cl-status-watching', icon:'👀' };
+    return { label:'WAITING', cls:'cl-status-waiting', icon:'⏳' };
+}
+
+// ══════════════════════════════════════════════
+// PROBABILITY CALCULATOR
 // ══════════════════════════════════════════════
 function calcProb(item) {
     if (!window._crtStats) return -1;
-    const s   = window._crtStats;
-    const tf  = item.tf;
-    const al  = item.align_level || 'NONE';
-    const g   = item.grade || '';
-    const buckets    = [];
-    const isAplus    = g === 'A+';
-    const isBplus    = g === 'B+';
-    const hasGrade   = isAplus || isBplus;
+    const s = window._crtStats;
+    const tf = item.tf;
+    const al = item.align_level || 'NONE';
+    const g = item.grade || '';
+
+    const buckets = [];
+    const isAplus = g === 'A+';
+    const isBplus = g === 'B+';
+    const hasGrade = isAplus || isBplus;
     const gradeSuffix = isAplus ? '_aplus' : isBplus ? '_bplus' : '';
 
     if (tf === '1D') {
         if (hasGrade) {
-            if      (al==='MO+W') buckets.push('daily_mo_w'+gradeSuffix);
-            else if (al==='MO')   buckets.push('daily_mo'+gradeSuffix);
-            else if (al==='W')    buckets.push('daily_w'+gradeSuffix);
-            else                  buckets.push('daily_none'+gradeSuffix);
+            if (al === 'MO+W') buckets.push('daily_mo_w' + gradeSuffix);
+            else if (al === 'MO') buckets.push('daily_mo' + gradeSuffix);
+            else if (al === 'W') buckets.push('daily_w' + gradeSuffix);
+            else buckets.push('daily_none' + gradeSuffix);
         }
-        if      (al==='MO+W') buckets.push('daily_mo_w');
-        else if (al==='MO')   buckets.push('daily_mo');
-        else if (al==='W')    buckets.push('daily_w');
-        else                  buckets.push('daily_none');
-        if (hasGrade) buckets.push('daily'+gradeSuffix);
+        if (al === 'MO+W') buckets.push('daily_mo_w');
+        else if (al === 'MO') buckets.push('daily_mo');
+        else if (al === 'W') buckets.push('daily_w');
+        else buckets.push('daily_none');
+        if (hasGrade) buckets.push('daily' + gradeSuffix);
         buckets.push('daily');
     } else if (tf === '1W') {
         if (hasGrade) {
-            if (al==='MO') buckets.push('weekly_mo'+gradeSuffix);
-            else           buckets.push('weekly_none'+gradeSuffix);
+            if (al === 'MO') buckets.push('weekly_mo' + gradeSuffix);
+            else buckets.push('weekly_none' + gradeSuffix);
         }
-        if (al==='MO') buckets.push('weekly_mo');
-        else           buckets.push('weekly_none');
-        if (hasGrade) buckets.push('weekly'+gradeSuffix);
+        if (al === 'MO') buckets.push('weekly_mo');
+        else buckets.push('weekly_none');
+        if (hasGrade) buckets.push('weekly' + gradeSuffix);
         buckets.push('weekly');
     } else if (tf === '4H') {
-        const km = { 'D+W+MO':'fourh_dwm','D+W':'fourh_dw','D+MO':'fourh_dmo','D':'fourh_d','W+MO':'fourh_wmo','W':'fourh_w','MO':'fourh_mo' };
+        const km = {
+            'D+W+MO':'fourh_dwm',
+            'D+W':'fourh_dw',
+            'D+MO':'fourh_dmo',
+            'D':'fourh_d',
+            'W+MO':'fourh_wmo',
+            'W':'fourh_w',
+            'MO':'fourh_mo'
+        };
         const alignBase = km[al] || 'fourh_none';
-        if (hasGrade) buckets.push(alignBase+gradeSuffix);
+        if (hasGrade) buckets.push(alignBase + gradeSuffix);
         buckets.push(alignBase);
-        if (hasGrade) buckets.push('fourh'+gradeSuffix);
+        if (hasGrade) buckets.push('fourh' + gradeSuffix);
         buckets.push('fourh');
     }
-    if (hasGrade) buckets.push('overall'+gradeSuffix);
+
+    if (hasGrade) buckets.push('overall' + gradeSuffix);
     buckets.push('overall');
 
     const MIN_SAMPLE = 5;
     for (const key of buckets) {
         const b = s[key];
         if (!b) continue;
-        const res = b.tp + b.inv;
-        if (res >= MIN_SAMPLE) return (b.tp / res) * 100;
+        const resolved = (b.tp || 0) + (b.inv || 0);
+        if (resolved >= MIN_SAMPLE) {
+            return (b.tp / resolved) * 100;
+        }
     }
     return -1;
 }
 
 // ══════════════════════════════════════════════
-// TOGGLE CHECKBOX
+// CHECKLIST ACTIONS
 // ══════════════════════════════════════════════
 async function toggleCheck(key, field) {
-    const item = allItems.find(i => i.key === key);
+    const item = items.find(i => i.key === key);
     if (!item || !currentUser) return;
-    // Don't allow toggling on resolved items
     if (item.status !== 'ACTIVE') return;
+
     const newVal = !item.checks[field];
     item.checks[field] = newVal;
     render();
+
     try {
         await fetch('/api/checklist-update', {
-            method:'POST', headers:{'Content-Type':'application/json'},
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ userId:currentUser.id, key, field, value:newVal })
         });
-    } catch(e) { console.error('Toggle failed:', e); }
+    } catch(e) {
+        console.error('Toggle failed:', e);
+    }
 }
 
-// ══════════════════════════════════════════════
-// DISMISS RESOLVED ITEM
-// Server-side: sets _dismissed = true in Redis
-// so it persists across refreshes & devices
-// ══════════════════════════════════════════════
-async function dismissItem(key) {
+async function dismissResolvedItem(key) {
     if (!currentUser) return;
-    // Optimistic local update
-    const item = allItems.find(i => i.key === key);
+
+    addDismissedKey(key);
+
+    const item = items.find(i => i.key === key);
     if (item) item._dismissed = true;
+
     render();
+
     try {
         await fetch('/api/checklist-dismiss', {
-            method:'POST', headers:{'Content-Type':'application/json'},
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ userId:currentUser.id, key })
         });
-    } catch(e) { console.error('Dismiss failed:', e); }
+    } catch(e) {
+        console.error('Dismiss failed:', e);
+    }
 }
 
 // ══════════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════════
 function render() {
-    // ── Separate active vs resolved (non-dismissed) ──
-    const activeItems = allItems.filter(item => {
+    const activeItems = items.filter(item => {
         if (item.status !== 'ACTIVE') return false;
-        if (filterTF    !== 'ALL' && item.tf    !== filterTF)    return false;
+        if (filterTF !== 'ALL' && item.tf !== filterTF) return false;
         if (filterGrade !== 'ALL' && item.grade !== filterGrade) return false;
-        if (filterSide  !== 'ALL' && item.side  !== filterSide)  return false;
-        // prob gate
+        if (filterSide !== 'ALL' && item.side !== filterSide) return false;
+
         const prob = calcProb(item);
         if (prob >= 0 && prob < 65) return false;
-        // progress filter (only active items)
+
         if (filterProgress !== 'ALL') {
-            const st = getStatus(item.checks, null);
-            if (filterProgress === 'READY'    && st.label !== 'READY')    return false;
+            const st = getStatus(item.checks, item.status);
+            if (filterProgress === 'READY' && st.label !== 'READY') return false;
             if (filterProgress === 'WATCHING' && st.label !== 'WATCHING') return false;
-            if (filterProgress === 'UNCLEAR'  && st.label !== 'UNCLEAR')  return false;
+            if (filterProgress === 'UNCLEAR' && st.label !== 'UNCLEAR') return false;
         }
+
         return true;
     });
 
-    const resolvedItems = allItems.filter(item => {
-        if (item.status === 'ACTIVE')   return false;   // only TP_HIT / INVALID
-        if (item._dismissed)            return false;   // user already dismissed
-        if (filterTF    !== 'ALL' && item.tf    !== filterTF)    return false;
+    // ONLY tracked resolved items stay visible:
+    // at least one box was ticked earlier (or unclear)
+    const trackedResolvedAll = items.filter(item => {
+        if (item.status === 'ACTIVE') return false;
+        if (!hasAnyTrackedCheck(item.checks)) return false;
+        if (isDismissed(item)) return false;
+        return true;
+    });
+
+    const resolvedVisible = showResolved ? trackedResolvedAll.filter(item => {
+        if (filterTF !== 'ALL' && item.tf !== filterTF) return false;
         if (filterGrade !== 'ALL' && item.grade !== filterGrade) return false;
-        if (filterSide  !== 'ALL' && item.side  !== filterSide)  return false;
+        if (filterSide !== 'ALL' && item.side !== filterSide) return false;
         return true;
-    });
+    }) : [];
 
-    // Compute probs for sorting
-    activeItems.forEach(i   => { i._prob = calcProb(i); });
-    resolvedItems.forEach(i => { i._prob = calcProb(i); });
+    activeItems.forEach(item => item._prob = calcProb(item));
+    resolvedVisible.forEach(item => item._prob = calcProb(item));
 
-    const statusOrder = { 'READY':0,'WATCHING':1,'WAITING':2,'UNCLEAR':3 };
+    const statusOrder = { 'READY':0, 'WATCHING':1, 'WAITING':2, 'UNCLEAR':3 };
 
     activeItems.sort((a, b) => {
-        const ta = TF_RANK[a.tf]??99, tb = TF_RANK[b.tf]??99;
-        if (ta !== tb) return ta - tb;
+        const tfA = TF_RANK[a.tf] ?? 99;
+        const tfB = TF_RANK[b.tf] ?? 99;
+        if (tfA !== tfB) return tfA - tfB;
         if (b._prob !== a._prob) return b._prob - a._prob;
-        const sa = statusOrder[getStatus(a.checks,null).label]??9;
-        const sb = statusOrder[getStatus(b.checks,null).label]??9;
+        const sa = statusOrder[getStatus(a.checks, a.status).label] ?? 9;
+        const sb = statusOrder[getStatus(b.checks, b.status).label] ?? 9;
         if (sa !== sb) return sa - sb;
-        return (b.timestamp||0) - (a.timestamp||0);
+        return (b.timestamp || 0) - (a.timestamp || 0);
     });
 
-    resolvedItems.sort((a, b) => {
-        const ta = TF_RANK[a.tf]??99, tb = TF_RANK[b.tf]??99;
-        if (ta !== tb) return ta - tb;
-        const ra = a.tp_time || a.inv_time || 0;
-        const rb = b.tp_time || b.inv_time || 0;
-        return rb - ra;   // most recently resolved first
+    resolvedVisible.sort((a, b) => {
+        const tfA = TF_RANK[a.tf] ?? 99;
+        const tfB = TF_RANK[b.tf] ?? 99;
+        if (tfA !== tfB) return tfA - tfB;
+        return getResolvedTime(b) - getResolvedTime(a);
     });
 
-    // Counters
-    const totalResolved = allItems.filter(i => i.status !== 'ACTIVE' && !i._dismissed).length;
-    document.getElementById('activeCount').textContent   = activeItems.length;
-    document.getElementById('resolvedCount').textContent = totalResolved;
+    document.getElementById('activeCount').textContent = activeItems.length;
+    document.getElementById('resolvedCount').textContent = trackedResolvedAll.length;
 
     const tbody = document.getElementById('checklistBody');
+    let html = '';
 
-    const showingResolved = showResolved && resolvedItems.length > 0;
-    if (activeItems.length === 0 && !showingResolved) {
-        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No active CRTs with ≥65% probability.</td></tr>';
+    if (!activeItems.length && !resolvedVisible.length) {
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No CRTs matching filters.</td></tr>';
         return;
     }
 
-    let html = '', lastTf = null;
-
-    // ── Active rows ──
-    if (activeItems.length === 0) {
-        html += `<tr><td colspan="11" class="empty-state" style="padding:20px 0;font-size:0.72rem;">No active CRTs match filters.</td></tr>`;
-    } else {
+    if (activeItems.length) {
+        let lastTf = null;
         for (const item of activeItems) {
             if (item.tf !== lastTf) {
                 lastTf = item.tf;
-                html += buildTfSectionHeader(item.tf, activeItems.filter(i=>i.tf===item.tf).length, false);
+                html += buildTfHeader(item.tf, activeItems.filter(x => x.tf === item.tf).length, false);
             }
             html += buildRow(item);
         }
     }
 
-    // ── Resolved rows ──
-    if (showingResolved) {
-        lastTf = null;
+    if (resolvedVisible.length) {
         html += `<tr class="resolved-section-header">
-            <td colspan="11">
-                🕐 RESOLVED  ·  ${resolvedItems.length} awaiting dismissal
-                <span style="font-size:0.50rem;opacity:0.5;margin-left:8px;">Click "Remove Now" to dismiss</span>
-            </td>
+            <td colspan="11">🕐 TRACKED RESOLVED — Awaiting Removal (${resolvedVisible.length})</td>
         </tr>`;
-        for (const item of resolvedItems) {
+
+        let lastTf = null;
+        for (const item of resolvedVisible) {
             if (item.tf !== lastTf) {
                 lastTf = item.tf;
-                html += buildTfSectionHeader(item.tf, resolvedItems.filter(i=>i.tf===item.tf).length, true);
+                html += buildTfHeader(item.tf, resolvedVisible.filter(x => x.tf === item.tf).length, true);
             }
             html += buildRow(item);
         }
@@ -647,87 +780,77 @@ function render() {
     tbody.innerHTML = html;
 }
 
-// ── TF section header ──
-function buildTfSectionHeader(tf, count, isResolved) {
-    const tfLabels    = { '1W':'📆 WEEKLY CRT', '1D':'📅 DAILY CRT', '4H':'⏰ 4H CRT' };
-    const tfHeaderCls = { '1W':'tf-section-header-w', '1D':'tf-section-header-d', '4H':'tf-section-header-4h' };
-    const suffix = isResolved ? '  ·  resolved' : `  ·  ${count} active`;
-    return `<tr class="tf-section-header ${tfHeaderCls[tf]||''}">
-        <td colspan="11">${tfLabels[tf]||tf}${suffix}</td>
+function buildTfHeader(tf, count, resolvedMode) {
+    const tfLabels = { '1W':'📆 WEEKLY CRT', '1D':'📅 DAILY CRT', '4H':'⏰ 4H CRT' };
+    const tfCls = { '1W':'tf-section-header-w', '1D':'tf-section-header-d', '4H':'tf-section-header-4h' };
+    return `<tr class="tf-section-header ${tfCls[tf] || ''}">
+        <td colspan="11">${tfLabels[tf] || tf} · ${count} ${resolvedMode ? 'resolved' : 'active'}</td>
     </tr>`;
 }
 
-// ── Single row builder ──
 function buildRow(item) {
     const isResolved = item.status !== 'ACTIVE';
-    const isTP       = item.status === 'TP_HIT';
-    const isINV      = item.status === 'INVALID';
-    const isBull     = item.side === 'BULLISH';
+    const isTP = item.status === 'TP_HIT';
+    const isInvalid = item.status === 'INVALID';
+    const isBull = item.side === 'BULLISH';
 
-    // Row class
     let rowCls = isBull ? 'cl-row cl-row-bull' : 'cl-row cl-row-bear';
-    if (isTP)  rowCls = 'cl-row cl-row-tp';
-    if (isINV) rowCls = 'cl-row cl-row-invalid';
+    if (isTP) rowCls = 'cl-row cl-row-tp';
+    if (isInvalid) rowCls = 'cl-row cl-row-invalid';
 
     const sideIcon = isBull ? '🐂' : '🐻';
-    const sideCls  = isBull ? 'cl-side-bull' : 'cl-side-bear';
-    const tfMap    = { '1W':['W','cl-tf-w'], '1D':['D','cl-tf-d'], '4H':['4H','cl-tf-4h'] };
-    const [tfLabel, tfCls] = tfMap[item.tf] || ['?',''];
-    const gradeHTML = item.grade==='A+' ? '<span class="cl-grade-a">⭐A+</span>'
-                    : item.grade==='B+' ? '<span class="cl-grade-b">🔶B+</span>' : '';
-    const align = (item.align_level && item.align_level!=='NONE') ? item.align_level : '—';
-    const boVal  = (item.bo  && item.bo  !== '---') ? item.bo  : '—';
-    const tgtVal = (item.tgt && item.tgt !== '---') ? item.tgt : '—';
+    const sideCls = isBull ? 'cl-side-bull' : 'cl-side-bear';
 
-    item._prob = item._prob ?? calcProb(item);
+    const tfMap = { '1W':['W','cl-tf-w'], '1D':['D','cl-tf-d'], '4H':['4H','cl-tf-4h'] };
+    const [tfLabel, tfCls] = tfMap[item.tf] || ['?', ''];
+
+    const gradeHTML = item.grade === 'A+' ? '<span class="cl-grade-a">⭐A+</span>'
+                    : item.grade === 'B+' ? '<span class="cl-grade-b">🔶B+</span>' : '';
+
+    const align = item.align_level && item.align_level !== 'NONE' ? item.align_level : '—';
+    const boVal = item.bo && item.bo !== '---' ? item.bo : '—';
+    const tgtVal = item.tgt && item.tgt !== '---' ? item.tgt : '—';
+
     const probHTML = buildProbHTML(item._prob);
+    const c = item.checks || {};
 
-    // Resolved badge + dismiss button
-    let resolvedHTML = '';
-    if (isTP) {
-        resolvedHTML = `
-            <div style="margin-top:5px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">
-                <span class="resolved-badge resolved-badge-tp">🎯 TP HIT</span>
-                <button class="remove-btn remove-btn-tp" onclick="dismissItem('${item.key}')">🗑 Remove Now</button>
-            </div>`;
-    } else if (isINV) {
-        resolvedHTML = `
-            <div style="margin-top:5px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">
-                <span class="resolved-badge resolved-badge-inv">❌ INVALIDATED</span>
-                <button class="remove-btn remove-btn-inv" onclick="dismissItem('${item.key}')">🗑 Remove Now</button>
-            </div>`;
-    }
-
-    // Checkboxes — disabled for resolved
     const disabledCls = isResolved ? ' cl-check-disabled' : '';
-    const c = item.checks;
 
     const checkboxes = CHECK_FIELDS.map(field => {
-        const on = c[field];
-        const handler = isResolved ? '' : `onclick="toggleCheck('${item.key}','${field}')"`;
+        const on = !!c[field];
+        const clickHandler = isResolved ? '' : `onclick="toggleCheck('${item.key}','${field}')"`
         return `<td class="cl-cell cl-cell-center">
-            <div class="cl-check ${on?'cl-check-on':'cl-check-off'}${disabledCls}" ${handler}>${on?'✓':'○'}</div>
+            <div class="cl-check ${on ? 'cl-check-on' : 'cl-check-off'}${disabledCls}" ${clickHandler}>${on ? '✓' : '○'}</div>
         </td>`;
     }).join('');
 
-    const unclearHandler = isResolved ? '' : `onclick="toggleCheck('${item.key}','unclear')"`;
+    const unclearClick = isResolved ? '' : `onclick="toggleCheck('${item.key}','unclear')"`;
+
     const unclearHTML = `<td class="cl-cell cl-cell-center">
-        <div class="cl-check ${c.unclear?'cl-check-unclear':'cl-check-off'}${disabledCls}" ${unclearHandler}>${c.unclear?'⚠️':'○'}</div>
+        <div class="cl-check ${c.unclear ? 'cl-check-unclear' : 'cl-check-off'}${disabledCls}" ${unclearClick}>${c.unclear ? '⚠️' : '○'}</div>
     </td>`;
 
-    const status    = getStatus(c, item.status);
-    const statusHTML = `<td class="cl-cell cl-cell-center">
-        <span class="cl-status ${status.cls}">${status.icon} ${status.label}</span>
-    </td>`;
+    const status = getStatus(c, item.status);
 
-    const done = CHECK_FIELDS.filter(f => c[f]).length;
+    let resolvedHTML = '';
+    if (isTP) {
+        resolvedHTML = `<div class="resolved-wrap">
+            <span class="resolved-badge resolved-badge-tp">🎯 TP HIT</span>
+            <button class="remove-btn remove-btn-tp" onclick="dismissResolvedItem('${item.key}')">🗑 Remove Now</button>
+            <span style="font-size:0.52rem;color:rgba(148,163,184,0.55);">${shortUtc(item.tp_time)}</span>
+        </div>`;
+    } else if (isInvalid) {
+        resolvedHTML = `<div class="resolved-wrap">
+            <span class="resolved-badge resolved-badge-inv">❌ INVALIDATED</span>
+            <button class="remove-btn remove-btn-inv" onclick="dismissResolvedItem('${item.key}')">🗑 Remove Now</button>
+            <span style="font-size:0.52rem;color:rgba(148,163,184,0.55);">${shortUtc(item.inv_time)}</span>
+        </div>`;
+    }
+
+    const done = CHECK_FIELDS.filter(f => !!c[f]).length;
     const progDots = CHECK_FIELDS.map(f =>
-        `<div class="cl-prog-dot ${c[f]?'cl-prog-done':'cl-prog-empty'}"></div>`
+        `<div class="cl-prog-dot ${c[f] ? 'cl-prog-done' : 'cl-prog-empty'}"></div>`
     ).join('');
-    const progressHTML = `<td class="cl-cell cl-cell-center">
-        <div class="cl-progress">${progDots}</div>
-        <div style="font-size:0.55rem;color:rgba(148,163,184,0.55);margin-top:3px;font-weight:600;">${done}/6</div>
-    </td>`;
 
     return `<tr class="${rowCls}">
         <td class="cl-cell" style="border-radius:12px 0 0 12px;padding-left:14px;">
@@ -746,66 +869,83 @@ function buildRow(item) {
         <td class="cl-cell cl-cell-center">${probHTML}</td>
         ${checkboxes}
         ${unclearHTML}
-        ${statusHTML}
-        ${progressHTML}
+        <td class="cl-cell cl-cell-center">
+            <span class="cl-status ${status.cls}">${status.icon} ${status.label}</span>
+        </td>
+        <td class="cl-cell cl-cell-center">
+            <div class="cl-progress">${progDots}</div>
+            <div style="font-size:0.55rem;color:rgba(148,163,184,0.55);margin-top:3px;font-weight:600;">${done}/6</div>
+        </td>
     </tr>`;
 }
 
 function buildProbHTML(pct) {
-    if (pct < 0) return '<span class="cl-prob cl-prob-none">—</span>';
-    const r   = Math.round(pct);
-    const cls = r >= 60 ? 'cl-prob-good' : r >= 40 ? 'cl-prob-warn' : 'cl-prob-bad';
-    return `<span class="cl-prob ${cls}">${r}%</span>`;
+    if (pct < 0 || Number.isNaN(pct)) return '<span class="cl-prob cl-prob-none">—</span>';
+    const rounded = Math.round(pct);
+    const cls = rounded >= 60 ? 'cl-prob-good' : rounded >= 40 ? 'cl-prob-warn' : 'cl-prob-bad';
+    return `<span class="cl-prob ${cls}">${rounded}%</span>`;
 }
 
 // ══════════════════════════════════════════════
 // LOAD DATA
-// Single fetch: /api/checklist-state now returns
-// ALL statuses (ACTIVE + TP_HIT + INVALID) with
-// _dismissed flag already applied server-side
 // ══════════════════════════════════════════════
 async function loadData() {
     if (!currentUser) return;
+
     try {
         const [clRes, statsRes] = await Promise.all([
             fetch(`/api/checklist-state?profile=HTF&userId=${currentUser.id}`).then(r => r.json()),
             fetch('/api/crt-stats?profile=HTF').then(r => r.json())
         ]);
 
-        // Map _dismissed from server-side checklist saves
-        // The server returns items; _dismissed is stored in checks._dismissed
-        allItems = (clRes.items || []).map(item => ({
+        if (clRes.user) {
+            currentUser.name = clRes.user.name || currentUser.name;
+            currentUser.emoji = clRes.user.emoji || currentUser.emoji || '👤';
+            currentUser.color = clRes.user.color || currentUser.color || '#38bdf8';
+            localStorage.setItem('cl_userName', currentUser.name);
+            localStorage.setItem('cl_userEmoji', currentUser.emoji);
+            updateUserBar();
+        }
+
+        items = (clRes.items || []).map(item => ({
             ...item,
-            // _dismissed is stored as checks._dismissed from /api/checklist-dismiss
-            _dismissed: item.checks?._dismissed === true
+            _dismissed: item._dismissed === true || item.checks?._dismissed === true
         }));
 
         window._crtStats = statsRes.crtStats || {};
+
+        pruneDismissedKeys(new Set(items.map(i => i.key)));
+
         render();
-    } catch(e) { console.error('Load failed:', e); }
+    } catch(e) {
+        console.error('Load failed:', e);
+    }
 }
 
-// Auto-refresh every 30s
-setInterval(() => { if (currentUser) loadData(); }, 30000);
+setInterval(() => {
+    if (currentUser) loadData();
+}, 10000);
 
 // ══════════════════════════════════════════════
 // STICKY HEADER OFFSET
 // ══════════════════════════════════════════════
 function updateStickyOffset() {
-    const topBar    = document.querySelector('.top-bar');
+    const topBar = document.querySelector('.top-bar');
     const filterBar = document.querySelector('.filter-bar');
     if (!topBar || !filterBar) return;
-    const offset = topBar.getBoundingClientRect().height
-                 + filterBar.getBoundingClientRect().height;
+
+    const offset = topBar.getBoundingClientRect().height + filterBar.getBoundingClientRect().height;
     document.querySelectorAll('.cl-table thead th').forEach(th => {
         th.style.top = offset + 'px';
     });
 }
-window.addEventListener('load',   updateStickyOffset);
+
+window.addEventListener('load', updateStickyOffset);
 document.addEventListener('DOMContentLoaded', updateStickyOffset);
 window.addEventListener('resize', updateStickyOffset);
 setTimeout(updateStickyOffset, 100);
 setTimeout(updateStickyOffset, 500);
 </script>
+
 </body>
 </html>
