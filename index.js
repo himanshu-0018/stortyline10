@@ -225,13 +225,12 @@ async function botAnswerCallback(callbackQueryId, text = '') {
 // MESSAGE CHUNKER (split long messages)
 // ══════════════════════════════════════════════
 async function botSendMessageChunked(chatId, text, keyboard = null, threadId = null) {
-    const LIMIT = 4000; // safe buffer below Telegram's 4096 limit
+    const LIMIT = 4000;
 
     if (text.length <= LIMIT) {
         return await botSendMessage(chatId, text, keyboard, threadId);
     }
 
-    // Split into chunks by lines to avoid breaking HTML tags mid-way
     const lines = text.split('\n');
     const chunks = [];
     let current = '';
@@ -247,7 +246,6 @@ async function botSendMessageChunked(chatId, text, keyboard = null, threadId = n
     }
     if (current.length > 0) chunks.push(current);
 
-    // Send all chunks; only last chunk gets the keyboard
     let lastMsgId = null;
     for (let i = 0; i < chunks.length; i++) {
         const isLast = i === chunks.length - 1;
@@ -267,7 +265,6 @@ async function botEditMessageChunked(chatId, messageId, text, keyboard = null, t
         return messageId;
     }
 
-    // Split into chunks by lines
     const lines = text.split('\n');
     const chunks = [];
     let current = '';
@@ -283,11 +280,9 @@ async function botEditMessageChunked(chatId, messageId, text, keyboard = null, t
     }
     if (current.length > 0) chunks.push(current);
 
-    // Edit original message with first chunk (no keyboard on first if more chunks follow)
     const firstKb = chunks.length === 1 ? keyboard : null;
     await botEditMessage(chatId, messageId, chunks[0], firstKb);
 
-    // Send remaining chunks as new messages; keyboard only on the last
     let lastMsgId = messageId;
     for (let i = 1; i < chunks.length; i++) {
         const isLast = i === chunks.length - 1;
@@ -313,7 +308,6 @@ function getSession(chatId, threadId = null) {
     if (!botSessions[chatId]) {
         botSessions[chatId] = { lastMsgId: null, view: 'MAIN', threadId: null };
     }
-    // Update threadId if provided
     if (threadId) botSessions[chatId].threadId = threadId;
     return botSessions[chatId];
 }
@@ -373,7 +367,6 @@ function progressBar(tp, inv) {
 
 // ══════════════════════════════════════════════
 // HIT PROBABILITY CALCULATOR
-// Used in bot push notifications
 // ══════════════════════════════════════════════
 function calcHitProbability(profile, tf, alignLevel, grade) {
     const stats = buildCRTStats(profile);
@@ -384,21 +377,17 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
     const gradeSuffix = isAplus ? '_aplus' : isBplus ? '_bplus' : '';
 
     if (tf === '1D') {
-        // Most specific: grade + alignment
         if (hasGrade) {
             if (alignLevel === 'MO+W') buckets.push({ key: `daily_mo_w${gradeSuffix}`, label: `Daily MO+W ${grade}` });
             else if (alignLevel === 'MO') buckets.push({ key: `daily_mo${gradeSuffix}`, label: `Daily MO ${grade}` });
             else if (alignLevel === 'W')  buckets.push({ key: `daily_w${gradeSuffix}`,  label: `Daily W ${grade}` });
             else                          buckets.push({ key: `daily_none${gradeSuffix}`, label: `Daily No-Align ${grade}` });
         }
-        // Alignment only (no grade filter)
         if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w', label: 'Daily MO+W' });
         else if (alignLevel === 'MO') buckets.push({ key: 'daily_mo', label: 'Daily MO' });
         else if (alignLevel === 'W')  buckets.push({ key: 'daily_w',  label: 'Daily W' });
         else                          buckets.push({ key: 'daily_none', label: 'Daily No-Align' });
-        // Grade only fallback
         if (hasGrade) buckets.push({ key: `daily${gradeSuffix}`, label: `Daily ${grade}` });
-        // TF fallback
         buckets.push({ key: 'daily', label: 'Daily' });
     }
 
@@ -414,7 +403,6 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
     }
 
     else if (tf === '4H') {
-        // Alignment key mapping
         const alignKeyMap = {
             'D+W+MO': 'fourh_dwm',
             'D+W':    'fourh_dw',
@@ -427,19 +415,14 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
         const alignBase = alignKeyMap[alignLevel] || 'fourh_none';
         const alignLabel = alignLevel !== 'NONE' ? `4H ${alignLevel}` : '4H No-Align';
 
-        // Most specific: grade + alignment
         if (hasGrade) {
             buckets.push({ key: `${alignBase}${gradeSuffix}`, label: `${alignLabel} ${grade}` });
         }
-        // Alignment only
         buckets.push({ key: alignBase, label: alignLabel });
-        // Grade only fallback
         if (hasGrade) buckets.push({ key: `fourh${gradeSuffix}`, label: `4H ${grade}` });
-        // TF fallback
         buckets.push({ key: 'fourh', label: '4H' });
     }
 
-    // Final fallback
     if (hasGrade) buckets.push({ key: `overall${gradeSuffix}`, label: `Overall ${grade}` });
     buckets.push({ key: 'overall', label: 'Overall' });
 
@@ -462,7 +445,7 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
 }
 
 // ══════════════════════════════════════════════
-// KEYBOARDS (updated with 4H CRT + grade filter)
+// KEYBOARDS
 // ══════════════════════════════════════════════
 function mainMenuKeyboard() {
     return { inline_keyboard: [
@@ -482,7 +465,7 @@ function subKeyboard(refreshCb) {
 }
 
 // ══════════════════════════════════════════════
-// CRT ALIGNMENT CHECK (updated for 3 TFs + 4H)
+// CRT ALIGNMENT CHECK
 // ══════════════════════════════════════════════
 function checkCRTAlignment(symbol, tf, side) {
     const sl = marketState[symbol]?.timeframes || {};
@@ -517,7 +500,7 @@ function checkCRTAlignment(symbol, tf, side) {
 }
 
 // ══════════════════════════════════════════════
-// BOT MESSAGE BUILDERS (updated with grade + 4H)
+// BOT MESSAGE BUILDERS
 // ══════════════════════════════════════════════
 function buildMainMenuMsg() {
     let totalActive = 0;
@@ -620,7 +603,6 @@ function buildMainMenuMsg() {
     ].join('\n');
 }
 
-// ── Daily CRT: MO+W, MO, W aligned only ──
 function buildDailyCRTMsg() {
     const TF = '1D';
     const grouped = { 'MO+W': [], 'MO': [], 'W': [], 'NONE': [] };
@@ -640,7 +622,6 @@ function buildDailyCRTMsg() {
         }
     }
 
-    // Sort groups
     for (const key in grouped) {
         grouped[key].sort((a, b) => {
             if (b.probValue !== a.probValue) return b.probValue - a.probValue;
@@ -704,7 +685,6 @@ function buildDailyCRTMsg() {
     return lines.join('\n');
 }
 
-// ── Weekly CRT: MO aligned only ──
 function buildWeeklyCRTMsg() {
     const TF = '1W';
     const grouped = { 'MO': [], 'NONE': [] };
@@ -724,7 +704,6 @@ function buildWeeklyCRTMsg() {
         }
     }
 
-    // Sort
     for (const key in grouped) {
         grouped[key].sort((a, b) => {
             if (b.probValue !== a.probValue) return b.probValue - a.probValue;
@@ -786,7 +765,6 @@ function buildWeeklyCRTMsg() {
     return lines.join('\n');
 }
 
-// ── 4H CRT: all alignment levels ──
 function buildFourHourCRTMsg() {
     const TF = '4H';
 
@@ -883,7 +861,6 @@ function buildFourHourCRTMsg() {
     return lines.join('\n');
 }
 
-// ── Active CRTs: all active HTF regardless of alignment ──
 function buildActiveCRTMsg() {
     const TF_PRIORITY = { '1W': 0, '1D': 1, '4H': 2 };
     const TF_LABELS   = { '1W': '📆 Weekly', '1D': '📅 Daily', '4H': '⏰ 4H' };
@@ -899,7 +876,6 @@ function buildActiveCRTMsg() {
                 const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
                 const probValue = prob.found ? parseFloat(prob.pct) : -1;
 
-                // ── NEW: Skip if prob < 65% ──
                 if (probValue < MIN_PROB_THRESHOLD) continue;
 
                 const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
@@ -975,7 +951,6 @@ function buildActiveCRTMsg() {
     return lines.join('\n');
 }
 
-// ── CRT Stats (updated with grade breakdown) ──
 function buildStatsMsg() {
     const s  = buildCRTStats('HTF');
     const ts = nowUTC();
@@ -1074,27 +1049,23 @@ function buildStatsMsg() {
 }
 
 // ══════════════════════════════════════════════
-// BOT PUSH NOTIFICATION (with grade + hit prob)
+// BOT PUSH NOTIFICATION
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
     if (!['1D', '1W', '4H'].includes(tf)) return;
     if (Object.keys(botSessions).length === 0) return;
 
-    // ── NEW: Skip if probability < 65% ──
     const probCheck = calcHitProbability('HTF', tf, alignLevel, grade);
     if (kind === 'CRT') {
-        // For new CRTs, only notify if prob >= 65%
         if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) {
             console.log(`[BOT SKIP] ${sym} ${tf} ${side} — prob ${probCheck.found ? probCheck.pct + '%' : 'N/A'} < ${MIN_PROB_THRESHOLD}%`);
             return;
         }
     }
     if (kind === 'CRT_TARGET' || kind === 'CRT_INVALID') {
-        // For TP/INVALID, only notify if the original CRT would have qualified
         if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) return;
     }
 
-    // rest of function unchanged...
     const tfLabel    = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
     const gradeLabel = grade === 'A+' ? '⭐ A+' : grade === 'B+' ? '🔶 B+' : '';
     const gradeBarStr = grade === 'A+' ? '🌟🌟🌟🌟🌟' : grade === 'B+' ? '🔶🔶🔶🔶🔶' : '';
@@ -1184,7 +1155,6 @@ async function autoRefreshBotPanels() {
 // ══════════════════════════════════════════════
 async function handleBotUpdate(update) {
 
-    // ── COMMANDS ──
     if (update.message) {
         const chatId   = String(update.message.chat.id);
         const text     = (update.message.text || '').trim();
@@ -1268,7 +1238,6 @@ async function handleBotUpdate(update) {
         return;
     }
 
-    // ── CALLBACKS ──
     if (update.callback_query) {
         const cb     = update.callback_query;
         const chatId = String(cb.message.chat.id);
@@ -1534,7 +1503,7 @@ function migrateCRTState(state){
 }
 
 // ══════════════════════════════════════════════
-// BUILD CRT STATS (fully updated with grade buckets)
+// BUILD CRT STATS
 // ══════════════════════════════════════════════
 function buildCRTStats(profile) {
     const cs = getCRTState(profile);
@@ -1604,11 +1573,11 @@ function buildCRTStats(profile) {
                 }
 
                 if (tf === '1W') {
-    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
-    inc(alignKey, s);
-    if (isAplus) inc(alignKey + '_aplus', s);
-    if (isBplus) inc(alignKey + '_bplus', s);
-}
+                    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
+                }
 
                 if (tf === '4H') {
                     let alignKey;
@@ -2037,7 +2006,7 @@ app.listen(PORT, () => {
 });
 
 // ══════════════════════════════════════════════
-// CHECKLIST API (with user identity)
+// CHECKLIST API (with user identity — NO AUTO-CLEAN)
 // ══════════════════════════════════════════════
 const REDIS_CHECKLIST_KEY = REDIS_STATE_KEY + '_checklist';
 const REDIS_USERS_KEY = REDIS_STATE_KEY + '_users';
@@ -2061,39 +2030,6 @@ if (savedUsers) {
     console.log('🆕 No users');
 }
 
-// Auto-clean: remove resolved CRTs from all user checklists
-function cleanResolvedFromChecklists(profile) {
-    const cs = getCRTState(profile);
-    const activeKeys = new Set();
-
-    for (const sym in cs) {
-        for (const tf in cs[sym]) {
-            const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
-            for (const e of arr) {
-                if (e?.status === 'ACTIVE') {
-                    activeKeys.add(`${sym}_${tf}_${e.id}`);
-                }
-            }
-        }
-    }
-
-    let cleaned = 0;
-    for (const userId in checklistState) {
-        const userCl = checklistState[userId];
-        for (const key in userCl) {
-            if (!activeKeys.has(key)) {
-                delete userCl[key];
-                cleaned++;
-            }
-        }
-    }
-
-    if (cleaned > 0) {
-        console.log(`🧹 Cleaned ${cleaned} resolved CRTs from checklists`);
-        redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState)).catch(() => {});
-    }
-}
-
 // Register / Login
 app.post('/api/user-register', async (req, res) => {
     const { userId, name, emoji, color } = req.body;
@@ -2115,26 +2051,29 @@ app.get('/api/users', (req, res) => {
     res.json({ users: registeredUsers });
 });
 
-// Get checklist for specific user (only ACTIVE CRTs)
+// Get checklist for specific user — NOW INCLUDES ALL STATUSES (ACTIVE + TP_HIT + INVALID)
 app.get('/api/checklist-state', (req, res) => {
     const profile = normalizeBoProfile(req.query.profile || 'HTF');
     const userId = (req.query.userId || '').toUpperCase().trim();
     if (!userId) return res.status(400).send("Need userId");
 
-    cleanResolvedFromChecklists(profile);
-
     const cs = getCRTState(profile);
     const userChecklist = checklistState[userId] || {};
     const items = [];
+
+    // Build set of all CRT entry IDs that still exist in crtState
+    const existingKeys = new Set();
 
     for (const sym in cs) {
         for (const tf in cs[sym]) {
             const arr = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [];
             for (const e of arr) {
-                if (e?.status !== 'ACTIVE') continue;
+                if (!e?.side) continue;
 
                 const key = `${sym}_${tf}_${e.id}`;
+                existingKeys.add(key);
                 const saved = userChecklist[key] || {};
+
                 items.push({
                     key,
                     symbol: sym,
@@ -2147,6 +2086,9 @@ app.get('/api/checklist-state', (req, res) => {
                     ext: e.ext,
                     tgt: e.tgt,
                     timestamp: e.timestamp,
+                    status: e.status,           // ACTIVE, TP_HIT, or INVALID
+                    tp_time: e.tp_time || null,
+                    inv_time: e.inv_time || null,
                     checks: {
                         liq_sweep: saved.liq_sweep || false,
                         bo_formed: saved.bo_formed || false,
@@ -2159,6 +2101,18 @@ app.get('/api/checklist-state', (req, res) => {
                 });
             }
         }
+    }
+
+    // Clean up checklist keys that no longer exist in CRT state (entry was fully removed/purged)
+    let cleaned = false;
+    for (const key in userChecklist) {
+        if (!existingKeys.has(key)) {
+            delete userChecklist[key];
+            cleaned = true;
+        }
+    }
+    if (cleaned) {
+        redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState)).catch(() => {});
     }
 
     res.json({ items, user: registeredUsers[userId] || null });
@@ -2192,6 +2146,20 @@ app.post('/api/checklist-clear', async (req, res) => {
     } else if (key && checklistState[id]) {
         delete checklistState[id][key];
     }
+    await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
+    res.json({ ok: true });
+});
+
+// Dismiss a resolved CRT from user's checklist view
+app.post('/api/checklist-dismiss', async (req, res) => {
+    const { userId, key } = req.body;
+    if (!userId || !key) return res.status(400).send("Need userId and key");
+    const id = userId.toUpperCase().trim();
+
+    if (!checklistState[id]) checklistState[id] = {};
+    if (!checklistState[id][key]) checklistState[id][key] = {};
+    checklistState[id][key]._dismissed = true;
+
     await redisClient.set(REDIS_CHECKLIST_KEY, JSON.stringify(checklistState));
     res.json({ ok: true });
 });
