@@ -193,117 +193,239 @@
         ::-webkit-scrollbar { width:6px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
+        /* ── HOVER POPUP PANEL ── */
+.crt-popup-anchor { position: relative; }
 
-        /* ── MANUAL CONTROL PANEL ── */
-.manual-ctrl-panel {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 10px;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.06);
+.crt-popup {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    min-width: 340px;
+    max-width: 420px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 14px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(10,14,26,0.98), rgba(20,25,50,0.96));
+    border: 1px solid rgba(245,158,11,0.3);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(245,158,11,0.08);
+    backdrop-filter: blur(20px);
+    animation: popupSlide 0.2s ease-out;
+    margin-top: 6px;
 }
-.coin-card:hover .manual-ctrl-panel,
-.manual-ctrl-panel.open {
-    display: block;
+.crt-popup::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: rgba(10,14,26,0.98);
+    border-left: 1px solid rgba(245,158,11,0.3);
+    border-top: 1px solid rgba(245,158,11,0.3);
+    transform: translateX(-50%) rotate(45deg);
 }
-.manual-ctrl-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.40rem;
-    color: rgba(148,163,184,0.4);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 5px;
-}
-.manual-ctrl-btns {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-}
-.mc-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.48rem;
+@keyframes popupSlide { from { opacity:0; transform:translateX(-50%) translateY(6px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+.coin-card:hover .crt-popup { display: block; }
+.crt-popup:hover { display: block; }
+
+/* Keep popup visible when it overflows card */
+.coin-card { overflow: visible !important; }
+
+.popup-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
     font-weight: 700;
-    padding: 4px 8px;
+    color: #fbbf24;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.popup-title-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 700;
+    padding: 2px 8px;
     border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid;
-    flex: 1;
-    text-align: center;
-    min-width: 60px;
-}
-.mc-btn-tp {
-    background: rgba(16,185,129,0.15);
-    border-color: rgba(16,185,129,0.35);
-    color: #34d399;
-}
-.mc-btn-tp:hover {
-    background: rgba(16,185,129,0.35);
-    border-color: rgba(16,185,129,0.6);
-    color: #6ee7b7;
-    box-shadow: 0 0 10px rgba(16,185,129,0.2);
-}
-.mc-btn-inv {
-    background: rgba(239,68,68,0.15);
-    border-color: rgba(239,68,68,0.35);
-    color: #f87171;
-}
-.mc-btn-inv:hover {
-    background: rgba(239,68,68,0.35);
-    border-color: rgba(239,68,68,0.6);
-    color: #fca5a5;
-    box-shadow: 0 0 10px rgba(239,68,68,0.2);
-}
-.mc-btn-remove {
-    background: rgba(71,85,105,0.2);
-    border-color: rgba(71,85,105,0.4);
-    color: #64748b;
-}
-.mc-btn-remove:hover {
-    background: rgba(239,68,68,0.2);
-    border-color: rgba(239,68,68,0.4);
-    color: #f87171;
-}
-.mc-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-    transform: none !important;
+    background: rgba(14,165,233,0.15);
+    border: 1px solid rgba(14,165,233,0.3);
+    color: #38bdf8;
 }
 
-/* ── ENTRY EXPAND ── */
-.entry-list { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
-.entry-row {
-    padding: 6px 8px;
-    border-radius: 8px;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.05);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.42rem;
+.popup-entry {
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    position: relative;
+    transition: all 0.2s;
 }
-.entry-row-active { border-color: rgba(14,165,233,0.25); }
-.entry-row-tp     { border-color: rgba(16,185,129,0.2); opacity: 0.7; }
-.entry-row-inv    { border-color: rgba(239,68,68,0.2); opacity: 0.6; }
-.entry-row-header {
+.popup-entry:last-child { margin-bottom: 0; }
+
+.popup-entry-active {
+    background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(14,165,233,0.03));
+    border: 1px solid rgba(14,165,233,0.2);
+}
+.popup-entry-tp {
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.15);
+    opacity: 0.55;
+}
+.popup-entry-inv {
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.15);
+    opacity: 0.55;
+}
+
+.popup-entry-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
-.entry-row-prices {
+.popup-entry-side {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+}
+.popup-entry-side-bull { color: #34d399; }
+.popup-entry-side-bear { color: #f87171; }
+
+.popup-entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.popup-prices {
     display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 3px;
-    margin-top: 3px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-top: 6px;
 }
-.price-cell {
-    padding: 2px 4px;
-    border-radius: 4px;
+.popup-price-cell {
+    padding: 4px 5px;
+    border-radius: 6px;
     background: rgba(255,255,255,0.04);
     text-align: center;
+    border: 1px solid rgba(255,255,255,0.04);
 }
-.price-label { color: rgba(148,163,184,0.4); font-size: 0.36rem; display: block; }
-.price-value { color: #e2e8f0; font-size: 0.44rem; font-weight: 700; }
+.popup-price-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.36rem;
+    color: rgba(148,163,184,0.4);
+    letter-spacing: 0.06em;
+    display: block;
+}
+.popup-price-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.50rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    display: block;
+    margin-top: 1px;
+}
+
+.popup-tf-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.42rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: rgba(245,158,11,0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245,158,11,0.3);
+}
+.popup-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.40rem;
+    color: rgba(148,163,184,0.45);
+}
+
+.popup-actions {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+}
+.popup-act-btn {
+    flex: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.50rem;
+    font-weight: 700;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid;
+    text-align: center;
+}
+.popup-act-btn:hover { transform: translateY(-1px); }
+
+.popup-act-tp {
+    background: rgba(16,185,129,0.12);
+    border-color: rgba(16,185,129,0.35);
+    color: #34d399;
+}
+.popup-act-tp:hover {
+    background: rgba(16,185,129,0.3);
+    border-color: rgba(16,185,129,0.6);
+    box-shadow: 0 0 12px rgba(16,185,129,0.2);
+}
+
+.popup-act-inv {
+    background: rgba(239,68,68,0.12);
+    border-color: rgba(239,68,68,0.35);
+    color: #f87171;
+}
+.popup-act-inv:hover {
+    background: rgba(239,68,68,0.3);
+    border-color: rgba(239,68,68,0.6);
+    box-shadow: 0 0 12px rgba(239,68,68,0.2);
+}
+
+.popup-act-remove {
+    background: rgba(71,85,105,0.15);
+    border-color: rgba(71,85,105,0.35);
+    color: #94a3b8;
+}
+.popup-act-remove:hover {
+    background: rgba(239,68,68,0.15);
+    border-color: rgba(239,68,68,0.4);
+    color: #f87171;
+}
+
+.popup-resolved-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.42rem;
+    color: rgba(148,163,184,0.3);
+    text-align: center;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.popup-empty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    color: rgba(148,163,184,0.3);
+    text-align: center;
+    padding: 16px 0;
+}
+
+/* Responsive: keep popup in viewport */
+@media (max-width: 768px) {
+    .crt-popup {
+        min-width: 280px;
+        left: 0;
+        transform: none;
+    }
+    .crt-popup::before { left: 30px; transform: rotate(45deg); }
+}
     </style>
 </head>
 <body>
@@ -502,12 +624,15 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePurgeMo
 // MANUAL CRT CONTROLS
 // ══════════════════════════════════════════════
 async function manualUpdate(sym, tf, entryId, action) {
-    const actionLabels = { TP_HIT: 'TP Hit', INVALID: 'Invalidate', REMOVE: 'Remove (no stats)' };
-    const label = actionLabels[action] || action;
+    const labels = { TP_HIT: '🎯 Mark TP Hit', INVALID: '❌ Mark Invalidated', REMOVE: '🗑️ Remove (no stats)' };
+    const warns = {
+        TP_HIT: `Mark this CRT as TARGET HIT?\n\n${sym} — ${tf}`,
+        INVALID: `Mark this CRT as INVALIDATED?\n\n${sym} — ${tf}`,
+        REMOVE: `⚠️ REMOVE this entry completely?\n\n${sym} — ${tf}\n\nThis will DELETE it and it will NOT count in statistics.`
+    };
 
-    if (!confirm(`${label}: ${sym} ${tf}?\n\n${action === 'REMOVE' ? '⚠️ This entry will be DELETED and NOT counted in statistics.' : ''}`)) return;
+    if (!confirm(warns[action])) return;
 
-    // Optimistic UI — disable the clicked button row
     try {
         const r = await fetch('/api/manual-crt-update', {
             method: 'POST',
@@ -516,28 +641,19 @@ async function manualUpdate(sym, tf, entryId, action) {
         });
 
         if (!r.ok) {
-            const txt = await r.text();
-            alert(`Error: ${txt}`);
+            alert(`Error: ${await r.text()}`);
             return;
         }
 
-        const data = await r.json();
-
-        // Update local state immediately
+        // Update local state for instant feedback
         if (action === 'REMOVE') {
-            // Remove entry from local crtState
             if (crtState[sym]?.[tf]) {
                 const arr = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
-                const filtered = arr.filter(e => e.id !== entryId);
-                if (filtered.length === 0) {
-                    delete crtState[sym][tf];
-                } else {
-                    crtState[sym][tf] = filtered;
-                }
-                if (Object.keys(crtState[sym]).length === 0) delete crtState[sym];
+                crtState[sym][tf] = arr.filter(e => e.id !== entryId);
+                if (crtState[sym][tf].length === 0) delete crtState[sym][tf];
+                if (crtState[sym] && Object.keys(crtState[sym]).length === 0) delete crtState[sym];
             }
         } else {
-            // Update status in local crtState
             if (crtState[sym]?.[tf]) {
                 const arr = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
                 const entry = arr.find(e => e.id === entryId);
@@ -552,12 +668,12 @@ async function manualUpdate(sym, tf, entryId, action) {
         render();
         rebuildFeed();
         refreshStats();
-
     } catch(err) {
         console.error('Manual update error:', err);
         alert('Network error. Please try again.');
     }
 }
+
 // ══════════════════════════════════════════════
 // GRADE / FILTER / PROFILE
 // ══════════════════════════════════════════════
@@ -665,6 +781,94 @@ function alignTag(e) {
     return `<span class="align-tag ${c}">${t}</span>`;
 }
 
+
+    // ══════════════════════════════════════════════
+// BUILD HOVER POPUP (ACTIVE CRT ENTRIES)
+// ══════════════════════════════════════════════
+function buildPopup(sym) {
+    const allEntries = [];
+    CRT_TFS.forEach(tf => {
+        const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
+        entries.forEach(e => allEntries.push({ ...e, _tf: tf }));
+    });
+
+    if (allEntries.length === 0) return '';
+
+    const activeEntries = allEntries.filter(e => e.status === 'ACTIVE');
+    const resolvedEntries = allEntries.filter(e => e.status !== 'ACTIVE');
+
+    let html = `<div class="crt-popup" onclick="event.stopPropagation();">`;
+    html += `<div class="popup-title">
+        <span>⚙️ MANAGE CRTs — ${sym}</span>
+        <span class="popup-title-count">🔵 ${activeEntries.length} active</span>
+    </div>`;
+
+    if (activeEntries.length === 0) {
+        html += `<div class="popup-empty">No active entries to manage</div>`;
+    }
+
+    // Active entries with controls
+    activeEntries.forEach(e => {
+        const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
+        const sideCls = e.side === 'BULLISH' ? 'popup-entry-side-bull' : 'popup-entry-side-bear';
+        const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.38rem;">⭐A+</span>'
+                 : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.38rem;">🔶B+</span>' : '';
+        const at = alignTag(e);
+
+        html += `<div class="popup-entry popup-entry-active">
+            <div class="popup-entry-head">
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <span class="popup-entry-side ${sideCls}">${sideIcon} ${e.side}</span>
+                    <span class="popup-tf-tag">${TF_LABELS_CRT[e._tf]}</span>
+                    ${gb}
+                </div>
+                <div class="popup-entry-meta">
+                    ${statusBadge(e.status)}
+                    ${at}
+                </div>
+            </div>
+            <div class="popup-prices">
+                <div class="popup-price-cell"><span class="popup-price-label">REJ</span><span class="popup-price-value">${e.rej || '—'}</span></div>
+                <div class="popup-price-cell"><span class="popup-price-label">BO</span><span class="popup-price-value">${e.bo || '—'}</span></div>
+                <div class="popup-price-cell"><span class="popup-price-label">EXT</span><span class="popup-price-value">${e.ext || '—'}</span></div>
+                <div class="popup-price-cell"><span class="popup-price-label">TGT</span><span class="popup-price-value">${e.tgt || '—'}</span></div>
+            </div>
+            <div class="popup-time" style="margin-top:4px;">🕐 ${fmtTime(e.timestamp)}</div>
+            <div class="popup-actions">
+                <button class="popup-act-btn popup-act-tp" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','TP_HIT')">🎯 TP HIT</button>
+                <button class="popup-act-btn popup-act-inv" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','INVALID')">❌ INVALID</button>
+                <button class="popup-act-btn popup-act-remove" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','REMOVE')">🗑️ REMOVE</button>
+            </div>
+        </div>`;
+    });
+
+    // Resolved entries (collapsed summary)
+    if (resolvedEntries.length > 0) {
+        html += `<div class="popup-resolved-label">— ${resolvedEntries.length} resolved (TP/INV) —</div>`;
+        resolvedEntries.forEach(e => {
+            const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
+            const entryCls = e.status === 'TP_HIT' ? 'popup-entry-tp' : 'popup-entry-inv';
+            const statusLabel = e.status === 'TP_HIT' ? '🎯 TP' : '❌ INV';
+            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.36rem;">⭐A+</span>'
+                     : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.36rem;">🔶B+</span>' : '';
+
+            html += `<div class="popup-entry ${entryCls}">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:700;">${sideIcon} ${sym}</span>
+                        <span class="popup-tf-tag" style="font-size:0.38rem;">${TF_LABELS_CRT[e._tf]}</span>
+                        ${gb}
+                    </div>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:0.42rem;color:rgba(148,163,184,0.5);">${statusLabel}</span>
+                </div>
+            </div>`;
+        });
+    }
+
+    html += `</div>`;
+    return html;
+}
+
 // ══════════════════════════════════════════════
 // BUILD CARD HTML
 // ══════════════════════════════════════════════
@@ -704,12 +908,10 @@ function buildCard(sym) {
     const abCls = type==='bull'?'align-bar-bull':type==='bear'?'align-bar-bear':type==='mixed'?'align-bar-mixed':'align-bar-none';
     const abTxt = parts.length ? parts.join(' · ') : '—';
 
-    // Build TF cells with entry list per TF
     let tfCells = '';
     CRT_TFS.forEach(tf => {
-        const allTfEntries = getTFEntries(sym, tf);
-        const entries = activeGrade === 'ALL' ? allTfEntries : allTfEntries.filter(e => e.grade === activeGrade);
-        const d = entries.length ? entries[entries.length - 1] : null;
+        const d = getLatestEntry(sym, tf);
+        const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
         const emoji = d?.side === 'BULLISH' ? '🐂' : d?.side === 'BEARISH' ? '🐻' : '—';
         const cnt = entries.length;
 
@@ -723,56 +925,7 @@ function buildCard(sym) {
             countLine = `<div style="color:rgba(203,213,225,0.4);font-size:0.36rem;margin-top:1px;">${cnt} · ${b2.join(' ')}</div>`;
         }
 
-        // Entry list for this TF (all entries, each with manual controls if ACTIVE)
-        let entryListHtml = '';
-        if (entries.length > 0) {
-            const rows = entries.map(entry => {
-                const isActive = entry.status === 'ACTIVE';
-                const rowCls = isActive ? 'entry-row-active' : entry.status === 'TP_HIT' ? 'entry-row-tp' : 'entry-row-inv';
-                const sideIcon = entry.side === 'BULLISH' ? '🐂' : '🐻';
-                const gb = entry.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.36rem;">⭐A+</span>' : entry.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.36rem;">🔶B+</span>' : '';
-                const at = alignTag(entry);
-                const st = statusBadge(entry.status);
-                const safeId = entry.id.replace(/[^a-zA-Z0-9_-]/g, '_');
-
-                const pricesHtml = `<div class="entry-row-prices">
-                    <div class="price-cell"><span class="price-label">REJ</span><span class="price-value">${entry.rej || '—'}</span></div>
-                    <div class="price-cell"><span class="price-label">BO</span><span class="price-value">${entry.bo || '—'}</span></div>
-                    <div class="price-cell"><span class="price-label">EXT</span><span class="price-value">${entry.ext || '—'}</span></div>
-                    <div class="price-cell"><span class="price-label">TGT</span><span class="price-value">${entry.tgt || '—'}</span></div>
-                </div>`;
-
-                const manualBtns = isActive ? `
-                    <div class="manual-ctrl-btns" style="margin-top:5px;">
-                        <button class="mc-btn mc-btn-tp"
-                            onclick="event.stopPropagation();manualUpdate('${sym}','${tf}','${entry.id}','TP_HIT')"
-                            title="Mark TP Hit">🎯 TP</button>
-                        <button class="mc-btn mc-btn-inv"
-                            onclick="event.stopPropagation();manualUpdate('${sym}','${tf}','${entry.id}','INVALID')"
-                            title="Mark Invalidated">❌ INV</button>
-                        <button class="mc-btn mc-btn-remove"
-                            onclick="event.stopPropagation();manualUpdate('${sym}','${tf}','${entry.id}','REMOVE')"
-                            title="Remove (no stats impact)">🗑️ DEL</button>
-                    </div>` : '';
-
-                return `<div class="entry-row ${rowCls}">
-                    <div class="entry-row-header">
-                        <div style="display:flex;align-items:center;gap:3px;">
-                            <span>${sideIcon}</span>${gb}${at}
-                        </div>
-                        <div style="display:flex;align-items:center;gap:3px;">
-                            ${st}
-                            <span style="color:rgba(148,163,184,0.4);font-size:0.38rem;">${fmtTime(entry.timestamp)}</span>
-                        </div>
-                    </div>
-                    ${pricesHtml}
-                    ${manualBtns}
-                </div>`;
-            }).join('');
-            entryListHtml = `<div class="entry-list">${rows}</div>`;
-        }
-
-        tfCells += `<div class="tf-cell ${tfCellCls(d)}" style="grid-column:span 1;">
+        tfCells += `<div class="tf-cell ${tfCellCls(d)}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
                 <span style="color:rgba(203,213,225,0.5);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
                 <span style="font-size:0.6rem;">${emoji}</span>
@@ -783,11 +936,12 @@ function buildCard(sym) {
             ${alignTag(d)}
             ${countLine}
             ${d?.timestamp ? `<div style="color:rgba(203,213,225,0.6);font-size:0.42rem;margin-top:2px;">🕐 ${fmtTime(d.timestamp)}</div>` : ''}
-            ${entryListHtml}
         </div>`;
     });
 
-    return `<div class="coin-card ${cls}" style="position:relative;">
+    const popup = buildPopup(sym);
+
+    return `<div class="coin-card ${cls} crt-popup-anchor" style="position:relative;">
         <button class="purge-card-btn" onclick="event.stopPropagation();openPurgeModal('${sym}')" title="Purge ${sym}">✕</button>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
             <div>
@@ -799,6 +953,7 @@ function buildCard(sym) {
         </div>
         <div class="tf-row">${tfCells}</div>
         <div class="align-bar ${abCls}">${abTxt}</div>
+        ${popup}
     </div>`;
 }
 
