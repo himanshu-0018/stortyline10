@@ -23,7 +23,7 @@
         .orb-3 { width:300px;height:300px;background:rgba(16,185,129,0.10);bottom:10%;left:20%;animation-duration:16s;animation-delay:6s; }
         @keyframes orbFloat { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(30px,-40px) scale(1.1);} 66%{transform:translate(-20px,30px) scale(0.95);} }
 
-        /* ── TOP BAR (sticky) ── */
+        /* ── TOP BAR ── */
         .top-bar { position:sticky;top:0;z-index:50;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(10,14,26,0.85);backdrop-filter:blur(20px); }
         .brand-name { font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.05em;background:linear-gradient(135deg,#fbbf24,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
         .brand-sub { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.65);letter-spacing:0.10em;margin-top:2px; }
@@ -42,7 +42,7 @@
         .offline .pulse-dot::after { background:rgba(239,68,68,0.4); }
         @keyframes pulseRing { 0%,100%{transform:scale(0.9);opacity:0.9;} 50%{transform:scale(1.5);opacity:0;} }
 
-        /* ── FILTER BAR (sticky) ── */
+        /* ── FILTER BAR ── */
         .filter-bar { position:sticky;top:62px;z-index:49;display:flex;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,12,22,0.88);backdrop-filter:blur(10px);flex-wrap:wrap; }
         .stats-pill { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:0.64rem;font-weight:700;font-family:'JetBrains Mono',monospace; }
         .sp-bull   { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
@@ -66,7 +66,7 @@
         .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
         .filter-label { font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:rgba(148,163,184,0.35);letter-spacing:0.10em;text-transform:uppercase; }
 
-        /* ── MAIN SCROLLABLE CONTENT ── */
+        /* ── MAIN CONTENT ── */
         .main-content { position:relative;z-index:10;padding:20px 24px;padding-bottom:60px; }
 
         /* ── SECTION HEADERS ── */
@@ -146,7 +146,7 @@
         .hitrate-value-neutral { color:#64748b; }
         .hitrate-section-label { font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:700;color:rgba(148,163,184,0.4);letter-spacing:0.1em;text-transform:uppercase;grid-column:1/-1;padding:8px 0 2px 0;border-top:1px solid rgba(255,255,255,0.05);margin-top:4px; }
 
-        /* ── FEED (collapsible section) ── */
+        /* ── FEED ── */
         .feed-section { margin-top:28px; }
         .feed-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px; }
         .log-card { padding:10px 12px;border-radius:10px;animation:logSlide 0.3s ease-out; }
@@ -268,9 +268,7 @@
     <button id="filterNoBO"   onclick="setFilter('NO_BO')"   class="stats-pill sp-filter">NONE</button>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SCROLLABLE MAIN CONTENT                    -->
-<!-- ═══════════════════════════════════════════ -->
+<!-- SCROLLABLE MAIN CONTENT -->
 <div class="main-content">
 
     <!-- ACTIVE CRTs -->
@@ -334,7 +332,6 @@ let crtState = {}, crtLog = [], crtStats = {}, breakoutState = {};
 let activeFilter = 'ALL', activeGrade = 'ALL', activeProfile = 'HTF';
 let crtEventSource = null;
 
-// Section visibility state
 const sections = { tp: false, inv: false, hr: false, feed: true };
 
 const moneySound = new Audio('/money.mp3');
@@ -361,8 +358,8 @@ function toggleSection(id) {
     const btn = document.getElementById(id + 'Toggle');
     btn.textContent = sections[id] ? 'HIDE' : 'SHOW';
     btn.classList.toggle('active', sections[id]);
-    if (id === 'tp')   document.getElementById('tpGrid').style.display      = sections[id] ? '' : 'none';
-    if (id === 'inv')  document.getElementById('invGrid').style.display     = sections[id] ? '' : 'none';
+    if (id === 'tp')   document.getElementById('tpGrid').style.display       = sections[id] ? '' : 'none';
+    if (id === 'inv')  document.getElementById('invGrid').style.display      = sections[id] ? '' : 'none';
     if (id === 'hr')   document.getElementById('hitratePanel').style.display = sections[id] ? '' : 'none';
     if (id === 'feed') document.getElementById('activityFeed').style.display = sections[id] ? '' : 'none';
 }
@@ -508,7 +505,6 @@ function buildCard(sym) {
     const allE = getAllEntries(sym);
     const latest = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
 
-    // BO line
     const wBO = getBreakoutDir(sym,'1W'), mBO = getBreakoutDir(sym,'1MO');
     let boLine = '';
     if (wBO !== 'NONE' || mBO !== 'NONE') {
@@ -518,7 +514,6 @@ function buildCard(sym) {
         boLine = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.40rem;color:rgba(168,85,247,0.7);margin-top:2px;">💥 ${p.join(' · ')}</div>`;
     }
 
-    // Grade summary
     const fe = getFilteredEntries(sym);
     const ap = fe.filter(e => e.grade === 'A+').length, bp = fe.filter(e => e.grade === 'B+').length;
     let gs = '';
@@ -529,7 +524,6 @@ function buildCard(sym) {
         gs = `<div style="display:flex;gap:3px;margin-top:3px;">${bits.join('')}</div>`;
     }
 
-    // Align bar
     let active = 0, tp = 0, inv = 0;
     fe.forEach(e => { if (e.status==='ACTIVE') active++; if (e.status==='TP_HIT') tp++; if (e.status==='INVALID') inv++; });
     const parts = [];
@@ -539,7 +533,6 @@ function buildCard(sym) {
     const abCls = type==='bull'?'align-bar-bull':type==='bear'?'align-bar-bear':type==='mixed'?'align-bar-mixed':'align-bar-none';
     const abTxt = parts.length ? parts.join(' · ') : '—';
 
-    // TF cells
     let tfCells = '';
     CRT_TFS.forEach(tf => {
         const d = getLatestEntry(sym, tf);
@@ -587,7 +580,7 @@ function buildCard(sym) {
 }
 
 // ══════════════════════════════════════════════
-// RENDER (split into ACTIVE / TP / INV sections)
+// RENDER
 // ══════════════════════════════════════════════
 function render() {
     const allSyms = Object.keys(crtState).sort((a, b) => {
@@ -599,7 +592,6 @@ function render() {
 
     const syms = allSyms.filter(s => passesFilter(s) && passesGrade(s));
 
-    // Global stats (unfiltered)
     let totalBull=0,totalBear=0,totalActive=0,totalTP=0,totalInv=0,totalEntries=0,totalAplus=0,totalBplus=0;
     allSyms.forEach(sym => getAllEntries(sym).forEach(e => {
         totalEntries++;
@@ -622,23 +614,6 @@ function render() {
     document.getElementById('invPill').textContent    = `❌ ${totalInv}`;
     document.getElementById('totalPill').textContent  = `🔄 ${totalEntries}`;
 
-    // Split symbols by status
-    const activeSyms = [], tpSyms = [], invSyms = [];
-    syms.forEach(sym => {
-        const fe = getFilteredEntries(sym);
-        const hasActive = fe.some(e => e.status === 'ACTIVE');
-        const hasTP     = fe.some(e => e.status === 'TP_HIT');
-        const hasInv    = fe.some(e => e.status === 'INVALID');
-        if (hasActive) activeSyms.push(sym);
-        if (hasTP && !hasActive) tpSyms.push(sym);
-        if (hasInv && !hasActive && !hasTP) invSyms.push(sym);
-        // If has both active + tp/inv, show in active
-        if (hasActive && (hasTP || hasInv)) { /* already in activeSyms */ }
-        else if (!hasActive && hasTP && hasInv) { /* already in tpSyms */ }
-    });
-
-    // Also add symbols that have BOTH tp and active to active section, tp-only to tp section
-    // Simpler approach: categorize by "best" status
     const categorized = { active: [], tp: [], inv: [], idle: [] };
     syms.forEach(sym => {
         const fe = getFilteredEntries(sym);
@@ -648,7 +623,6 @@ function render() {
         categorized.idle.push(sym);
     });
 
-    // Render ACTIVE section (always visible)
     const ag = document.getElementById('activeGrid');
     document.getElementById('activeSectionCount').textContent = categorized.active.length;
     if (!categorized.active.length) {
@@ -657,13 +631,11 @@ function render() {
         ag.innerHTML = categorized.active.map(s => buildCard(s)).join('');
     }
 
-    // Render TP section
     const tg = document.getElementById('tpGrid');
     document.getElementById('tpSectionCount').textContent = categorized.tp.length;
     if (!categorized.tp.length) { tg.innerHTML = '<p class="empty-state">No target hits yet.</p>'; }
     else { tg.innerHTML = categorized.tp.map(s => buildCard(s)).join(''); }
 
-    // Render INV section
     const ig = document.getElementById('invGrid');
     document.getElementById('invSectionCount').textContent = categorized.inv.length;
     if (!categorized.inv.length) { ig.innerHTML = '<p class="empty-state">No invalidated CRTs.</p>'; }
@@ -682,23 +654,93 @@ function hrCard(icon, label, s, ec) {
     const r = s.hit_rate, res = s.tp + s.inv, c = ec || getHRCardClass(r);
     return `<div class="hitrate-card ${c}"><div class="hitrate-label">${icon} ${label}</div><div class="hitrate-value ${getHRValueClass(r)}">${r==='—'?'—':r+'%'}</div><div class="hitrate-sub">🎯${s.tp} ❌${s.inv} 🔵${s.active} · ${res} res</div></div>`;
 }
+
 function renderHitRates() {
     const g = document.getElementById('hitrateGrid');
     if (!crtStats?.overall) { g.innerHTML = '<p class="empty-state">No data yet...</p>'; return; }
     const s = crtStats;
     let h = '';
+
+    // 📊 OVERALL
     h += `<div class="hitrate-section-label">📊 OVERALL</div>`;
-    h += hrCard('📊','OVERALL',s.overall) + hrCard('⭐','A+',s.overall_aplus,'hitrate-card-aplus') + hrCard('🔶','B+',s.overall_bplus,'hitrate-card-bplus');
+    h += hrCard('📊','OVERALL',s.overall)
+       + hrCard('⭐','A+',s.overall_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','B+',s.overall_bplus,'hitrate-card-bplus');
+
+    // 📅 DAILY
     h += `<div class="hitrate-section-label">📅 DAILY</div>`;
-    h += hrCard('📅','ALL',s.daily) + hrCard('⭐','A+',s.daily_aplus,'hitrate-card-aplus') + hrCard('🔶','B+',s.daily_bplus,'hitrate-card-bplus');
-    h += hrCard('✅','MO+W',s.daily_mo_w) + hrCard('⚡','MO',s.daily_mo) + hrCard('🔵','W',s.daily_w) + hrCard('⚪','NONE',s.daily_none);
+    h += hrCard('📅','ALL',s.daily)
+       + hrCard('⭐','A+',s.daily_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','B+',s.daily_bplus,'hitrate-card-bplus');
+
+    h += hrCard('✅','MO+W',s.daily_mo_w)
+       + hrCard('⭐','MO+W A+',s.daily_mo_w_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','MO+W B+',s.daily_mo_w_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','MO',s.daily_mo)
+       + hrCard('⭐','MO A+',s.daily_mo_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','MO B+',s.daily_mo_bplus,'hitrate-card-bplus');
+
+    h += hrCard('🔵','W',s.daily_w)
+       + hrCard('⭐','W A+',s.daily_w_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','W B+',s.daily_w_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚪','NONE',s.daily_none)
+       + hrCard('⭐','NONE A+',s.daily_none_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','NONE B+',s.daily_none_bplus,'hitrate-card-bplus');
+
+    // 📆 WEEKLY
     h += `<div class="hitrate-section-label">📆 WEEKLY</div>`;
-    h += hrCard('📆','ALL',s.weekly) + hrCard('⭐','A+',s.weekly_aplus,'hitrate-card-aplus') + hrCard('🔶','B+',s.weekly_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.weekly_mo) + hrCard('⚪','NONE',s.weekly_none);
+    h += hrCard('📆','ALL',s.weekly)
+       + hrCard('⭐','A+',s.weekly_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','B+',s.weekly_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','MO',s.weekly_mo)
+       + hrCard('⭐','MO A+',s.weekly_mo_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','MO B+',s.weekly_mo_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚪','NONE',s.weekly_none)
+       + hrCard('⭐','NONE A+',s.weekly_none_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','NONE B+',s.weekly_none_bplus,'hitrate-card-bplus');
+
+    // ⏰ 4H
     h += `<div class="hitrate-section-label">⏰ 4H</div>`;
-    h += hrCard('⏰','ALL',s.fourh) + hrCard('⭐','A+',s.fourh_aplus,'hitrate-card-aplus') + hrCard('🔶','B+',s.fourh_bplus,'hitrate-card-bplus');
-    h += hrCard('✅','D+W+MO',s.fourh_dwm) + hrCard('⚡','D+W',s.fourh_dw) + hrCard('⚡','D+MO',s.fourh_dmo) + hrCard('⚡','D',s.fourh_d);
-    h += hrCard('⚡','W+MO',s.fourh_wmo) + hrCard('⚡','W',s.fourh_w) + hrCard('⚡','MO',s.fourh_mo) + hrCard('⚪','NONE',s.fourh_none);
+    h += hrCard('⏰','ALL',s.fourh)
+       + hrCard('⭐','A+',s.fourh_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','B+',s.fourh_bplus,'hitrate-card-bplus');
+
+    h += hrCard('✅','D+W+MO',s.fourh_dwm)
+       + hrCard('⭐','DWM A+',s.fourh_dwm_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','DWM B+',s.fourh_dwm_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','D+W',s.fourh_dw)
+       + hrCard('⭐','DW A+',s.fourh_dw_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','DW B+',s.fourh_dw_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','D+MO',s.fourh_dmo)
+       + hrCard('⭐','DMO A+',s.fourh_dmo_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','DMO B+',s.fourh_dmo_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','D',s.fourh_d)
+       + hrCard('⭐','D A+',s.fourh_d_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','D B+',s.fourh_d_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','W+MO',s.fourh_wmo)
+       + hrCard('⭐','WMO A+',s.fourh_wmo_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','WMO B+',s.fourh_wmo_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','W',s.fourh_w)
+       + hrCard('⭐','W A+',s.fourh_w_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','W B+',s.fourh_w_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚡','MO',s.fourh_mo)
+       + hrCard('⭐','MO A+',s.fourh_mo_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','MO B+',s.fourh_mo_bplus,'hitrate-card-bplus');
+
+    h += hrCard('⚪','NONE',s.fourh_none)
+       + hrCard('⭐','NONE A+',s.fourh_none_aplus,'hitrate-card-aplus')
+       + hrCard('🔶','NONE B+',s.fourh_none_bplus,'hitrate-card-bplus');
+
     g.innerHTML = h;
 }
 
