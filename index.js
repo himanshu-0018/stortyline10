@@ -376,58 +376,69 @@ function progressBar(tp, inv) {
 function calcHitProbability(profile, tf, alignLevel, grade) {
     const stats = buildCRTStats(profile);
     const buckets = [];
+    const isAplus = grade === 'A+';
+    const isBplus = grade === 'B+';
+    const hasGrade = isAplus || isBplus;
+    const gradeSuffix = isAplus ? '_aplus' : isBplus ? '_bplus' : '';
 
     if (tf === '1D') {
-        if (grade === 'A+') {
-            if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w_aplus',  label: 'Daily MO+W A+' });
-            if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo_aplus',     label: 'Daily MO A+' });
-            if (alignLevel === 'W')    buckets.push({ key: 'daily_w_aplus',      label: 'Daily W A+' });
-            buckets.push({ key: 'daily_aplus', label: 'Daily A+' });
-        } else if (grade === 'B+') {
-            if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w_bplus',  label: 'Daily MO+W B+' });
-            if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo_bplus',     label: 'Daily MO B+' });
-            if (alignLevel === 'W')    buckets.push({ key: 'daily_w_bplus',      label: 'Daily W B+' });
-            buckets.push({ key: 'daily_bplus', label: 'Daily B+' });
+        // Most specific: grade + alignment
+        if (hasGrade) {
+            if (alignLevel === 'MO+W') buckets.push({ key: `daily_mo_w${gradeSuffix}`, label: `Daily MO+W ${grade}` });
+            else if (alignLevel === 'MO') buckets.push({ key: `daily_mo${gradeSuffix}`, label: `Daily MO ${grade}` });
+            else if (alignLevel === 'W')  buckets.push({ key: `daily_w${gradeSuffix}`,  label: `Daily W ${grade}` });
+            else                          buckets.push({ key: `daily_none${gradeSuffix}`, label: `Daily No-Align ${grade}` });
         }
+        // Alignment only (no grade filter)
         if (alignLevel === 'MO+W') buckets.push({ key: 'daily_mo_w', label: 'Daily MO+W' });
-        if (alignLevel === 'MO')   buckets.push({ key: 'daily_mo',   label: 'Daily MO' });
-        if (alignLevel === 'W')    buckets.push({ key: 'daily_w',    label: 'Daily W' });
+        else if (alignLevel === 'MO') buckets.push({ key: 'daily_mo', label: 'Daily MO' });
+        else if (alignLevel === 'W')  buckets.push({ key: 'daily_w',  label: 'Daily W' });
+        else                          buckets.push({ key: 'daily_none', label: 'Daily No-Align' });
+        // Grade only fallback
+        if (hasGrade) buckets.push({ key: `daily${gradeSuffix}`, label: `Daily ${grade}` });
+        // TF fallback
         buckets.push({ key: 'daily', label: 'Daily' });
-    } else if (tf === '1W') {
-        if (grade === 'A+') buckets.push({ key: 'weekly_mo_aplus', label: 'Weekly MO A+' });
-        if (grade === 'B+') buckets.push({ key: 'weekly_mo_bplus', label: 'Weekly MO B+' });
-        if (alignLevel === 'MO') buckets.push({ key: 'weekly_mo', label: 'Weekly MO' });
-        buckets.push({ key: 'weekly', label: 'Weekly' });
-    } else if (tf === '4H') {
-        if (grade === 'A+') {
-            if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm_aplus', label: '4H D+W+MO A+' });
-            if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw_aplus',  label: '4H D+W A+' });
-            if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo_aplus', label: '4H D+MO A+' });
-            if (alignLevel === 'D')      buckets.push({ key: 'fourh_d_aplus',   label: '4H D A+' });
-            if (alignLevel === 'W+MO')   buckets.push({ key: 'fourh_wmo_aplus', label: '4H W+MO A+' });
-            if (alignLevel === 'W')      buckets.push({ key: 'fourh_w_aplus',   label: '4H W A+' });
-            if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo_aplus',  label: '4H MO A+' });
-            buckets.push({ key: 'fourh_aplus', label: '4H A+' });
-        } else if (grade === 'B+') {
-            if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm_bplus', label: '4H D+W+MO B+' });
-            if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw_bplus',  label: '4H D+W B+' });
-            if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo_bplus', label: '4H D+MO B+' });
-            if (alignLevel === 'D')      buckets.push({ key: 'fourh_d_bplus',   label: '4H D B+' });
-            if (alignLevel === 'W+MO')   buckets.push({ key: 'fourh_wmo_bplus', label: '4H W+MO B+' });
-            if (alignLevel === 'W')      buckets.push({ key: 'fourh_w_bplus',   label: '4H W B+' });
-            if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo_bplus',  label: '4H MO B+' });
-            buckets.push({ key: 'fourh_bplus', label: '4H B+' });
+    }
+
+    else if (tf === '1W') {
+        if (hasGrade) {
+            if (alignLevel === 'MO') buckets.push({ key: `weekly_mo${gradeSuffix}`, label: `Weekly MO ${grade}` });
+            else                     buckets.push({ key: `weekly_none${gradeSuffix}`, label: `Weekly No-Align ${grade}` });
         }
-        if (alignLevel === 'D+W+MO') buckets.push({ key: 'fourh_dwm', label: '4H D+W+MO' });
-        if (alignLevel === 'D+W')    buckets.push({ key: 'fourh_dw',  label: '4H D+W' });
-        if (alignLevel === 'D+MO')   buckets.push({ key: 'fourh_dmo', label: '4H D+MO' });
-        if (alignLevel === 'D')      buckets.push({ key: 'fourh_d',   label: '4H D' });
-        if (alignLevel === 'W+MO')   buckets.push({ key: 'fourh_wmo', label: '4H W+MO' });
-        if (alignLevel === 'W')      buckets.push({ key: 'fourh_w',   label: '4H W' });
-        if (alignLevel === 'MO')     buckets.push({ key: 'fourh_mo',  label: '4H MO' });
+        if (alignLevel === 'MO') buckets.push({ key: 'weekly_mo', label: 'Weekly MO' });
+        else                     buckets.push({ key: 'weekly_none', label: 'Weekly No-Align' });
+        if (hasGrade) buckets.push({ key: `weekly${gradeSuffix}`, label: `Weekly ${grade}` });
+        buckets.push({ key: 'weekly', label: 'Weekly' });
+    }
+
+    else if (tf === '4H') {
+        // Alignment key mapping
+        const alignKeyMap = {
+            'D+W+MO': 'fourh_dwm',
+            'D+W':    'fourh_dw',
+            'D+MO':   'fourh_dmo',
+            'D':      'fourh_d',
+            'W+MO':   'fourh_wmo',
+            'W':      'fourh_w',
+            'MO':     'fourh_mo',
+        };
+        const alignBase = alignKeyMap[alignLevel] || 'fourh_none';
+        const alignLabel = alignLevel !== 'NONE' ? `4H ${alignLevel}` : '4H No-Align';
+
+        // Most specific: grade + alignment
+        if (hasGrade) {
+            buckets.push({ key: `${alignBase}${gradeSuffix}`, label: `${alignLabel} ${grade}` });
+        }
+        // Alignment only
+        buckets.push({ key: alignBase, label: alignLabel });
+        // Grade only fallback
+        if (hasGrade) buckets.push({ key: `fourh${gradeSuffix}`, label: `4H ${grade}` });
+        // TF fallback
         buckets.push({ key: 'fourh', label: '4H' });
     }
 
+    // Final fallback
+    if (hasGrade) buckets.push({ key: `overall${gradeSuffix}`, label: `Overall ${grade}` });
     buckets.push({ key: 'overall', label: 'Overall' });
 
     const MIN_SAMPLE = 5;
@@ -437,7 +448,12 @@ function calcHitProbability(profile, tf, alignLevel, grade) {
         const resolved = s.tp + s.inv;
         if (resolved >= MIN_SAMPLE) {
             const pct = ((s.tp / resolved) * 100).toFixed(1);
-            return { found: true, pct, tp: s.tp, inv: s.inv, total: s.total, resolved, label: bucket.label };
+            return {
+                found: true, pct,
+                tp: s.tp, inv: s.inv,
+                total: s.total, resolved,
+                label: bucket.label
+            };
         }
     }
     return { found: false };
@@ -605,22 +621,24 @@ function buildMainMenuMsg() {
 // ── Daily CRT: MO+W, MO, W aligned only ──
 function buildDailyCRTMsg() {
     const TF = '1D';
-    const grouped = { 'MO+W': [], 'MO': [], 'W': [] };
+    const grouped = { 'MO+W': [], 'MO': [], 'W': [], 'NONE': [] };
 
     for (const sym in crtStateHTF) {
         const arr = Array.isArray(crtStateHTF[sym]?.[TF]) ? crtStateHTF[sym][TF] : [];
         for (const e of arr) {
             if (!e?.side) continue;
-            if (grouped[e.align_level]) {
-                const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
-                const probValue = prob.found ? parseFloat(prob.pct) : -1;
-                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
-                grouped[e.align_level].push({ sym, e, prob, probValue, gradeRank });
-            }
+
+            const alignKey = grouped[e.align_level] !== undefined ? e.align_level : 'NONE';
+
+            const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
+            const probValue = prob.found ? parseFloat(prob.pct) : -1;
+            const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+
+            grouped[alignKey].push({ sym, e, prob, probValue, gradeRank });
         }
     }
 
-    // Sort each group: higher prob first, then A+ before B+
+    // Sort groups
     for (const key in grouped) {
         grouped[key].sort((a, b) => {
             if (b.probValue !== a.probValue) return b.probValue - a.probValue;
@@ -629,7 +647,7 @@ function buildDailyCRTMsg() {
         });
     }
 
-    const total = grouped['MO+W'].length + grouped['MO'].length + grouped['W'].length;
+    const total = Object.values(grouped).reduce((s, arr) => s + arr.length, 0);
 
     const activeCount = Object.values(grouped).reduce((s, arr) =>
         s + arr.filter(x => x.e.status === 'ACTIVE').length, 0);
@@ -641,42 +659,44 @@ function buildDailyCRTMsg() {
     const lines = [
         B_TOP,
         `║  📅 <b>DAILY CRT  —  HTF</b>`,
-        `║  Aligned Signals Only`,
+        `║  All Signals (Aligned + None)`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  📊 Aligned: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
+        `║  📊 Total: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
     ];
 
     if (total === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No aligned Daily CRTs</i>`, `   <i>Waiting for MO / W signals...</i>`, ``, B_THIN);
+        lines.push(B_THIN, ``, `   📭 <i>No Daily CRTs yet</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
     function renderGroup(label, emoji, items) {
-        if (items.length === 0) return;
+        if (!items.length) return;
+
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
+
         for (const { sym, e, prob } of items) {
             const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-            let probLine = '';
-            if (prob.found) {
-                probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-            } else {
-                probLine = `  ┗  📊 <i>No data</i>`;
-            }
+            const probLine = prob.found
+                ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+                : `  ┗  📊 <i>No data</i>`;
+
             lines.push(``,
                 `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
                 `  ┃  Status: <b>${e.status}</b>`,
                 probLine);
         }
+
         lines.push(``);
     }
 
     renderGroup('MO + W  ALIGNED', '✅', grouped['MO+W']);
     renderGroup('MO  ALIGNED',     '⚡', grouped['MO']);
     renderGroup('W   ALIGNED',     '⚡', grouped['W']);
+    renderGroup('NO ALIGNMENT',    '⚪', grouped['NONE']);
 
     lines.push(B_DASH);
     return lines.join('\n');
@@ -685,72 +705,90 @@ function buildDailyCRTMsg() {
 // ── Weekly CRT: MO aligned only ──
 function buildWeeklyCRTMsg() {
     const TF = '1W';
-    const items = [];
+    const grouped = { 'MO': [], 'NONE': [] };
 
     for (const sym in crtStateHTF) {
         const arr = Array.isArray(crtStateHTF[sym]?.[TF]) ? crtStateHTF[sym][TF] : [];
         for (const e of arr) {
-            if (e?.side && e.align_level === 'MO') {
-                const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
-                const probValue = prob.found ? parseFloat(prob.pct) : -1;
-                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
-                items.push({ sym, e, prob, probValue, gradeRank });
-            }
+            if (!e?.side) continue;
+
+            const alignKey = e.align_level === 'MO' ? 'MO' : 'NONE';
+
+            const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
+            const probValue = prob.found ? parseFloat(prob.pct) : -1;
+            const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+
+            grouped[alignKey].push({ sym, e, prob, probValue, gradeRank });
         }
     }
 
-    // Sort: higher prob first, A+ before B+, newer first
-    items.sort((a, b) => {
-        if (b.probValue !== a.probValue) return b.probValue - a.probValue;
-        if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
-        return (b.e.timestamp || 0) - (a.e.timestamp || 0);
-    });
+    // Sort
+    for (const key in grouped) {
+        grouped[key].sort((a, b) => {
+            if (b.probValue !== a.probValue) return b.probValue - a.probValue;
+            if (a.gradeRank !== b.gradeRank) return a.gradeRank - b.gradeRank;
+            return (b.e.timestamp || 0) - (a.e.timestamp || 0);
+        });
+    }
 
-    const activeCount = items.filter(x => x.e.status === 'ACTIVE').length;
-    const tpCount     = items.filter(x => x.e.status === 'TP_HIT').length;
-    const invCount    = items.filter(x => x.e.status === 'INVALID').length;
+    const total = grouped['MO'].length + grouped['NONE'].length;
+
+    const activeCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'ACTIVE').length, 0);
+    const tpCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'TP_HIT').length, 0);
+    const invCount = Object.values(grouped).reduce((s, arr) =>
+        s + arr.filter(x => x.e.status === 'INVALID').length, 0);
 
     const lines = [
         B_TOP,
         `║  📆 <b>WEEKLY CRT  —  HTF</b>`,
-        `║  MO-Aligned Only`,
+        `║  All Signals (MO + None)`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  ⚡ MO Aligned: <b>${items.length}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
+        `║  📊 Total: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
     ];
 
-    if (items.length === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No MO-aligned Weekly CRTs</i>`, `   <i>Waiting for Monthly alignment...</i>`, ``, B_THIN);
+    if (total === 0) {
+        lines.push(B_THIN, ``, `   📭 <i>No Weekly CRTs yet</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
-    lines.push(`⚡ <b>MO  ALIGNED  WEEKLY</b>`);
-    lines.push(B_THIN);
+    function renderItems(label, emoji, items) {
+        if (!items.length) return;
 
-    for (const { sym, e, prob } of items) {
-        const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-        let probLine = '';
-        if (prob.found) {
-            probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-        } else {
-            probLine = `  ┗  📊 <i>No data</i>`;
+        lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
+        lines.push(B_THIN);
+
+        for (const { sym, e, prob } of items) {
+            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            const probLine = prob.found
+                ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+                : `  ┗  📊 <i>No data</i>`;
+
+            lines.push(``,
+                `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
+                `  ┃  Status: <b>${e.status}</b>`,
+                probLine);
         }
-        lines.push(``,
-            `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
-            `  ┃  Status: <b>${e.status}</b>`,
-            probLine);
+
+        lines.push(``);
     }
 
-    lines.push(``, B_DASH);
+    renderItems('MO  ALIGNED  WEEKLY', '⚡', grouped['MO']);
+    renderItems('NO ALIGNMENT  WEEKLY', '⚪', grouped['NONE']);
+
+    lines.push(B_DASH);
     return lines.join('\n');
 }
 
 // ── 4H CRT: all alignment levels ──
 function buildFourHourCRTMsg() {
     const TF = '4H';
-    const groupOrder = ['D+W+MO', 'D+W', 'D+MO', 'D', 'W+MO', 'W', 'MO'];
+
+    const groupOrder = ['D+W+MO', 'D+W', 'D+MO', 'D', 'W+MO', 'W', 'MO', 'NONE'];
     const grouped = {};
     for (const k of groupOrder) grouped[k] = [];
 
@@ -758,16 +796,17 @@ function buildFourHourCRTMsg() {
         const arr = Array.isArray(crtStateHTF[sym]?.[TF]) ? crtStateHTF[sym][TF] : [];
         for (const e of arr) {
             if (!e?.side) continue;
-            if (grouped[e.align_level]) {
-                const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
-                const probValue = prob.found ? parseFloat(prob.pct) : -1;
-                const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
-                grouped[e.align_level].push({ sym, e, prob, probValue, gradeRank });
-            }
+
+            const alignKey = grouped[e.align_level] !== undefined ? e.align_level : 'NONE';
+
+            const prob = calcHitProbability('HTF', TF, e.align_level || 'NONE', e.grade || '');
+            const probValue = prob.found ? parseFloat(prob.pct) : -1;
+            const gradeRank = e.grade === 'A+' ? 0 : e.grade === 'B+' ? 1 : 2;
+
+            grouped[alignKey].push({ sym, e, prob, probValue, gradeRank });
         }
     }
 
-    // Sort each group: higher prob first, A+ before B+, newer first
     for (const key in grouped) {
         grouped[key].sort((a, b) => {
             if (b.probValue !== a.probValue) return b.probValue - a.probValue;
@@ -777,6 +816,7 @@ function buildFourHourCRTMsg() {
     }
 
     const total = Object.values(grouped).reduce((s, a) => s + a.length, 0);
+
     const activeCount = Object.values(grouped).reduce((s, arr) =>
         s + arr.filter(x => x.e.status === 'ACTIVE').length, 0);
     const tpCount = Object.values(grouped).reduce((s, arr) =>
@@ -787,16 +827,16 @@ function buildFourHourCRTMsg() {
     const lines = [
         B_TOP,
         `║  ⏰ <b>4H CRT  —  HTF</b>`,
-        `║  Aligned Signals Only (1H BO)`,
+        `║  All Signals (Aligned + None)`,
         B_MID,
         `║  🕐 <i>${nowUTC()}</i>`,
-        `║  📊 Aligned: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
+        `║  📊 Total: <b>${total}</b>   🟢 <b>${activeCount}</b>   🎯 <b>${tpCount}</b>   🔴 <b>${invCount}</b>`,
         B_BOT,
         ``,
     ];
 
-    if (total === 0) {
-        lines.push(B_THIN, ``, `   📭 <i>No aligned 4H CRTs</i>`, `   <i>Waiting for D / W / MO alignment...</i>`, ``, B_THIN);
+    if (!total) {
+        lines.push(B_THIN, ``, `   📭 <i>No 4H CRTs yet</i>`, ``, B_THIN);
         return lines.join('\n');
     }
 
@@ -804,30 +844,32 @@ function buildFourHourCRTMsg() {
         'D+W+MO': { label: 'D + W + MO  ALIGNED', emoji: '✅' },
         'D+W':    { label: 'D + W  ALIGNED',       emoji: '⚡' },
         'D+MO':   { label: 'D + MO  ALIGNED',      emoji: '⚡' },
-        'D':      { label: 'D  ALIGNED',            emoji: '⚡' },
-        'W+MO':   { label: 'W + MO  ALIGNED',       emoji: '⚡' },
-        'W':      { label: 'W  ALIGNED',            emoji: '⚡' },
-        'MO':     { label: 'MO  ALIGNED',           emoji: '⚡' },
+        'D':      { label: 'D  ALIGNED',           emoji: '⚡' },
+        'W+MO':   { label: 'W + MO  ALIGNED',      emoji: '⚡' },
+        'W':      { label: 'W  ALIGNED',           emoji: '⚡' },
+        'MO':     { label: 'MO  ALIGNED',          emoji: '⚡' },
+        'NONE':   { label: 'NO ALIGNMENT',         emoji: '⚪' },
     };
 
     function renderGroup(key, items) {
-        if (items.length === 0) return;
+        if (!items.length) return;
+
         const { label, emoji } = groupLabels[key];
         lines.push(`${emoji} <b>${label}</b>  (${items.length})`);
         lines.push(B_THIN);
+
         for (const { sym, e, prob } of items) {
             const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
-            let probLine = '';
-            if (prob.found) {
-                probLine = `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
-            } else {
-                probLine = `  ┗  📊 <i>No data</i>`;
-            }
+            const probLine = prob.found
+                ? `  ┗  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`
+                : `  ┗  📊 <i>No data</i>`;
+
             lines.push(``,
                 `  ${statusIcon(e.status)} <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
                 `  ┃  Status: <b>${e.status}</b>`,
                 probLine);
         }
+
         lines.push(``);
     }
 
@@ -1029,20 +1071,23 @@ function buildStatsMsg() {
 // BOT PUSH NOTIFICATION (with grade + hit prob)
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
-    if (tf === '1D' && !['MO+W','MO','W'].includes(alignLevel)) return;
-    if (tf === '1W' && alignLevel !== 'MO') return;
-    if (tf === '4H' && !['D+W+MO','D+W','D+MO','D','W+MO','W','MO'].includes(alignLevel)) return;
+    // Only filter out truly invalid TFs — allow ALL alignment levels including NONE
+    if (!['1D', '1W', '4H'].includes(tf)) return;
     if (Object.keys(botSessions).length === 0) return;
+
+    // rest of function unchanged...
 
     const tfLabel    = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
     const gradeLabel = grade === 'A+' ? '⭐ A+' : grade === 'B+' ? '🔶 B+' : '';
     const gradeBarStr = grade === 'A+' ? '🌟🌟🌟🌟🌟' : grade === 'B+' ? '🔶🔶🔶🔶🔶' : '';
 
-    const accentBar = kind === 'CRT'
-        ? (grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' : '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶')
-        : kind === 'CRT_TARGET'
-        ? '🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯'
-        : '🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥';
+const accentBar = kind === 'CRT'
+    ? (grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' 
+     : grade === 'B+' ? '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶'
+     : '🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔')
+    : kind === 'CRT_TARGET'
+    ? '🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯'
+    : '🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥';
 
     const header = kind === 'CRT'
         ? `🔔 <b>NEW CRT SIGNAL</b>`
@@ -1182,10 +1227,10 @@ async function handleBotUpdate(update) {
                 `  ⭐ A+ = Sweep + SNR Rejection + BO`,
                 `  🔶 B+ = Sweep + BO (no rejection)`,
                 ``,
-                `  <b>🔔 Auto-Notifications:</b>`,
-                `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡`,
-                `  📆 Weekly →  MO aligned ⚡ only`,
-                `  ⏰ 4H     →  D / D+W / D+MO / W+MO / D+W+MO ✅`,
+               `  <b>🔔 Auto-Notifications:</b>`,
+                `  📅 Daily  →  MO+W ✅  MO ⚡  W ⚡  None ⚪`,
+                `  📆 Weekly →  MO ⚡  None ⚪`,
+                `  ⏰ 4H     →  All alignments + None ⚪`,
                 ``,
                 `  <b>📊 Hit Probability:</b>`,
                 `  New CRT alerts show historical`,
@@ -1484,6 +1529,7 @@ function buildCRTStats(profile) {
         daily_mo:B(), daily_mo_aplus:B(), daily_mo_bplus:B(),
         daily_w:B(), daily_w_aplus:B(), daily_w_bplus:B(),
         daily_none:B(), daily_none_aplus:B(), daily_none_bplus:B(),
+        weekly_none_aplus:B(), weekly_none_bplus:B(),
         weekly:B(), weekly_aplus:B(), weekly_bplus:B(),
         weekly_mo:B(), weekly_mo_aplus:B(), weekly_mo_bplus:B(),
         weekly_none:B(),
@@ -1540,11 +1586,11 @@ function buildCRTStats(profile) {
                 }
 
                 if (tf === '1W') {
-                    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
-                    inc(alignKey, s);
-                    if (isAplus) inc(alignKey + '_aplus', s);
-                    if (isBplus) inc(alignKey + '_bplus', s);
-                }
+    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
+    inc(alignKey, s);
+    if (isAplus) inc(alignKey + '_aplus', s);
+    if (isBplus) inc(alignKey + '_bplus', s);
+}
 
                 if (tf === '4H') {
                     let alignKey;
