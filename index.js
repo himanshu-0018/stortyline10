@@ -2209,3 +2209,65 @@ app.post('/api/user-delete', async (req, res) => {
 });
 
 app.get('/checklist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checklist.html')));
+
+app.post('/api/manual-crt-update', async (req, res) => {
+    const { symbol, tf, entryId, action, profile: rp } = req.body;
+    if (!symbol || !tf || !entryId || !action) return res.status(400).send("Invalid");
+
+    const sym = symbol.toUpperCase().trim();
+    const p = normalizeBoProfile(rp);
+    let cs = getCRTState(p);
+
+    if (!cs[sym]?.[tf]) return res.status(404).send("Not found");
+
+    const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
+    const idx = entries.findIndex(e => e.id === entryId);
+    if (idx === -1) return res.status(404).send("Entry not found");
+
+    const entry = entries[idx];
+
+    if (action === 'TP_HIT') {
+        entry.status = 'TP_HIT';
+        entry.tp_time = Date.now();
+        await pushCRTLog(p, sym, entry.side,
+            `🎯 [MANUAL] ${tf} CRT${entry.grade ? ` [${entry.grade}]` : ''} TARGET HIT: ${entry.side}`,
+            { tf, action: 'CRT_TARGET', grade: entry.grade }
+        );
+    } else if (action === 'INVALID') {
+        entry.status = 'INVALID';
+        entry.inv_time = Date.now();
+        await pushCRTLog(p, sym, entry.side,
+            `❌ [MANUAL] ${tf} CRT${entry.grade ? ` [${entry.grade}]` : ''} INVALIDATED: ${entry.side}`,
+            { tf, action: 'CRT_INVALID', grade: entry.grade }
+        );
+    } else if (action === 'REMOVE') {
+        // Remove from array — does NOT count in stats (splice out completely)
+        entries.splice(idx, 1);
+        if (entries.length === 0) {
+            delete cs[sym][tf];
+        } else {
+            cs[sym][tf] = entries;
+        }
+        // Clean up empty symbol
+        if (Object.keys(cs[sym]).length === 0) delete cs[sym];
+
+        setCRTState(p, cs);
+        await saveCRTState(p);
+
+        let cl = getCRTLog(p);
+        setCRTLog(p, cl);
+        await redisClient.set(getCRTRedisKey(p) + '_log', JSON.stringify(cl));
+
+        broadcastCRT(p);
+        await autoRefreshBotPanels();
+        return res.json({ ok: true, action: 'REMOVE', symbol: sym, tf, entryId });
+    }
+
+    cs[sym][tf] = entries;
+    setCRTState(p, cs);
+    await saveCRTState(p);
+    broadcastCRT(p);
+    await autoRefreshBotPanels();
+
+    res.json({ ok: true, action, symbol: sym, tf, entryId });
+});
