@@ -450,6 +450,12 @@ function render() {
         if (filterTF!=='ALL' && item.tf!==filterTF) return false;
         if (filterGrade!=='ALL' && item.grade!==filterGrade) return false;
         if (filterSide!=='ALL' && item.side!==filterSide) return false;
+
+        // ── NEW: Skip if probability < 65% ──
+        const prob = calcProb(item);
+        if (prob >= 0 && prob < 65) return false;
+        // prob === -1 means "no data" — keep those (not enough stats yet)
+
         if (filterProgress!=='ALL') {
             const st = getStatus(item.checks);
             if (filterProgress==='READY' && st.label!=='READY') return false;
@@ -459,28 +465,19 @@ function render() {
         return true;
     });
 
-    // PRIMARY SORT: TF rank (Weekly → Daily → 4H)
-    // SECONDARY SORT: Probability (highest first within each TF)
-    // TERTIARY SORT: Status (Ready → Watching → Waiting → Unclear)
+    // rest of render unchanged...
     filtered.forEach(item => { item._prob = calcProb(item); });
 
     const statusOrder = { 'READY':0, 'WATCHING':1, 'WAITING':2, 'UNCLEAR':3 };
 
     filtered.sort((a, b) => {
-        // 1. TF rank
         const tfA = TF_RANK[a.tf] ?? 99;
         const tfB = TF_RANK[b.tf] ?? 99;
         if (tfA !== tfB) return tfA - tfB;
-
-        // 2. Probability (higher first)
         if (b._prob !== a._prob) return b._prob - a._prob;
-
-        // 3. Status
         const sa = statusOrder[getStatus(a.checks).label] ?? 9;
         const sb = statusOrder[getStatus(b.checks).label] ?? 9;
         if (sa !== sb) return sa - sb;
-
-        // 4. Timestamp (newest first)
         return (b.timestamp || 0) - (a.timestamp || 0);
     });
 
@@ -488,9 +485,11 @@ function render() {
     const tbody = document.getElementById('checklistBody');
 
     if (!filtered.length) {
-        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No active CRTs match filters.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No active CRTs with ≥65% probability.</td></tr>';
         return;
     }
+
+    // ... rest of render stays the same
 
     // Group by TF with section headers
     let html = '';
