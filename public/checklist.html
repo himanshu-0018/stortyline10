@@ -365,40 +365,64 @@ function calcProb(item) {
     if (!window._crtStats) return -1;
     const s = window._crtStats, tf = item.tf, al = item.align_level || 'NONE', g = item.grade || '';
     const buckets = [];
+    const isAplus = g === 'A+';
+    const isBplus = g === 'B+';
+    const hasGrade = isAplus || isBplus;
+    const gradeSuffix = isAplus ? '_aplus' : isBplus ? '_bplus' : '';
 
     if (tf === '1D') {
-        if (g === 'A+') {
-            if (al === 'MO+W') buckets.push('daily_mo_w_aplus');
-            if (al === 'MO') buckets.push('daily_mo_aplus');
-            if (al === 'W') buckets.push('daily_w_aplus');
-            buckets.push('daily_aplus');
-        } else if (g === 'B+') {
-            if (al === 'MO+W') buckets.push('daily_mo_w_bplus');
-            if (al === 'MO') buckets.push('daily_mo_bplus');
-            if (al === 'W') buckets.push('daily_w_bplus');
-            buckets.push('daily_bplus');
+        // Most specific: grade + alignment
+        if (hasGrade) {
+            if (al === 'MO+W')    buckets.push('daily_mo_w' + gradeSuffix);
+            else if (al === 'MO') buckets.push('daily_mo' + gradeSuffix);
+            else if (al === 'W')  buckets.push('daily_w' + gradeSuffix);
+            else                  buckets.push('daily_none' + gradeSuffix);
         }
+        // Alignment only (no grade filter)
+        if (al === 'MO+W')    buckets.push('daily_mo_w');
+        else if (al === 'MO') buckets.push('daily_mo');
+        else if (al === 'W')  buckets.push('daily_w');
+        else                  buckets.push('daily_none');
+        // Grade only fallback
+        if (hasGrade) buckets.push('daily' + gradeSuffix);
+        // TF fallback
         buckets.push('daily');
-    } else if (tf === '1W') {
-        if (g === 'A+') buckets.push('weekly_mo_aplus');
-        if (g === 'B+') buckets.push('weekly_mo_bplus');
+    }
+
+    else if (tf === '1W') {
+        if (hasGrade) {
+            if (al === 'MO') buckets.push('weekly_mo' + gradeSuffix);
+            else             buckets.push('weekly_none' + gradeSuffix);
+        }
+        if (al === 'MO') buckets.push('weekly_mo');
+        else             buckets.push('weekly_none');
+        if (hasGrade) buckets.push('weekly' + gradeSuffix);
         buckets.push('weekly');
-    } else if (tf === '4H') {
-        const km = { 'D+W+MO':'fourh_dwm','D+W':'fourh_dw','D+MO':'fourh_dmo','D':'fourh_d','W+MO':'fourh_wmo','W':'fourh_w','MO':'fourh_mo' };
-        if (g === 'A+' && km[al]) buckets.push(km[al] + '_aplus');
-        if (g === 'B+' && km[al]) buckets.push(km[al] + '_bplus');
-        if (km[al]) buckets.push(km[al]);
-        if (g === 'A+') buckets.push('fourh_aplus');
-        if (g === 'B+') buckets.push('fourh_bplus');
+    }
+
+    else if (tf === '4H') {
+        const km = {
+            'D+W+MO':'fourh_dwm', 'D+W':'fourh_dw', 'D+MO':'fourh_dmo',
+            'D':'fourh_d', 'W+MO':'fourh_wmo', 'W':'fourh_w', 'MO':'fourh_mo'
+        };
+        const alignBase = km[al] || 'fourh_none';
+
+        if (hasGrade) buckets.push(alignBase + gradeSuffix);
+        buckets.push(alignBase);
+        if (hasGrade) buckets.push('fourh' + gradeSuffix);
         buckets.push('fourh');
     }
+
+    // Final fallbacks
+    if (hasGrade) buckets.push('overall' + gradeSuffix);
     buckets.push('overall');
 
+    const MIN_SAMPLE = 5;
     for (const key of buckets) {
         const b = s[key];
         if (!b) continue;
         const res = b.tp + b.inv;
-        if (res >= 5) return (b.tp / res) * 100;
+        if (res >= MIN_SAMPLE) return (b.tp / res) * 100;
     }
     return -1;
 }
