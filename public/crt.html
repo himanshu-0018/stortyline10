@@ -992,17 +992,22 @@ function render() {
     document.getElementById('invPill').textContent    = `❌ ${totalInv}`;
     document.getElementById('totalPill').textContent  = `🔄 ${totalEntries}`;
 
-    const categorized = { active: [], tp: [], inv: [], idle: [] };
-    syms.forEach(sym => {
-        const fe = getFilteredEntries(sym);
-        if (fe.some(e => e.status === 'ACTIVE'))  { categorized.active.push(sym); return; }
-        if (fe.some(e => e.status === 'TP_HIT'))  { categorized.tp.push(sym); return; }
-        if (fe.some(e => e.status === 'INVALID')) { categorized.inv.push(sym); return; }
-        categorized.idle.push(sym);
-    });
+  const categorized = { active: [], tp: [], inv: [], idle: [] };
+syms.forEach(sym => {
+    const fe = getFilteredEntries(sym);
+    if (fe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
+    if (fe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
+    if (fe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
+    if (!fe.some(e => e.status === 'ACTIVE' || e.status === 'TP_HIT' || e.status === 'INVALID')) categorized.idle.push(sym);
+});
+
+       // Count actual entries
+    const activeEntryCount = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'ACTIVE').length, 0);
+    const tpEntryCount     = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'TP_HIT').length, 0);
+    const invEntryCount    = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'INVALID').length, 0);
 
     const ag = document.getElementById('activeGrid');
-    document.getElementById('activeSectionCount').textContent = categorized.active.length;
+    document.getElementById('activeSectionCount').textContent = activeEntryCount;
     if (!categorized.active.length) {
         ag.innerHTML = '<p class="empty-state">No active CRTs right now.</p>';
     } else {
@@ -1010,12 +1015,12 @@ function render() {
     }
 
     const tg = document.getElementById('tpGrid');
-    document.getElementById('tpSectionCount').textContent = categorized.tp.length;
+    document.getElementById('tpSectionCount').textContent = tpEntryCount;
     if (!categorized.tp.length) { tg.innerHTML = '<p class="empty-state">No target hits yet.</p>'; }
     else { tg.innerHTML = categorized.tp.map(s => buildCard(s)).join(''); }
 
     const ig = document.getElementById('invGrid');
-    document.getElementById('invSectionCount').textContent = categorized.inv.length;
+    document.getElementById('invSectionCount').textContent = invEntryCount;
     if (!categorized.inv.length) { ig.innerHTML = '<p class="empty-state">No invalidated CRTs.</p>'; }
     else { ig.innerHTML = categorized.inv.map(s => buildCard(s)).join(''); }
 
