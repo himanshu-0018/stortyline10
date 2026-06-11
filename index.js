@@ -1052,53 +1052,44 @@ function buildStatsMsg() {
 // BOT PUSH NOTIFICATION
 // ══════════════════════════════════════════════
 async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { rej, bo, ext, tgt }) {
+    // 1. Only process the 'CRT' (formed) kind. 
+    // This effectively mutes CRT_TARGET and CRT_INVALID notifications.
+    if (kind !== 'CRT') return;
+
     if (!['1D', '1W', '4H'].includes(tf)) return;
     if (Object.keys(botSessions).length === 0) return;
 
     const probCheck = calcHitProbability('HTF', tf, alignLevel, grade);
-    if (kind === 'CRT') {
-        if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) {
-            console.log(`[BOT SKIP] ${sym} ${tf} ${side} — prob ${probCheck.found ? probCheck.pct + '%' : 'N/A'} < ${MIN_PROB_THRESHOLD}%`);
-            return;
-        }
-    }
-    if (kind === 'CRT_TARGET' || kind === 'CRT_INVALID') {
-        if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) return;
+    
+    // 2. Probability check for new signals
+    if (!probCheck.found || parseFloat(probCheck.pct) < MIN_PROB_THRESHOLD) {
+        console.log(`[BOT SKIP] ${sym} ${tf} ${side} — prob ${probCheck.found ? probCheck.pct + '%' : 'N/A'} < ${MIN_PROB_THRESHOLD}%`);
+        return;
     }
 
     const tfLabel    = tf === '1D' ? '📅 DAILY' : tf === '1W' ? '📆 WEEKLY' : '⏰ 4H';
     const gradeLabel = grade === 'A+' ? '⭐ A+' : grade === 'B+' ? '🔶 B+' : '';
     const gradeBarStr = grade === 'A+' ? '🌟🌟🌟🌟🌟' : grade === 'B+' ? '🔶🔶🔶🔶🔶' : '';
 
-    const accentBar = kind === 'CRT'
-        ? (grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' 
-         : grade === 'B+' ? '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶'
-         : '🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔')
-        : kind === 'CRT_TARGET'
-        ? '🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯'
-        : '🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥';
+    const accentBar = grade === 'A+' ? '🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟' 
+                    : grade === 'B+' ? '🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶🔶'
+                    : '🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔';
 
-    const header = kind === 'CRT'
-        ? `🔔 <b>NEW CRT SIGNAL</b>`
-        : kind === 'CRT_TARGET'
-        ? `🎯 <b>TARGET HIT</b>`
-        : `🔴 <b>INVALIDATED</b>`;
+    const header = `🔔 <b>NEW CRT SIGNAL</b>`;
 
     let probLine = '';
-    if (kind === 'CRT') {
-        const prob = calcHitProbability('HTF', tf, alignLevel, grade);
-        if (prob.found) {
-            const probBar = progressBar(prob.tp, prob.inv);
-            probLine = [
-                ``,
-                `  📊 <b>HIT PROBABILITY</b>`,
-                `  Based on: <i>${prob.label}</i>`,
-                `  ${probBar}`,
-                `  🎯 ${prob.tp} TP · ❌ ${prob.inv} INV · ${prob.resolved} resolved`,
-            ].join('\n');
-        } else {
-            probLine = `\n  📊 <b>Hit Prob:</b> <i>Not enough data yet</i>`;
-        }
+    const prob = calcHitProbability('HTF', tf, alignLevel, grade);
+    if (prob.found) {
+        const probBar = progressBar(prob.tp, prob.inv);
+        probLine = [
+            ``,
+            `  📊 <b>HIT PROBABILITY</b>`,
+            `  Based on: <i>${prob.label}</i>`,
+            `  ${probBar}`,
+            `  🎯 ${prob.tp} TP · ❌ ${prob.inv} INV · ${prob.resolved} resolved`,
+        ].join('\n');
+    } else {
+        probLine = `\n  📊 <b>Hit Prob:</b> <i>Not enough data yet</i>`;
     }
 
     const text = [
@@ -1112,7 +1103,7 @@ async function sendBotCRTNotification(kind, sym, tf, side, alignLevel, grade, { 
         `  ${alignBadge(alignLevel)}`,
         ``,
         `  ┃  Rej <code>${rej}</code>   BO <code>${bo}</code>`,
-        `  ┃  Ext <code>${ext}</code>   Tgt <code>${tgt}</code>${kind === 'CRT_TARGET' ? '  ✅' : ''}`,
+        `  ┃  Ext <code>${ext}</code>   Tgt <code>${tgt}</code>`,
         `  ┗  🕐 ${nowUTC()}`,
         probLine,
         ``,
