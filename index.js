@@ -454,9 +454,196 @@ function mainMenuKeyboard() {
         [{ text: '⏰ 4H CRT',        callback_data: 'FOURHOUR_CRT' },
          { text: '🟢 Active CRTs',   callback_data: 'ACTIVE_CRT'   }],
         [{ text: '📊 CRT Stats',     callback_data: 'CRT_STATS'    },
-         { text: '🔄 Refresh',       callback_data: 'MAIN_REFRESH' }],
+         { text: '🏆 Weekly TP',     callback_data: 'WEEKLY_TP'    }],
+        [{ text: '🔄 Refresh',       callback_data: 'MAIN_REFRESH' }],
     ]};
 }
+
+
+function getWeekMonday(date) {
+    const d = new Date(date);
+    d.setUTCHours(0, 0, 0, 0);
+    const day = d.getUTCDay();
+    const diff = day === 0 ? 6 : day - 1; // Monday = 0 offset
+    d.setUTCDate(d.getUTCDate() - diff);
+    return d;
+}
+
+function getWeekSunday(monday) {
+    const d = new Date(monday);
+    d.setUTCDate(d.getUTCDate() + 6);
+    d.setUTCHours(23, 59, 59, 999);
+    return d;
+}
+
+function formatWeekLabel(monday) {
+    const sun = getWeekSunday(monday);
+    const mStr = monday.toISOString().slice(5, 10); // MM-DD
+    const sStr = sun.toISOString().slice(5, 10);
+    return `${mStr} → ${sStr}`;
+}
+
+function getWeekOptions(count = 5) {
+    const now = new Date();
+    const currentMonday = getWeekMonday(now);
+    const weeks = [];
+    for (let i = 0; i < count; i++) {
+        const mon = new Date(currentMonday);
+        mon.setUTCDate(mon.getUTCDate() - (i * 7));
+        const sun = getWeekSunday(mon);
+        const label = i === 0 ? `🔵 This Week` : i === 1 ? `Last Week` : formatWeekLabel(mon);
+        weeks.push({
+            label,
+            monday: mon.getTime(),
+            sunday: sun.getTime(),
+            index: i
+        });
+    }
+    return weeks;
+}
+
+function weekSelectorKeyboard() {
+    const weeks = getWeekOptions(5);
+    const rows = weeks.map(w => ([{
+        text: `${w.label}  (${formatWeekLabel(new Date(w.monday))})`,
+        callback_data: `WEEK_TP_${w.monday}`
+    }]));
+    rows.push([
+        { text: '🏠 Main Menu', callback_data: 'MAIN' }
+    ]);
+    return { inline_keyboard: rows };
+}
+
+function buildWeeklyTPReport(mondayTs) {
+    const monday = new Date(parseInt(mondayTs));
+    const sunday = getWeekSunday(monday);
+    const mondayTime = monday.getTime();
+    const sundayTime = sunday.getTime();
+
+    const TF_ORDER = ['1W', '1D', '4H'];
+    const TF_LABELS = { '1W': '📆 WEEKLY', '1D': '📅 DAILY', '4H': '⏰ 4-HOUR' };
+
+    // Collect all TP_HIT entries within the week range
+    const grouped = { '1W': [], '1D': [], '4H': [] };
+    let totalTP = 0;
+
+    for (const sym in crtStateHTF) {
+        for (const tf of TF_ORDER) {
+            if (!crtStateHTF[sym]?.[tf]) continue;
+            const arr = Array.isArray(crtStateHTF[sym][tf]) ? crtStateHTF[sym][tf] : [];
+            for (const e of arr) {
+                if (!e || e.status !== 'TP_HIT') continue;
+                const tpTime = e.tp_time || 0;
+                if (tpTime >= mondayTime && tpTime <= sundayTime) {
+                    const prob = calcHitProbability('HTF', tf, e.align_level || 'NONE', e.grade || '');
+                    grouped[tf].push({ sym, e, prob });
+                    totalTP++;
+                }
+            }
+        }
+    }
+
+    // Sort each group: by tp_time descending
+    for (const tf of TF_ORDER) {
+        grouped[tf].sort((a, b) => (b.e.tp_time || 0) - (a.e.tp_time || 0));
+    }
+
+    const weekLabel = formatWeekLabel(monday);
+    const monStr = monday.toISOString().slice(0, 10);
+    const sunStr = sunday.toISOString().slice(0, 10);
+
+    const lines = [
+        B_TOP,
+        `║  🏆 <b>WEEKLY TP REPORT</b>`,
+        `║  ${monStr}  →  ${sunStr}`,
+        B_MID,
+        `║  🕐 <i>${nowUTC()}</i>`,
+        `║`,
+        `║  🎯 Total TPs This Week: <b>${totalTP}</b>`,
+        `║  📆 Weekly: <b>${grouped['1W'].length}</b>   📅 Daily: <b>${grouped['1D'].length}</b>   ⏰ 4H: <b>${grouped['4H'].length}</b>`,
+        B_BOT,
+        ``,
+    ];
+
+    if (totalTP === 0) {
+        lines.push(
+            B_THIN,
+            ``,
+            `   📭 <i>No CRT targets hit this week</i>`,
+            ``,
+            B_THIN
+        );
+        return lines.join('\n');
+    }
+
+    for (const tf of TF_ORDER) {
+        const items = grouped[tf];
+        if (items.length === 0) continue;
+
+        const tfLabel = TF_LABELS[tf];
+
+        lines.push(
+            `${tfLabel}  —  <b>${items.length} TP${items.length > 1 ? 's' : ''}</b>`,
+            B_THIN
+        );
+
+        for (const { sym, e, prob } of items) {
+            const g = e.grade ? ` ${gradeIcon(e.grade)}` : '';
+            const tpTimeStr = e.tp_time ? timeStr(e.tp_time) : '—';
+            const alignLabel = alignBadge(e.align_level);
+
+            let probLine = '';
+            if (prob.found) {
+                probLine = `  ┃  📊 <b>${prob.pct}%</b> (${prob.tp}🎯${prob.inv}❌ · <i>${prob.label}</i>)`;
+            }
+
+            lines.push(
+                ``,
+                `  🎯 <b>${sym}</b>   ${dirIcon(e.side)} ${dirBar(e.side)}${g}`,
+                `  ┃  ${alignLabel}`,
+                `  ┃  Rej <code>${e.rej || '—'}</code>  BO <code>${e.bo || '—'}</code>  Tgt <code>${e.tgt || '—'}</code>`,
+            );
+
+            if (probLine) lines.push(probLine);
+
+            lines.push(
+                `  ┗  🕐 TP Hit: ${tpTimeStr}`
+            );
+        }
+
+        lines.push(``);
+    }
+
+    // Summary footer
+    const aplusCount = Object.values(grouped).flat().filter(x => x.e.grade === 'A+').length;
+    const bplusCount = Object.values(grouped).flat().filter(x => x.e.grade === 'B+').length;
+    const alignedCount = Object.values(grouped).flat().filter(x => x.e.align_level && x.e.align_level !== 'NONE').length;
+
+    lines.push(
+        B_MID,
+        `║`,
+        `║  📊 <b>WEEK SUMMARY</b>`,
+        `║`,
+        `║  🎯 Total TPs:    <b>${totalTP}</b>`,
+        `║  ⭐ A+ Grade:     <b>${aplusCount}</b>`,
+        `║  🔶 B+ Grade:     <b>${bplusCount}</b>`,
+        `║  ✅ Aligned:      <b>${alignedCount}</b>`,
+        `║  ⚪ No Alignment: <b>${totalTP - alignedCount}</b>`,
+        `║`,
+        B_BOT,
+    );
+
+    return lines.join('\n');
+}
+
+function weekTPSubKeyboard(mondayTs) {
+    return { inline_keyboard: [
+        [{ text: '🔄 Refresh',      callback_data: `WEEK_TP_${mondayTs}` },
+         { text: '📅 Pick Week',    callback_data: 'WEEKLY_TP' }],
+        [{ text: '🏠 Main Menu',    callback_data: 'MAIN' }],
+    ]};
+}
+
 function subKeyboard(refreshCb) {
     return { inline_keyboard: [
         [{ text: '🔄 Refresh',   callback_data: refreshCb },
@@ -1134,6 +1321,10 @@ async function autoRefreshBotPanels() {
             else if (sess.view === 'FOURHOUR') { text = buildFourHourCRTMsg(); kb = subKeyboard('FOURHOUR_CRT'); }
             else if (sess.view === 'ACTIVE')   { text = buildActiveCRTMsg();   kb = subKeyboard('ACTIVE_CRT');   }
             else if (sess.view === 'STATS')    { text = buildStatsMsg();       kb = subKeyboard('CRT_STATS');    }
+            else if (sess.view === 'WEEKLY_TP_VIEW' && sess._weekMondayTs) {
+                text = buildWeeklyTPReport(sess._weekMondayTs);
+                kb = weekTPSubKeyboard(sess._weekMondayTs);
+            }
             if (text) {
                 sess.lastMsgId = await botEditMessageChunked(chatId, sess.lastMsgId, text, kb, sess.threadId);
             }
@@ -1198,6 +1389,7 @@ async function handleBotUpdate(update) {
                 `  /4h         ⏰ 4H CRTs (aligned)`,
                 `  /active     🟢 Active positions`,
                 `  /stats      📊 Performance stats`,
+                `  /weeklytp   🏆 Weekly TP report`,
                 `  /help       ❓ This help`,
                 ``,
                 B_THIN,
@@ -1221,7 +1413,17 @@ async function handleBotUpdate(update) {
                 B_DASH,
             ].join('\n'), subKeyboard('MAIN_REFRESH'), sess.threadId);
             sess.view = 'HELP';
-        } else {
+        } else if (cmd === '/weeklytp' || cmd === '/weeklytps' || cmd === '/tp') {
+            sess.lastMsgId = await botSendMessageChunked(
+                chatId,
+                `🏆 <b>WEEKLY TP REPORT</b>\n\nSelect which week to view:`,
+                weekSelectorKeyboard(),
+                sess.threadId
+            );
+            sess.view = 'WEEKLY_TP_SELECT';
+        }
+        
+        else {
             sess.lastMsgId = await botSendMessageChunked(chatId, `❓ Unknown command.\n\nType /help or /start`, null, sess.threadId);
         }
 
@@ -1261,7 +1463,27 @@ async function handleBotUpdate(update) {
             sess.lastMsgId = await botEditMessageChunked(chatId, msgId, buildStatsMsg(), subKeyboard('CRT_STATS'), sess.threadId);
             sess.view = 'STATS';
         }
-
+else if (data === 'WEEKLY_TP') {
+            sess.lastMsgId = await botEditMessageChunked(
+                chatId, msgId,
+                `🏆 <b>WEEKLY TP REPORT</b>\n\nSelect which week to view:`,
+                weekSelectorKeyboard(),
+                sess.threadId
+            );
+            sess.view = 'WEEKLY_TP_SELECT';
+        }
+        else if (data.startsWith('WEEK_TP_')) {
+            const mondayTs = data.replace('WEEK_TP_', '');
+            const report = buildWeeklyTPReport(mondayTs);
+            sess.lastMsgId = await botEditMessageChunked(
+                chatId, msgId,
+                report,
+                weekTPSubKeyboard(mondayTs),
+                sess.threadId
+            );
+            sess.view = 'WEEKLY_TP_VIEW';
+            sess._weekMondayTs = mondayTs;
+        }
         await saveBotSessions();
     }
 }
