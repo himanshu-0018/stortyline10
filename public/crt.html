@@ -77,9 +77,10 @@
 
         /* ── COIN CARD GRID ── */
         .coin-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:8px; }
-        .coin-card { border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:default; }
+        .coin-card { border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:pointer; }
         .coin-card::before { content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none; }
         .coin-card:hover { transform:translateY(-3px) scale(1.008); }
+        .coin-card:active { transform:scale(0.98); }
         .card-idle { background:linear-gradient(135deg,rgba(15,23,42,0.85),rgba(20,30,55,0.80));border:1px solid rgba(255,255,255,0.07);box-shadow:0 4px 20px rgba(0,0,0,0.3);opacity:0.6;filter:saturate(0.7); }
         .card-idle:hover { opacity:0.85;filter:saturate(1); }
         .card-bull { background:linear-gradient(135deg,rgba(5,46,22,0.9),rgba(6,78,59,0.75),rgba(15,30,50,0.85));border:1px solid rgba(16,185,129,0.4);box-shadow:0 0 30px rgba(16,185,129,0.12),0 8px 32px rgba(0,0,0,0.4); }
@@ -193,241 +194,257 @@
         ::-webkit-scrollbar { width:6px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.3);border-radius:4px; }
-        /* ── HOVER POPUP PANEL ── */
-.crt-popup-anchor { position: relative; }
 
-.crt-popup {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 200;
-    min-width: 340px;
-    max-width: 420px;
-    max-height: 70vh;
-    overflow-y: auto;
-    padding: 14px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(10,14,26,0.98), rgba(20,25,50,0.96));
-    border: 1px solid rgba(245,158,11,0.3);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(245,158,11,0.08);
-    backdrop-filter: blur(20px);
-    animation: popupSlide 0.2s ease-out;
-    margin-top: 6px;
-}
-.crt-popup::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 12px;
-    height: 12px;
-    background: rgba(10,14,26,0.98);
-    border-left: 1px solid rgba(245,158,11,0.3);
-    border-top: 1px solid rgba(245,158,11,0.3);
-    transform: translateX(-50%) rotate(45deg);
-}
-@keyframes popupSlide { from { opacity:0; transform:translateX(-50%) translateY(6px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
-
-.coin-card:hover .crt-popup { display: block; }
-.crt-popup:hover { display: block; }
-
-/* Keep popup visible when it overflows card */
-.coin-card { overflow: visible !important; }
-
-.popup-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: #fbbf24;
-    letter-spacing: 0.08em;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.popup-title-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.5rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(14,165,233,0.15);
-    border: 1px solid rgba(14,165,233,0.3);
-    color: #38bdf8;
-}
-
-.popup-entry {
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    position: relative;
-    transition: all 0.2s;
-}
-.popup-entry:last-child { margin-bottom: 0; }
-
-.popup-entry-active {
-    background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(14,165,233,0.03));
-    border: 1px solid rgba(14,165,233,0.2);
-}
-.popup-entry-tp {
-    background: rgba(16,185,129,0.06);
-    border: 1px solid rgba(16,185,129,0.15);
-    opacity: 0.55;
-}
-.popup-entry-inv {
-    background: rgba(239,68,68,0.06);
-    border: 1px solid rgba(239,68,68,0.15);
-    opacity: 0.55;
-}
-
-.popup-entry-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-.popup-entry-side {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    font-weight: 800;
-}
-.popup-entry-side-bull { color: #34d399; }
-.popup-entry-side-bear { color: #f87171; }
-
-.popup-entry-meta {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.popup-prices {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    margin-top: 6px;
-}
-.popup-price-cell {
-    padding: 4px 5px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.04);
-    text-align: center;
-    border: 1px solid rgba(255,255,255,0.04);
-}
-.popup-price-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.36rem;
-    color: rgba(148,163,184,0.4);
-    letter-spacing: 0.06em;
-    display: block;
-}
-.popup-price-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.50rem;
-    font-weight: 700;
-    color: #e2e8f0;
-    display: block;
-    margin-top: 1px;
-}
-
-.popup-tf-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.42rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 5px;
-    background: rgba(245,158,11,0.15);
-    color: #fbbf24;
-    border: 1px solid rgba(245,158,11,0.3);
-}
-.popup-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.40rem;
-    color: rgba(148,163,184,0.45);
-}
-
-.popup-actions {
-    display: flex;
-    gap: 5px;
-    margin-top: 8px;
-}
-.popup-act-btn {
-    flex: 1;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.50rem;
-    font-weight: 700;
-    padding: 6px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid;
-    text-align: center;
-}
-.popup-act-btn:hover { transform: translateY(-1px); }
-
-.popup-act-tp {
-    background: rgba(16,185,129,0.12);
-    border-color: rgba(16,185,129,0.35);
-    color: #34d399;
-}
-.popup-act-tp:hover {
-    background: rgba(16,185,129,0.3);
-    border-color: rgba(16,185,129,0.6);
-    box-shadow: 0 0 12px rgba(16,185,129,0.2);
-}
-
-.popup-act-inv {
-    background: rgba(239,68,68,0.12);
-    border-color: rgba(239,68,68,0.35);
-    color: #f87171;
-}
-.popup-act-inv:hover {
-    background: rgba(239,68,68,0.3);
-    border-color: rgba(239,68,68,0.6);
-    box-shadow: 0 0 12px rgba(239,68,68,0.2);
-}
-
-.popup-act-remove {
-    background: rgba(71,85,105,0.15);
-    border-color: rgba(71,85,105,0.35);
-    color: #94a3b8;
-}
-.popup-act-remove:hover {
-    background: rgba(239,68,68,0.15);
-    border-color: rgba(239,68,68,0.4);
-    color: #f87171;
-}
-
-.popup-resolved-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.42rem;
-    color: rgba(148,163,184,0.3);
-    text-align: center;
-    margin-top: 4px;
-    font-style: italic;
-}
-
-.popup-empty {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.52rem;
-    color: rgba(148,163,184,0.3);
-    text-align: center;
-    padding: 16px 0;
-}
-
-/* Responsive: keep popup in viewport */
-@media (max-width: 768px) {
-    .crt-popup {
-        min-width: 280px;
-        left: 0;
-        transform: none;
-    }
-    .crt-popup::before { left: 30px; transform: rotate(45deg); }
-}
+        /* ── MANAGE CRT MODAL OVERLAY ── */
+        .manage-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: rgba(0, 0, 0, 0.80);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 8vh;
+            overflow-y: auto;
+        }
+        .manage-overlay.show {
+            display: flex;
+        }
+        .manage-panel {
+            width: 95%;
+            max-width: 480px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(10, 14, 26, 0.99), rgba(20, 25, 50, 0.97));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            box-shadow: 0 12px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(245, 158, 11, 0.12);
+            animation: managePanelPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-bottom: 40px;
+        }
+        @keyframes managePanelPop {
+            from { transform: scale(0.88) translateY(20px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .manage-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: rgba(239, 68, 68, 0.6);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 5;
+        }
+        .manage-close-btn:hover {
+            background: rgba(239, 68, 68, 0.35);
+            border-color: rgba(239, 68, 68, 0.7);
+            color: #f87171;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+        .manage-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .manage-header-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fbbf24;
+            letter-spacing: 0.08em;
+        }
+        .manage-header-sym {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-top: 4px;
+        }
+        .manage-header-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: rgba(14, 165, 233, 0.15);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: #38bdf8;
+        }
+        .manage-section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.48rem;
+            font-weight: 700;
+            color: rgba(148, 163, 184, 0.4);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 14px;
+            margin-bottom: 8px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .manage-entry {
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .manage-entry:last-child { margin-bottom: 0; }
+        .manage-entry-active {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(14, 165, 233, 0.04));
+            border: 1px solid rgba(14, 165, 233, 0.25);
+        }
+        .manage-entry-active:hover {
+            border-color: rgba(14, 165, 233, 0.45);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.08);
+        }
+        .manage-entry-tp {
+            background: rgba(16, 185, 129, 0.07);
+            border: 1px solid rgba(16, 185, 129, 0.18);
+            opacity: 0.55;
+        }
+        .manage-entry-inv {
+            background: rgba(239, 68, 68, 0.07);
+            border: 1px solid rgba(239, 68, 68, 0.18);
+            opacity: 0.55;
+        }
+        .manage-entry-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .manage-entry-side {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+        .manage-entry-side-bull { color: #34d399; }
+        .manage-entry-side-bear { color: #f87171; }
+        .manage-prices {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .manage-price-cell {
+            padding: 6px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .manage-price-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.40rem;
+            color: rgba(148, 163, 184, 0.45);
+            letter-spacing: 0.06em;
+            display: block;
+        }
+        .manage-price-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            display: block;
+            margin-top: 2px;
+        }
+        .manage-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.44rem;
+            color: rgba(148, 163, 184, 0.45);
+            margin-top: 6px;
+        }
+        .manage-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .manage-act-btn {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid;
+            text-align: center;
+        }
+        .manage-act-btn:hover { transform: translateY(-1px); }
+        .manage-act-tp {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #34d399;
+        }
+        .manage-act-tp:hover {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        .manage-act-inv {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #f87171;
+        }
+        .manage-act-inv:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.6);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+        .manage-act-remove {
+            background: rgba(71, 85, 105, 0.15);
+            border-color: rgba(71, 85, 105, 0.35);
+            color: #94a3b8;
+        }
+        .manage-act-remove:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+        .manage-resolved-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.46rem;
+            color: rgba(148, 163, 184, 0.3);
+            text-align: center;
+            font-style: italic;
+        }
+        .manage-empty {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(148, 163, 184, 0.3);
+            text-align: center;
+            padding: 24px 0;
+        }
+        .manage-tf-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.42rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
     </style>
 </head>
+
 <body>
 
 <div class="bg-container">
@@ -446,6 +463,14 @@
             <button class="purge-btn-cancel" onclick="closePurgeModal()">CANCEL</button>
             <button class="purge-btn-confirm" id="purgeConfirmBtn" onclick="confirmPurge()">🗑️ PURGE</button>
         </div>
+    </div>
+</div>
+
+<!-- MANAGE CRT MODAL -->
+<div class="manage-overlay" id="manageOverlay" onclick="closeManageModal(event)">
+    <div class="manage-panel" onclick="event.stopPropagation()" style="position:relative;">
+        <button class="manage-close-btn" onclick="closeManageModal()">✕</button>
+        <div id="manageContent"></div>
     </div>
 </div>
 
@@ -618,9 +643,48 @@ async function confirmPurge() {
     } catch(e) {}
     closePurgeModal(); btn.textContent = '🗑️ PURGE'; btn.style.pointerEvents = 'auto';
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePurgeModal(); });
 
-    // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// MANAGE CRT MODAL
+// ══════════════════════════════════════════════
+let manageModalOpen = false;
+let manageModalSymbol = null;
+
+function openManageModal(sym, evt) {
+    if (evt) evt.stopPropagation();
+    manageModalSymbol = sym;
+    manageModalOpen = true;
+    document.getElementById('manageContent').innerHTML = buildManageContent(sym);
+    document.getElementById('manageOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeManageModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    manageModalOpen = false;
+    manageModalSymbol = null;
+    document.getElementById('manageOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function refreshManageModal() {
+    if (!manageModalOpen || !manageModalSymbol) return;
+    if (!crtState[manageModalSymbol]) {
+        closeManageModal();
+        return;
+    }
+    document.getElementById('manageContent').innerHTML = buildManageContent(manageModalSymbol);
+}
+
+// Escape key handler for both modals
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (manageModalOpen) { closeManageModal(); return; }
+        closePurgeModal();
+    }
+});
+
+// ══════════════════════════════════════════════
 // MANUAL CRT CONTROLS
 // ══════════════════════════════════════════════
 async function manualUpdate(sym, tf, entryId, action) {
@@ -645,7 +709,6 @@ async function manualUpdate(sym, tf, entryId, action) {
             return;
         }
 
-        // Update local state for instant feedback
         if (action === 'REMOVE') {
             if (crtState[sym]?.[tf]) {
                 const arr = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
@@ -668,6 +731,7 @@ async function manualUpdate(sym, tf, entryId, action) {
         render();
         rebuildFeed();
         refreshStats();
+        refreshManageModal();
     } catch(err) {
         console.error('Manual update error:', err);
         alert('Network error. Please try again.');
@@ -781,91 +845,135 @@ function alignTag(e) {
     return `<span class="align-tag ${c}">${t}</span>`;
 }
 
-
-    // ══════════════════════════════════════════════
-// BUILD HOVER POPUP (ACTIVE CRT ENTRIES)
 // ══════════════════════════════════════════════
-function buildPopup(sym) {
+// BUILD MANAGE CONTENT (FOR MODAL)
+// ══════════════════════════════════════════════
+function buildManageContent(sym) {
     const allEntries = [];
     CRT_TFS.forEach(tf => {
-        const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
+        const entries = activeGrade === 'ALL'
+            ? getTFEntries(sym, tf)
+            : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
         entries.forEach(e => allEntries.push({ ...e, _tf: tf }));
     });
 
-    if (allEntries.length === 0) return '';
+    if (allEntries.length === 0) {
+        return `<div class="manage-header">
+            <div>
+                <div class="manage-header-title">⚙️ MANAGE CRTs</div>
+                <div class="manage-header-sym">${sym}</div>
+            </div>
+        </div>
+        <div class="manage-empty">No entries found for this coin.</div>`;
+    }
 
     const activeEntries = allEntries.filter(e => e.status === 'ACTIVE');
     const resolvedEntries = allEntries.filter(e => e.status !== 'ACTIVE');
 
-    let html = `<div class="crt-popup" onclick="event.stopPropagation();">`;
-    html += `<div class="popup-title">
-        <span>⚙️ MANAGE CRTs — ${sym}</span>
-        <span class="popup-title-count">🔵 ${activeEntries.length} active</span>
+    let html = `<div class="manage-header">
+        <div>
+            <div class="manage-header-title">⚙️ MANAGE CRTs</div>
+            <div class="manage-header-sym">${sym}</div>
+        </div>
+        <span class="manage-header-count">🔵 ${activeEntries.length} active · ${allEntries.length} total</span>
     </div>`;
 
+    // ── ACTIVE ENTRIES ──
     if (activeEntries.length === 0) {
-        html += `<div class="popup-empty">No active entries to manage</div>`;
-    }
-
-    // Active entries with controls
-    activeEntries.forEach(e => {
-        const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
-        const sideCls = e.side === 'BULLISH' ? 'popup-entry-side-bull' : 'popup-entry-side-bear';
-        const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.38rem;">⭐A+</span>'
-                 : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.38rem;">🔶B+</span>' : '';
-        const at = alignTag(e);
-
-        html += `<div class="popup-entry popup-entry-active">
-            <div class="popup-entry-head">
-                <div style="display:flex;align-items:center;gap:5px;">
-                    <span class="popup-entry-side ${sideCls}">${sideIcon} ${e.side}</span>
-                    <span class="popup-tf-tag">${TF_LABELS_CRT[e._tf]}</span>
-                    ${gb}
-                </div>
-                <div class="popup-entry-meta">
-                    ${statusBadge(e.status)}
-                    ${at}
-                </div>
-            </div>
-            <div class="popup-prices">
-                <div class="popup-price-cell"><span class="popup-price-label">REJ</span><span class="popup-price-value">${e.rej || '—'}</span></div>
-                <div class="popup-price-cell"><span class="popup-price-label">BO</span><span class="popup-price-value">${e.bo || '—'}</span></div>
-                <div class="popup-price-cell"><span class="popup-price-label">EXT</span><span class="popup-price-value">${e.ext || '—'}</span></div>
-                <div class="popup-price-cell"><span class="popup-price-label">TGT</span><span class="popup-price-value">${e.tgt || '—'}</span></div>
-            </div>
-            <div class="popup-time" style="margin-top:4px;">🕐 ${fmtTime(e.timestamp)}</div>
-            <div class="popup-actions">
-                <button class="popup-act-btn popup-act-tp" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','TP_HIT')">🎯 TP HIT</button>
-                <button class="popup-act-btn popup-act-inv" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','INVALID')">❌ INVALID</button>
-                <button class="popup-act-btn popup-act-remove" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','REMOVE')">🗑️ REMOVE</button>
-            </div>
-        </div>`;
-    });
-
-    // Resolved entries (collapsed summary)
-    if (resolvedEntries.length > 0) {
-        html += `<div class="popup-resolved-label">— ${resolvedEntries.length} resolved (TP/INV) —</div>`;
-        resolvedEntries.forEach(e => {
+        html += `<div class="manage-empty">No active entries to manage</div>`;
+    } else {
+        html += `<div class="manage-section-label">🔵 ACTIVE ENTRIES</div>`;
+        activeEntries.forEach(e => {
             const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
-            const entryCls = e.status === 'TP_HIT' ? 'popup-entry-tp' : 'popup-entry-inv';
-            const statusLabel = e.status === 'TP_HIT' ? '🎯 TP' : '❌ INV';
-            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.36rem;">⭐A+</span>'
-                     : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.36rem;">🔶B+</span>' : '';
+            const sideCls = e.side === 'BULLISH' ? 'manage-entry-side-bull' : 'manage-entry-side-bear';
+            const gb = e.grade === 'A+'
+                ? '<span class="grade-badge-aplus" style="font-size:0.42rem;">⭐ A+</span>'
+                : e.grade === 'B+'
+                ? '<span class="grade-badge-bplus" style="font-size:0.42rem;">🔶 B+</span>' : '';
+            const at = alignTag(e);
 
-            html += `<div class="popup-entry ${entryCls}">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div style="display:flex;align-items:center;gap:4px;">
-                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:700;">${sideIcon} ${sym}</span>
-                        <span class="popup-tf-tag" style="font-size:0.38rem;">${TF_LABELS_CRT[e._tf]}</span>
+            html += `<div class="manage-entry manage-entry-active">
+                <div class="manage-entry-head">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span class="manage-entry-side ${sideCls}">${sideIcon} ${e.side}</span>
+                        <span class="manage-tf-tag">${TF_LABELS_CRT[e._tf]}</span>
                         ${gb}
                     </div>
-                    <span style="font-family:'JetBrains Mono',monospace;font-size:0.42rem;color:rgba(148,163,184,0.5);">${statusLabel}</span>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        ${statusBadge(e.status)}
+                        ${at}
+                    </div>
+                </div>
+                <div class="manage-prices">
+                    <div class="manage-price-cell">
+                        <span class="manage-price-label">REJ</span>
+                        <span class="manage-price-value">${e.rej || '—'}</span>
+                    </div>
+                    <div class="manage-price-cell">
+                        <span class="manage-price-label">BO</span>
+                        <span class="manage-price-value">${e.bo || '—'}</span>
+                    </div>
+                    <div class="manage-price-cell">
+                        <span class="manage-price-label">EXT</span>
+                        <span class="manage-price-value">${e.ext || '—'}</span>
+                    </div>
+                    <div class="manage-price-cell">
+                        <span class="manage-price-label">TGT</span>
+                        <span class="manage-price-value">${e.tgt || '—'}</span>
+                    </div>
+                </div>
+                <div class="manage-time">🕐 ${fmtTime(e.timestamp)}</div>
+                <div class="manage-actions">
+                    <button class="manage-act-btn manage-act-tp"
+                        onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','TP_HIT')">
+                        🎯 TP HIT
+                    </button>
+                    <button class="manage-act-btn manage-act-inv"
+                        onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','INVALID')">
+                        ❌ INVALID
+                    </button>
+                    <button class="manage-act-btn manage-act-remove"
+                        onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','REMOVE')">
+                        🗑️ REMOVE
+                    </button>
                 </div>
             </div>`;
         });
     }
 
-    html += `</div>`;
+    // ── RESOLVED ENTRIES ──
+    if (resolvedEntries.length > 0) {
+        html += `<div class="manage-section-label">📋 RESOLVED (${resolvedEntries.length})</div>`;
+        resolvedEntries.forEach(e => {
+            const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
+            const entryCls = e.status === 'TP_HIT' ? 'manage-entry-tp' : 'manage-entry-inv';
+            const statusLabel = e.status === 'TP_HIT' ? '🎯 TP HIT' : '❌ INVALIDATED';
+            const gb = e.grade === 'A+'
+                ? '<span class="grade-badge-aplus" style="font-size:0.40rem;">⭐ A+</span>'
+                : e.grade === 'B+'
+                ? '<span class="grade-badge-bplus" style="font-size:0.40rem;">🔶 B+</span>' : '';
+            const resolvedTime = e.status === 'TP_HIT' ? e.tp_time : e.inv_time;
+
+            html += `<div class="manage-entry ${entryCls}">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.52rem;font-weight:700;">
+                            ${sideIcon} ${e.side}
+                        </span>
+                        <span class="manage-tf-tag" style="font-size:0.40rem;">${TF_LABELS_CRT[e._tf]}</span>
+                        ${gb}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.44rem;font-weight:700;color:rgba(148,163,184,0.5);">
+                            ${statusLabel}
+                        </span>
+                    </div>
+                </div>
+                ${resolvedTime ? `<div class="manage-time" style="margin-top:4px;">🕐 ${fmtTime(resolvedTime)}</div>` : ''}
+            </div>`;
+        });
+    }
+
     return html;
 }
 
@@ -939,9 +1047,7 @@ function buildCard(sym) {
         </div>`;
     });
 
-    const popup = buildPopup(sym);
-
-    return `<div class="coin-card ${cls} crt-popup-anchor" style="position:relative;">
+    return `<div class="coin-card ${cls}" onclick="openManageModal('${sym}', event)" style="position:relative;">
         <button class="purge-card-btn" onclick="event.stopPropagation();openPurgeModal('${sym}')" title="Purge ${sym}">✕</button>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
             <div>
@@ -953,7 +1059,6 @@ function buildCard(sym) {
         </div>
         <div class="tf-row">${tfCells}</div>
         <div class="align-bar ${abCls}">${abTxt}</div>
-        ${popup}
     </div>`;
 }
 
@@ -992,16 +1097,15 @@ function render() {
     document.getElementById('invPill').textContent    = `❌ ${totalInv}`;
     document.getElementById('totalPill').textContent  = `🔄 ${totalEntries}`;
 
-  const categorized = { active: [], tp: [], inv: [], idle: [] };
-syms.forEach(sym => {
-    const fe = getFilteredEntries(sym);
-    if (fe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
-    if (fe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
-    if (fe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
-    if (!fe.some(e => e.status === 'ACTIVE' || e.status === 'TP_HIT' || e.status === 'INVALID')) categorized.idle.push(sym);
-});
+    const categorized = { active: [], tp: [], inv: [], idle: [] };
+    syms.forEach(sym => {
+        const fe = getFilteredEntries(sym);
+        if (fe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
+        if (fe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
+        if (fe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
+        if (!fe.some(e => e.status === 'ACTIVE' || e.status === 'TP_HIT' || e.status === 'INVALID')) categorized.idle.push(sym);
+    });
 
-       // Count actual entries
     const activeEntryCount = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'ACTIVE').length, 0);
     const tpEntryCount     = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'TP_HIT').length, 0);
     const invEntryCount    = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'INVALID').length, 0);
@@ -1025,6 +1129,7 @@ syms.forEach(sym => {
     else { ig.innerHTML = categorized.inv.map(s => buildCard(s)).join(''); }
 
     renderHitRates();
+    refreshManageModal();
 }
 
 // ══════════════════════════════════════════════
@@ -1044,82 +1149,64 @@ function renderHitRates() {
     const s = crtStats;
     let h = '';
 
-    // 📊 OVERALL
     h += `<div class="hitrate-section-label">📊 OVERALL</div>`;
     h += hrCard('📊','OVERALL',s.overall)
        + hrCard('⭐','A+',s.overall_aplus,'hitrate-card-aplus')
        + hrCard('🔶','B+',s.overall_bplus,'hitrate-card-bplus');
 
-    // 📅 DAILY
     h += `<div class="hitrate-section-label">📅 DAILY</div>`;
     h += hrCard('📅','ALL',s.daily)
        + hrCard('⭐','A+',s.daily_aplus,'hitrate-card-aplus')
        + hrCard('🔶','B+',s.daily_bplus,'hitrate-card-bplus');
-
     h += hrCard('✅','MO+W',s.daily_mo_w)
        + hrCard('⭐','MO+W A+',s.daily_mo_w_aplus,'hitrate-card-aplus')
        + hrCard('🔶','MO+W B+',s.daily_mo_w_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','MO',s.daily_mo)
        + hrCard('⭐','MO A+',s.daily_mo_aplus,'hitrate-card-aplus')
        + hrCard('🔶','MO B+',s.daily_mo_bplus,'hitrate-card-bplus');
-
     h += hrCard('🔵','W',s.daily_w)
        + hrCard('⭐','W A+',s.daily_w_aplus,'hitrate-card-aplus')
        + hrCard('🔶','W B+',s.daily_w_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚪','NONE',s.daily_none)
        + hrCard('⭐','NONE A+',s.daily_none_aplus,'hitrate-card-aplus')
        + hrCard('🔶','NONE B+',s.daily_none_bplus,'hitrate-card-bplus');
 
-    // 📆 WEEKLY
     h += `<div class="hitrate-section-label">📆 WEEKLY</div>`;
     h += hrCard('📆','ALL',s.weekly)
        + hrCard('⭐','A+',s.weekly_aplus,'hitrate-card-aplus')
        + hrCard('🔶','B+',s.weekly_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','MO',s.weekly_mo)
        + hrCard('⭐','MO A+',s.weekly_mo_aplus,'hitrate-card-aplus')
        + hrCard('🔶','MO B+',s.weekly_mo_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚪','NONE',s.weekly_none)
        + hrCard('⭐','NONE A+',s.weekly_none_aplus,'hitrate-card-aplus')
        + hrCard('🔶','NONE B+',s.weekly_none_bplus,'hitrate-card-bplus');
 
-    // ⏰ 4H
     h += `<div class="hitrate-section-label">⏰ 4H</div>`;
     h += hrCard('⏰','ALL',s.fourh)
        + hrCard('⭐','A+',s.fourh_aplus,'hitrate-card-aplus')
        + hrCard('🔶','B+',s.fourh_bplus,'hitrate-card-bplus');
-
     h += hrCard('✅','D+W+MO',s.fourh_dwm)
        + hrCard('⭐','DWM A+',s.fourh_dwm_aplus,'hitrate-card-aplus')
        + hrCard('🔶','DWM B+',s.fourh_dwm_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','D+W',s.fourh_dw)
        + hrCard('⭐','DW A+',s.fourh_dw_aplus,'hitrate-card-aplus')
        + hrCard('🔶','DW B+',s.fourh_dw_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','D+MO',s.fourh_dmo)
        + hrCard('⭐','DMO A+',s.fourh_dmo_aplus,'hitrate-card-aplus')
        + hrCard('🔶','DMO B+',s.fourh_dmo_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','D',s.fourh_d)
        + hrCard('⭐','D A+',s.fourh_d_aplus,'hitrate-card-aplus')
        + hrCard('🔶','D B+',s.fourh_d_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','W+MO',s.fourh_wmo)
        + hrCard('⭐','WMO A+',s.fourh_wmo_aplus,'hitrate-card-aplus')
        + hrCard('🔶','WMO B+',s.fourh_wmo_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','W',s.fourh_w)
        + hrCard('⭐','W A+',s.fourh_w_aplus,'hitrate-card-aplus')
        + hrCard('🔶','W B+',s.fourh_w_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚡','MO',s.fourh_mo)
        + hrCard('⭐','MO A+',s.fourh_mo_aplus,'hitrate-card-aplus')
        + hrCard('🔶','MO B+',s.fourh_mo_bplus,'hitrate-card-bplus');
-
     h += hrCard('⚪','NONE',s.fourh_none)
        + hrCard('⭐','NONE A+',s.fourh_none_aplus,'hitrate-card-aplus')
        + hrCard('🔶','NONE B+',s.fourh_none_bplus,'hitrate-card-bplus');
@@ -1168,7 +1255,6 @@ loadProfileData();
 reconnectSSE();
 setInterval(refreshStats, 30000);
 
-// Breakout SSE
 const boEs = new EventSource('/api/breakout-stream');
 boEs.onmessage = e => { const d = JSON.parse(e.data); if (d.breakoutState) { breakoutState = d.breakoutState; render(); } };
 </script>
