@@ -2062,31 +2062,33 @@ app.post('/webhook', async (req, res) => {
         const tgCh=getCRTTGChannel(profile);
         const tgThread=getCRTTGThreadId(profile);
 
-        if(payload.kind==='CRT'){
-            const ac=checkCRTAlignment(sym,tf,side);
-            const ne={
-                id:`${sym}_${tf}_${Date.now()}`,
-                side, grade, rej, bo, ext, tgt,
-                status:'ACTIVE',
-                timestamp:Date.now(),
-                tp_time:null, inv_time:null,
-                align_level:ac.level,
-                align_label:ac.label,
-                aligned:ac.aligned,
-                bo_profile:profile
-            };
-            crtState[sym][tf].push(ne);
-            if(crtState[sym][tf].length>20)crtState[sym][tf]=crtState[sym][tf].slice(-20);
-            const at=ac.aligned?`✅ ${ac.label}`:`⚠️ ${ac.label}`;
-            const gradeTag=grade?` [${grade}]`:'';
-            await pushCRTLog(profile,sym,side,
-                `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
-                {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
-            if(profile==='HTF'){
-                await sendBotCRTNotification('CRT',sym,tf,side,ac.level,grade,{rej,bo,ext,tgt});
-                await autoRefreshBotPanels();
-            }
-        }
+if(payload.kind==='CRT'){
+    const ac=checkCRTAlignment(sym,tf,side);
+    const hitProb = calcHitProbability(profile, tf, ac.level, grade);
+    const ne={
+        id:`${sym}_${tf}_${Date.now()}`,
+        side, grade, rej, bo, ext, tgt,
+        status:'ACTIVE',
+        timestamp:Date.now(),
+        tp_time:null, inv_time:null,
+        align_level:ac.level,
+        align_label:ac.label,
+        aligned:ac.aligned,
+        bo_profile:profile,
+        hit_prob: hitProb
+    };
+    crtState[sym][tf].push(ne);
+    if(crtState[sym][tf].length>20)crtState[sym][tf]=crtState[sym][tf].slice(-20);
+    const at=ac.aligned?`✅ ${ac.label}`:`⚠️ ${ac.label}`;
+    const gradeTag=grade?` [${grade}]`:'';
+    await pushCRTLog(profile,sym,side,
+        `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
+        {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
+    if(profile==='HTF'){
+        await sendBotCRTNotification('CRT',sym,tf,side,ac.level,grade,{rej,bo,ext,tgt});
+        await autoRefreshBotPanels();
+    }
+}
 
         if(payload.kind==='CRT_TARGET'){
             const entries=crtState[sym][tf];let target=null;
