@@ -106,6 +106,7 @@
         .tf-cell-bull { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25); }
         .tf-cell-bear { background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.25); }
         .tf-cell-none { background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2); }
+        .tf-cell-dimmed { background:rgba(15,23,42,0.3);border:1px solid rgba(71,85,105,0.12);opacity:0.35;filter:saturate(0.3); }
 
         .status-badge { font-family:'JetBrains Mono',monospace;font-size:0.40rem;font-weight:700;padding:2px 5px;border-radius:4px;display:inline-block;margin-top:2px; }
         .status-active  { background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:#38bdf8; }
@@ -128,6 +129,12 @@
         .align-bar-bear  { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
         .align-bar-mixed { background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#c4b5fd; }
         .align-bar-none  { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#64748b; }
+
+        /* ── PROB BADGE ── */
+        .prob-badge { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:800;padding:2px 6px;border-radius:5px;display:inline-block;margin-top:2px; }
+        .prob-badge-high { background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#34d399; }
+        .prob-badge-med  { background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24; }
+        .prob-badge-low  { background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171; }
 
         /* ── HIT RATE GRID ── */
         .hitrate-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px; }
@@ -208,9 +215,7 @@
             padding-top: 8vh;
             overflow-y: auto;
         }
-        .manage-overlay.show {
-            display: flex;
-        }
+        .manage-overlay.show { display: flex; }
         .manage-panel {
             width: 95%;
             max-width: 480px;
@@ -480,7 +485,7 @@
         <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.2rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
         <div>
             <div class="brand-name">CRT DASHBOARD</div>
-            <div class="brand-sub" id="brandSub">CRT ENGINE · HTF · W→D · D→4H · 4H→1H · A+ &amp; B+</div>
+            <div class="brand-sub" id="brandSub">CRT ENGINE · HTF · W→D · D→4H · 4H→1H · A+ &amp; B+ · ≥65%</div>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -585,6 +590,7 @@
 // ══════════════════════════════════════════════
 const CRT_TFS = ['1W', '1D', '4H'];
 const TF_LABELS_CRT = { '1W':'WEEKLY', '1D':'DAILY', '4H':'4H' };
+const MIN_PROB = 65;
 
 let crtState = {}, crtLog = [], crtStats = {}, breakoutState = {};
 let activeFilter = 'ALL', activeGrade = 'ALL', activeProfile = 'HTF';
@@ -595,6 +601,22 @@ const sections = { tp: false, inv: false, hr: false, feed: true };
 const moneySound = new Audio('/money.mp3');
 moneySound.volume = 0.85;
 let audioOn = false;
+
+// ══════════════════════════════════════════════
+// PROB HELPER — check if entry qualifies
+// ══════════════════════════════════════════════
+function entryQualifies(e) {
+    if (!e?.hit_prob) return false;
+    if (!e.hit_prob.found) return false;
+    return parseFloat(e.hit_prob.pct) >= MIN_PROB;
+}
+
+function probBadgeHtml(e) {
+    if (!e?.hit_prob?.found) return '';
+    const pct = parseFloat(e.hit_prob.pct);
+    const cls = pct >= 75 ? 'prob-badge-high' : pct >= 65 ? 'prob-badge-med' : 'prob-badge-low';
+    return `<span class="prob-badge ${cls}">📊 ${e.hit_prob.pct}%</span>`;
+}
 
 // ══════════════════════════════════════════════
 // AUDIO
@@ -688,7 +710,6 @@ document.addEventListener('keydown', e => {
 // MANUAL CRT CONTROLS
 // ══════════════════════════════════════════════
 async function manualUpdate(sym, tf, entryId, action) {
-    const labels = { TP_HIT: '🎯 Mark TP Hit', INVALID: '❌ Mark Invalidated', REMOVE: '🗑️ Remove (no stats)' };
     const warns = {
         TP_HIT: `Mark this CRT as TARGET HIT?\n\n${sym} — ${tf}`,
         INVALID: `Mark this CRT as INVALIDATED?\n\n${sym} — ${tf}`,
@@ -805,27 +826,59 @@ function fmtTime(ts) {
 }
 function getTFEntries(sym, tf) { const r = crtState[sym]?.[tf]; return !r ? [] : Array.isArray(r) ? r : [r]; }
 function getAllEntries(sym) { const o = []; CRT_TFS.forEach(tf => getTFEntries(sym, tf).forEach(e => o.push({...e, _tf:tf}))); return o; }
-function getFilteredEntries(sym) { return getAllEntries(sym).filter(e => activeGrade === 'ALL' || e.grade === activeGrade); }
+
+// ── QUALIFIED = entries that pass both grade filter AND ≥65% prob ──
+function getQualifiedEntries(sym) {
+    return getAllEntries(sym).filter(e => {
+        if (activeGrade !== 'ALL' && e.grade !== activeGrade) return false;
+        return entryQualifies(e);
+    });
+}
+
+// ── FILTERED = grade filter only (for manage modal which shows ALL) ──
+function getFilteredEntries(sym) {
+    return getAllEntries(sym).filter(e => activeGrade === 'ALL' || e.grade === activeGrade);
+}
+
+function getLatestQualifiedEntry(sym, tf) {
+    let entries = getTFEntries(sym, tf);
+    if (activeGrade !== 'ALL') entries = entries.filter(e => e.grade === activeGrade);
+    entries = entries.filter(e => entryQualifies(e));
+    return entries.length ? entries[entries.length - 1] : null;
+}
+
 function getLatestEntry(sym, tf) {
     const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
     return entries.length ? entries[entries.length - 1] : null;
 }
+
 function getBreakoutDir(sym, tf) { const r = breakoutState[sym]?.[tf]; if (!r) return 'NONE'; const a = Array.isArray(r)?r:[r]; return a.length ? a[a.length-1]?.direction || 'NONE' : 'NONE'; }
 function passesFilter(sym) {
     if (activeFilter === 'ALL') return true;
     const w = getBreakoutDir(sym,'1W') !== 'NONE', m = getBreakoutDir(sym,'1MO') !== 'NONE';
     return activeFilter === 'W_BO' ? w : activeFilter === 'M_BO' ? m : activeFilter === 'BOTH_BO' ? w && m : !w && !m;
 }
-function passesGrade(sym) { return activeGrade === 'ALL' || getAllEntries(sym).some(e => e.grade === activeGrade); }
+
+// ── Symbol passes if it has at least one qualified entry ──
+function passesProb(sym) {
+    return getQualifiedEntries(sym).length > 0;
+}
 
 function getCardType(sym) {
-    const sides = CRT_TFS.map(tf => { const e = getLatestEntry(sym, tf); return e?.side; }).filter(s => s);
+    const qe = getQualifiedEntries(sym);
+    const sides = qe.map(e => e.side).filter(s => s);
     if (!sides.length) return 'idle';
     if (sides.every(s => s === 'BULLISH')) return 'bull';
     if (sides.every(s => s === 'BEARISH')) return 'bear';
     return 'mixed';
 }
-function tfCellCls(d) { return !d?.side ? 'tf-cell-none' : d.side === 'BULLISH' ? 'tf-cell-bull' : 'tf-cell-bear'; }
+
+function tfCellCls(d, qualified) {
+    if (!qualified) return 'tf-cell-dimmed';
+    if (!d?.side) return 'tf-cell-none';
+    return d.side === 'BULLISH' ? 'tf-cell-bull' : 'tf-cell-bear';
+}
+
 function statusBadge(s) {
     if (s === 'ACTIVE') return '<span class="status-badge status-active">ACTIVE</span>';
     if (s === 'TP_HIT') return '<span class="status-badge status-tp">🎯 TP</span>';
@@ -846,7 +899,7 @@ function alignTag(e) {
 }
 
 // ══════════════════════════════════════════════
-// BUILD MANAGE CONTENT (FOR MODAL)
+// BUILD MANAGE CONTENT (shows ALL entries — not filtered by prob)
 // ══════════════════════════════════════════════
 function buildManageContent(sym) {
     const allEntries = [];
@@ -891,6 +944,10 @@ function buildManageContent(sym) {
                 : e.grade === 'B+'
                 ? '<span class="grade-badge-bplus" style="font-size:0.42rem;">🔶 B+</span>' : '';
             const at = alignTag(e);
+            const pb = probBadgeHtml(e);
+            const qualLabel = entryQualifies(e)
+                ? '<span class="prob-badge prob-badge-high" style="font-size:0.38rem;">✅ QUAL</span>'
+                : '<span class="prob-badge prob-badge-low" style="font-size:0.38rem;">⚪ NO QUAL</span>';
 
             html += `<div class="manage-entry manage-entry-active">
                 <div class="manage-entry-head">
@@ -903,6 +960,9 @@ function buildManageContent(sym) {
                         ${statusBadge(e.status)}
                         ${at}
                     </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+                    ${pb} ${qualLabel}
                 </div>
                 <div class="manage-prices">
                     <div class="manage-price-cell">
@@ -953,6 +1013,7 @@ function buildManageContent(sym) {
                 : e.grade === 'B+'
                 ? '<span class="grade-badge-bplus" style="font-size:0.40rem;">🔶 B+</span>' : '';
             const resolvedTime = e.status === 'TP_HIT' ? e.tp_time : e.inv_time;
+            const pb = probBadgeHtml(e);
 
             html += `<div class="manage-entry ${entryCls}">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -961,7 +1022,7 @@ function buildManageContent(sym) {
                             ${sideIcon} ${e.side}
                         </span>
                         <span class="manage-tf-tag" style="font-size:0.40rem;">${TF_LABELS_CRT[e._tf]}</span>
-                        ${gb}
+                        ${gb} ${pb}
                     </div>
                     <div style="display:flex;align-items:center;gap:4px;">
                         <span style="font-family:'JetBrains Mono',monospace;font-size:0.44rem;font-weight:700;color:rgba(148,163,184,0.5);">
@@ -978,15 +1039,15 @@ function buildManageContent(sym) {
 }
 
 // ══════════════════════════════════════════════
-// BUILD CARD HTML
+// BUILD CARD HTML (only shows qualified TF cells)
 // ══════════════════════════════════════════════
 function buildCard(sym) {
     const type = getCardType(sym);
     const cls = {bull:'card-bull',bear:'card-bear',mixed:'card-mixed',idle:'card-idle'}[type] || 'card-idle';
     const badge = {bull:'<span class="card-badge-bull">🐂</span>',bear:'<span class="card-badge-bear">🐻</span>',mixed:'<span class="card-badge-mixed">🔀</span>',idle:'<span class="card-badge-idle">—</span>'}[type];
 
-    const allE = getAllEntries(sym);
-    const latest = allE.length ? Math.max(...allE.map(e => e.timestamp || 0)) : 0;
+    const qe = getQualifiedEntries(sym);
+    const latest = qe.length ? Math.max(...qe.map(e => e.timestamp || 0)) : 0;
 
     const wBO = getBreakoutDir(sym,'1W'), mBO = getBreakoutDir(sym,'1MO');
     let boLine = '';
@@ -997,8 +1058,7 @@ function buildCard(sym) {
         boLine = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.40rem;color:rgba(168,85,247,0.7);margin-top:2px;">💥 ${p.join(' · ')}</div>`;
     }
 
-    const fe = getFilteredEntries(sym);
-    const ap = fe.filter(e => e.grade === 'A+').length, bp = fe.filter(e => e.grade === 'B+').length;
+    const ap = qe.filter(e => e.grade === 'A+').length, bp = qe.filter(e => e.grade === 'B+').length;
     let gs = '';
     if (ap > 0 || bp > 0) {
         const bits = [];
@@ -1008,7 +1068,7 @@ function buildCard(sym) {
     }
 
     let active = 0, tp = 0, inv = 0;
-    fe.forEach(e => { if (e.status==='ACTIVE') active++; if (e.status==='TP_HIT') tp++; if (e.status==='INVALID') inv++; });
+    qe.forEach(e => { if (e.status==='ACTIVE') active++; if (e.status==='TP_HIT') tp++; if (e.status==='INVALID') inv++; });
     const parts = [];
     if (active > 0) parts.push(`🔵${active}`);
     if (tp > 0) parts.push(`🎯${tp}`);
@@ -1018,33 +1078,53 @@ function buildCard(sym) {
 
     let tfCells = '';
     CRT_TFS.forEach(tf => {
-        const d = getLatestEntry(sym, tf);
-        const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
-        const emoji = d?.side === 'BULLISH' ? '🐂' : d?.side === 'BEARISH' ? '🐻' : '—';
-        const cnt = entries.length;
+        const qEntry = getLatestQualifiedEntry(sym, tf);
+        const isQualified = !!qEntry;
+        const d = qEntry || getLatestEntry(sym, tf);
+
+        // Count only qualified entries for this TF
+        let qualEntries = getTFEntries(sym, tf).filter(e => entryQualifies(e));
+        if (activeGrade !== 'ALL') qualEntries = qualEntries.filter(e => e.grade === activeGrade);
+        const cnt = qualEntries.length;
+
+        const emoji = isQualified ? (d?.side === 'BULLISH' ? '🐂' : d?.side === 'BEARISH' ? '🐻' : '—') : '—';
 
         let countLine = '';
         if (cnt > 1) {
-            const a2 = entries.filter(e => e.status==='ACTIVE').length;
-            const t2 = entries.filter(e => e.status==='TP_HIT').length;
-            const i2 = entries.filter(e => e.status==='INVALID').length;
+            const a2 = qualEntries.filter(e => e.status==='ACTIVE').length;
+            const t2 = qualEntries.filter(e => e.status==='TP_HIT').length;
+            const i2 = qualEntries.filter(e => e.status==='INVALID').length;
             const b2 = [];
             if (a2) b2.push(`${a2}🔵`); if (t2) b2.push(`${t2}🎯`); if (i2) b2.push(`${i2}❌`);
             countLine = `<div style="color:rgba(203,213,225,0.4);font-size:0.36rem;margin-top:1px;">${cnt} · ${b2.join(' ')}</div>`;
         }
 
-        tfCells += `<div class="tf-cell ${tfCellCls(d)}">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-                <span style="color:rgba(203,213,225,0.5);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
-                <span style="font-size:0.6rem;">${emoji}</span>
-            </div>
-            <div style="color:rgba(203,213,225,0.6);font-size:0.40rem;">${d?.side||'NONE'}</div>
-            ${d?.side ? statusBadge(d.status) : ''}
-            ${gradeBadge(d?.grade)}
-            ${alignTag(d)}
-            ${countLine}
-            ${d?.timestamp ? `<div style="color:rgba(203,213,225,0.6);font-size:0.42rem;margin-top:2px;">🕐 ${fmtTime(d.timestamp)}</div>` : ''}
-        </div>`;
+        const probBdg = isQualified ? probBadgeHtml(qEntry) : '';
+
+        if (isQualified) {
+            tfCells += `<div class="tf-cell ${tfCellCls(d, true)}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                    <span style="color:rgba(203,213,225,0.5);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
+                    <span style="font-size:0.6rem;">${emoji}</span>
+                </div>
+                <div style="color:rgba(203,213,225,0.6);font-size:0.40rem;">${d?.side||'NONE'}</div>
+                ${d?.side ? statusBadge(d.status) : ''}
+                ${gradeBadge(d?.grade)}
+                ${alignTag(d)}
+                ${probBdg}
+                ${countLine}
+                ${d?.timestamp ? `<div style="color:rgba(203,213,225,0.6);font-size:0.42rem;margin-top:2px;">🕐 ${fmtTime(d.timestamp)}</div>` : ''}
+            </div>`;
+        } else {
+            // Dimmed cell — no qualified entry for this TF
+            tfCells += `<div class="tf-cell tf-cell-dimmed">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                    <span style="color:rgba(203,213,225,0.3);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
+                    <span style="font-size:0.6rem;opacity:0.3;">—</span>
+                </div>
+                <div style="color:rgba(203,213,225,0.25);font-size:0.40rem;">—</div>
+            </div>`;
+        }
     });
 
     return `<div class="coin-card ${cls}" onclick="openManageModal('${sym}', event)" style="position:relative;">
@@ -1063,20 +1143,22 @@ function buildCard(sym) {
 }
 
 // ══════════════════════════════════════════════
-// RENDER
+// RENDER (cards only show qualified entries)
 // ══════════════════════════════════════════════
 function render() {
     const allSyms = Object.keys(crtState).sort((a, b) => {
-        const ta = getAllEntries(a), tb = getAllEntries(b);
-        const ma = ta.length ? Math.max(...ta.map(e => e.timestamp||0)) : 0;
-        const mb = tb.length ? Math.max(...tb.map(e => e.timestamp||0)) : 0;
+        const qa = getQualifiedEntries(a), qb = getQualifiedEntries(b);
+        const ma = qa.length ? Math.max(...qa.map(e => e.timestamp||0)) : 0;
+        const mb = qb.length ? Math.max(...qb.map(e => e.timestamp||0)) : 0;
         return mb - ma;
     });
 
-    const syms = allSyms.filter(s => passesFilter(s) && passesGrade(s));
+    // Only show symbols that pass filter, AND have at least one qualified entry
+    const syms = allSyms.filter(s => passesFilter(s) && passesProb(s));
 
+    // Stats pills: count only qualified entries across ALL symbols
     let totalBull=0,totalBear=0,totalActive=0,totalTP=0,totalInv=0,totalEntries=0,totalAplus=0,totalBplus=0;
-    allSyms.forEach(sym => getAllEntries(sym).forEach(e => {
+    allSyms.forEach(sym => getQualifiedEntries(sym).forEach(e => {
         totalEntries++;
         if (e.side==='BULLISH') totalBull++;
         if (e.side==='BEARISH') totalBear++;
@@ -1097,35 +1179,34 @@ function render() {
     document.getElementById('invPill').textContent    = `❌ ${totalInv}`;
     document.getElementById('totalPill').textContent  = `🔄 ${totalEntries}`;
 
-    const categorized = { active: [], tp: [], inv: [], idle: [] };
+    const categorized = { active: [], tp: [], inv: [] };
     syms.forEach(sym => {
-        const fe = getFilteredEntries(sym);
-        if (fe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
-        if (fe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
-        if (fe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
-        if (!fe.some(e => e.status === 'ACTIVE' || e.status === 'TP_HIT' || e.status === 'INVALID')) categorized.idle.push(sym);
+        const qe = getQualifiedEntries(sym);
+        if (qe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
+        if (qe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
+        if (qe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
     });
 
-    const activeEntryCount = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'ACTIVE').length, 0);
-    const tpEntryCount     = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'TP_HIT').length, 0);
-    const invEntryCount    = syms.reduce((n, sym) => n + getFilteredEntries(sym).filter(e => e.status === 'INVALID').length, 0);
+    const activeEntryCount = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'ACTIVE').length, 0);
+    const tpEntryCount     = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'TP_HIT').length, 0);
+    const invEntryCount    = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'INVALID').length, 0);
 
     const ag = document.getElementById('activeGrid');
     document.getElementById('activeSectionCount').textContent = activeEntryCount;
     if (!categorized.active.length) {
-        ag.innerHTML = '<p class="empty-state">No active CRTs right now.</p>';
+        ag.innerHTML = '<p class="empty-state">No active CRTs with ≥65% probability.</p>';
     } else {
         ag.innerHTML = categorized.active.map(s => buildCard(s)).join('');
     }
 
     const tg = document.getElementById('tpGrid');
     document.getElementById('tpSectionCount').textContent = tpEntryCount;
-    if (!categorized.tp.length) { tg.innerHTML = '<p class="empty-state">No target hits yet.</p>'; }
+    if (!categorized.tp.length) { tg.innerHTML = '<p class="empty-state">No target hits with ≥65% probability.</p>'; }
     else { tg.innerHTML = categorized.tp.map(s => buildCard(s)).join(''); }
 
     const ig = document.getElementById('invGrid');
     document.getElementById('invSectionCount').textContent = invEntryCount;
-    if (!categorized.inv.length) { ig.innerHTML = '<p class="empty-state">No invalidated CRTs.</p>'; }
+    if (!categorized.inv.length) { ig.innerHTML = '<p class="empty-state">No invalidated CRTs with ≥65% probability.</p>'; }
     else { ig.innerHTML = categorized.inv.map(s => buildCard(s)).join(''); }
 
     renderHitRates();
@@ -1133,7 +1214,7 @@ function render() {
 }
 
 // ══════════════════════════════════════════════
-// HIT RATES
+// HIT RATES (unchanged — uses ALL data)
 // ══════════════════════════════════════════════
 function getHRCardClass(rate) { if (rate==='—') return 'hitrate-card-neutral'; const v = parseFloat(rate); return v>=60?'hitrate-card-good':v>=40?'hitrate-card-warn':'hitrate-card-bad'; }
 function getHRValueClass(rate) { if (rate==='—') return 'hitrate-value-neutral'; const v = parseFloat(rate); return v>=60?'hitrate-value-good':v>=40?'hitrate-value-warn':'hitrate-value-bad'; }
@@ -1215,7 +1296,7 @@ function renderHitRates() {
 }
 
 // ══════════════════════════════════════════════
-// SIGNAL FEED
+// SIGNAL FEED (unchanged — shows ALL signals)
 // ══════════════════════════════════════════════
 function rebuildFeed() {
     const feed = document.getElementById('activityFeed');
