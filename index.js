@@ -1920,6 +1920,33 @@ const savedBLog=await redisClient.get(REDIS_BREAKOUT_KEY+'_log');if(savedBLog){b
 const savedBS=await redisClient.get(REDIS_BOT_SESSIONS);if(savedBS){botSessions=JSON.parse(savedBS);console.log(`🤖 Bot sessions: ${Object.keys(botSessions).length}`);}
 
 // ══════════════════════════════════════════════
+// BACKFILL hit_prob FOR EXISTING CRT ENTRIES
+// ══════════════════════════════════════════════
+async function backfillHitProb() {
+    let count = 0;
+    for (const profile of ['HTF', 'LTF']) {
+        const cs = getCRTState(profile);
+        for (const sym in cs) {
+            for (const tf in cs[sym]) {
+                const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
+                for (const e of entries) {
+                    if (!e || !e.side) continue;
+                    if (e.hit_prob) continue; // already has it
+                    e.hit_prob = calcHitProbability(profile, tf, e.align_level || 'NONE', e.grade || '');
+                    count++;
+                }
+                cs[sym][tf] = entries;
+            }
+        }
+        setCRTState(profile, cs);
+        await saveCRTState(profile);
+    }
+    if (count > 0) console.log(`📊 Backfilled hit_prob for ${count} CRT entries`);
+}
+
+await backfillHitProb();
+
+// ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
 app.get('/api/state',(req,res)=>res.json({marketState,activityLog,settings:appSettings}));
