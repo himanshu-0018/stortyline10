@@ -204,252 +204,144 @@
 
         /* ── MANAGE CRT MODAL OVERLAY ── */
         .manage-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            background: rgba(0, 0, 0, 0.80);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 8vh;
-            overflow-y: auto;
+            position: fixed; inset: 0; z-index: 9998;
+            background: rgba(0,0,0,0.80); backdrop-filter: blur(10px);
+            display: none; align-items: flex-start; justify-content: center;
+            padding-top: 8vh; overflow-y: auto;
         }
         .manage-overlay.show { display: flex; }
         .manage-panel {
-            width: 95%;
-            max-width: 480px;
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: 20px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, rgba(10, 14, 26, 0.99), rgba(20, 25, 50, 0.97));
-            border: 1px solid rgba(245, 158, 11, 0.4);
-            box-shadow: 0 12px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(245, 158, 11, 0.12);
-            animation: managePanelPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 95%; max-width: 480px; max-height: 80vh; overflow-y: auto;
+            padding: 20px; border-radius: 20px;
+            background: linear-gradient(135deg,rgba(10,14,26,0.99),rgba(20,25,50,0.97));
+            border: 1px solid rgba(245,158,11,0.4);
+            box-shadow: 0 12px 60px rgba(0,0,0,0.8),0 0 40px rgba(245,158,11,0.12);
+            animation: managePanelPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
             margin-bottom: 40px;
         }
         @keyframes managePanelPop {
-            from { transform: scale(0.88) translateY(20px); opacity: 0; }
-            to   { transform: scale(1) translateY(0); opacity: 1; }
+            from { transform:scale(0.88) translateY(20px);opacity:0; }
+            to   { transform:scale(1) translateY(0);opacity:1; }
         }
         .manage-close-btn {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: rgba(239, 68, 68, 0.6);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 5;
+            position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;
+            background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);
+            color:rgba(239,68,68,0.6);font-size:0.85rem;display:flex;align-items:center;
+            justify-content:center;cursor:pointer;transition:all 0.2s;z-index:5;
         }
-        .manage-close-btn:hover {
-            background: rgba(239, 68, 68, 0.35);
-            border-color: rgba(239, 68, 68, 0.7);
-            color: #f87171;
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        .manage-close-btn:hover { background:rgba(239,68,68,0.35);border-color:rgba(239,68,68,0.7);color:#f87171;transform:scale(1.1);box-shadow:0 0 15px rgba(239,68,68,0.3); }
+        .manage-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.08); }
+        .manage-header-title { font-family:'Orbitron',sans-serif;font-size:0.75rem;font-weight:700;color:#fbbf24;letter-spacing:0.08em; }
+        .manage-header-sym { font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:800;color:#f1f5f9;margin-top:4px; }
+        .manage-header-count { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);color:#38bdf8; }
+        .manage-section-label { font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:700;color:rgba(148,163,184,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-top:14px;margin-bottom:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06); }
+        .manage-entry { padding:12px;border-radius:12px;margin-bottom:10px;position:relative;transition:all 0.2s; }
+        .manage-entry:last-child { margin-bottom:0; }
+        .manage-entry-active { background:linear-gradient(135deg,rgba(14,165,233,0.1),rgba(14,165,233,0.04));border:1px solid rgba(14,165,233,0.25); }
+        .manage-entry-active:hover { border-color:rgba(14,165,233,0.45);box-shadow:0 0 15px rgba(14,165,233,0.08); }
+        .manage-entry-tp  { background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.18);opacity:0.55; }
+        .manage-entry-inv { background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.18);opacity:0.55; }
+        .manage-entry-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+        .manage-entry-side { font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:800; }
+        .manage-entry-side-bull { color:#34d399; }
+        .manage-entry-side-bear { color:#f87171; }
+        .manage-prices { display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px; }
+        .manage-price-cell { padding:6px;border-radius:8px;background:rgba(255,255,255,0.05);text-align:center;border:1px solid rgba(255,255,255,0.05); }
+        .manage-price-label { font-family:'JetBrains Mono',monospace;font-size:0.40rem;color:rgba(148,163,184,0.45);letter-spacing:0.06em;display:block; }
+        .manage-price-value { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;color:#e2e8f0;display:block;margin-top:2px; }
+        .manage-time { font-family:'JetBrains Mono',monospace;font-size:0.44rem;color:rgba(148,163,184,0.45);margin-top:6px; }
+        .manage-actions { display:flex;gap:6px;margin-top:10px; }
+        .manage-act-btn { flex:1;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;padding:8px 10px;border-radius:10px;cursor:pointer;transition:all 0.2s;border:1px solid;text-align:center; }
+        .manage-act-btn:hover { transform:translateY(-1px); }
+        .manage-act-tp  { background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.35);color:#34d399; }
+        .manage-act-tp:hover  { background:rgba(16,185,129,0.3);border-color:rgba(16,185,129,0.6);box-shadow:0 0 15px rgba(16,185,129,0.2); }
+        .manage-act-inv { background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.35);color:#f87171; }
+        .manage-act-inv:hover { background:rgba(239,68,68,0.3);border-color:rgba(239,68,68,0.6);box-shadow:0 0 15px rgba(239,68,68,0.2); }
+        .manage-act-remove { background:rgba(71,85,105,0.15);border-color:rgba(71,85,105,0.35);color:#94a3b8; }
+        .manage-act-remove:hover { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171; }
+        .manage-resolved-label { font-family:'JetBrains Mono',monospace;font-size:0.46rem;color:rgba(148,163,184,0.3);text-align:center;font-style:italic; }
+        .manage-empty { font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(148,163,184,0.3);text-align:center;padding:24px 0; }
+        .manage-tf-tag { font-family:'JetBrains Mono',monospace;font-size:0.42rem;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3); }
+
+        /* ── DAILY REVIEW SECTION ── */
+        .date-selector-bar {
+            display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+            margin-bottom:14px;padding:12px 16px;border-radius:14px;
+            background:rgba(10,14,26,0.6);border:1px solid rgba(255,255,255,0.06);
         }
-        .manage-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        .date-quick-btn {
+            font-family:'JetBrains Mono',monospace;font-size:0.60rem;font-weight:700;
+            padding:6px 12px;border-radius:8px;
+            background:rgba(71,85,105,0.2);border:1px solid rgba(71,85,105,0.35);
+            color:#94a3b8;cursor:pointer;transition:all 0.2s;white-space:nowrap;
         }
-        .manage-header-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #fbbf24;
-            letter-spacing: 0.08em;
+        .date-quick-btn:hover { background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4);color:#fbbf24; }
+        .date-quick-btn.active-date { background:rgba(245,158,11,0.22);border-color:rgba(245,158,11,0.55);color:#fbbf24;box-shadow:0 0 12px rgba(245,158,11,0.15); }
+        .date-picker-input {
+            font-family:'JetBrains Mono',monospace;font-size:0.60rem;font-weight:700;
+            padding:6px 10px;border-radius:8px;
+            background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);
+            color:#e2e8f0;cursor:pointer;transition:all 0.2s;outline:none;color-scheme:dark;
         }
-        .manage-header-sym {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #f1f5f9;
-            margin-top: 4px;
+        .date-picker-input:focus { border-color:rgba(245,158,11,0.5);box-shadow:0 0 10px rgba(245,158,11,0.12); }
+        .date-picker-input.active-date { border-color:rgba(245,158,11,0.55);color:#fbbf24; }
+        .date-ist-label { font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:rgba(148,163,184,0.4);margin-left:auto;white-space:nowrap; }
+
+        .daily-review-grid { display:flex;flex-direction:column;gap:10px; }
+        .daily-tf-group { border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06); }
+        .daily-tf-header {
+            display:flex;align-items:center;gap:8px;padding:8px 14px;
+            background:rgba(15,23,42,0.7);border-bottom:1px solid rgba(255,255,255,0.05);
+            font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:700;
+            letter-spacing:0.08em;color:rgba(203,213,225,0.6);
         }
-        .manage-header-count {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.55rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(14, 165, 233, 0.15);
-            border: 1px solid rgba(14, 165, 233, 0.3);
-            color: #38bdf8;
+        .daily-tf-header-count {
+            font-size:0.50rem;padding:2px 7px;border-radius:6px;
+            background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);
+            color:#fbbf24;margin-left:auto;
         }
-        .manage-section-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.48rem;
-            font-weight: 700;
-            color: rgba(148, 163, 184, 0.4);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-top: 14px;
-            margin-bottom: 8px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        .daily-entry-row {
+            display:flex;align-items:center;gap:10px;padding:10px 14px;
+            border-bottom:1px solid rgba(255,255,255,0.04);
+            transition:background 0.15s;flex-wrap:wrap;
         }
-        .manage-entry {
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            position: relative;
-            transition: all 0.2s;
+        .daily-entry-row:last-child { border-bottom:none; }
+        .daily-entry-row:hover { background:rgba(255,255,255,0.02); }
+        .daily-entry-row-active { background:linear-gradient(90deg,rgba(14,165,233,0.06),transparent); }
+        .daily-entry-row-tp     { background:linear-gradient(90deg,rgba(16,185,129,0.07),transparent); }
+        .daily-entry-row-inv    { background:linear-gradient(90deg,rgba(239,68,68,0.07),transparent); }
+
+        .daily-sym { font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:800;color:#f1f5f9;min-width:80px; }
+        .daily-side { font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:700;min-width:70px; }
+        .daily-side-bull { color:#34d399; }
+        .daily-side-bear { color:#f87171; }
+
+        .daily-prices { display:flex;gap:6px;flex-wrap:wrap;flex:1; }
+        .daily-price-chip {
+            font-family:'JetBrains Mono',monospace;font-size:0.48rem;
+            padding:3px 7px;border-radius:6px;
+            background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+            color:rgba(203,213,225,0.7);
         }
-        .manage-entry:last-child { margin-bottom: 0; }
-        .manage-entry-active {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(14, 165, 233, 0.04));
-            border: 1px solid rgba(14, 165, 233, 0.25);
+        .daily-price-chip span { color:rgba(148,163,184,0.45);margin-right:3px; }
+
+        .daily-meta { display:flex;align-items:center;gap:5px;flex-wrap:wrap; }
+        .daily-formed-time { font-family:'JetBrains Mono',monospace;font-size:0.46rem;color:rgba(148,163,184,0.4);white-space:nowrap; }
+        .daily-resolved-time { font-family:'JetBrains Mono',monospace;font-size:0.44rem;color:rgba(148,163,184,0.35);white-space:nowrap; }
+
+        .daily-empty { font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(148,163,184,0.25);text-align:center;padding:32px 0; }
+        .daily-summary-bar {
+            display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;
+            background:rgba(10,14,26,0.5);border:1px solid rgba(255,255,255,0.05);
+            flex-wrap:wrap;margin-bottom:12px;
         }
-        .manage-entry-active:hover {
-            border-color: rgba(14, 165, 233, 0.45);
-            box-shadow: 0 0 15px rgba(14, 165, 233, 0.08);
-        }
-        .manage-entry-tp {
-            background: rgba(16, 185, 129, 0.07);
-            border: 1px solid rgba(16, 185, 129, 0.18);
-            opacity: 0.55;
-        }
-        .manage-entry-inv {
-            background: rgba(239, 68, 68, 0.07);
-            border: 1px solid rgba(239, 68, 68, 0.18);
-            opacity: 0.55;
-        }
-        .manage-entry-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .manage-entry-side {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            font-weight: 800;
-        }
-        .manage-entry-side-bull { color: #34d399; }
-        .manage-entry-side-bear { color: #f87171; }
-        .manage-prices {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
-            margin-top: 8px;
-        }
-        .manage-price-cell {
-            padding: 6px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .manage-price-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.40rem;
-            color: rgba(148, 163, 184, 0.45);
-            letter-spacing: 0.06em;
-            display: block;
-        }
-        .manage-price-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.55rem;
-            font-weight: 700;
-            color: #e2e8f0;
-            display: block;
-            margin-top: 2px;
-        }
-        .manage-time {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.44rem;
-            color: rgba(148, 163, 184, 0.45);
-            margin-top: 6px;
-        }
-        .manage-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .manage-act-btn {
-            flex: 1;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.55rem;
-            font-weight: 700;
-            padding: 8px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid;
-            text-align: center;
-        }
-        .manage-act-btn:hover { transform: translateY(-1px); }
-        .manage-act-tp {
-            background: rgba(16, 185, 129, 0.12);
-            border-color: rgba(16, 185, 129, 0.35);
-            color: #34d399;
-        }
-        .manage-act-tp:hover {
-            background: rgba(16, 185, 129, 0.3);
-            border-color: rgba(16, 185, 129, 0.6);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-        }
-        .manage-act-inv {
-            background: rgba(239, 68, 68, 0.12);
-            border-color: rgba(239, 68, 68, 0.35);
-            color: #f87171;
-        }
-        .manage-act-inv:hover {
-            background: rgba(239, 68, 68, 0.3);
-            border-color: rgba(239, 68, 68, 0.6);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
-        }
-        .manage-act-remove {
-            background: rgba(71, 85, 105, 0.15);
-            border-color: rgba(71, 85, 105, 0.35);
-            color: #94a3b8;
-        }
-        .manage-act-remove:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.4);
-            color: #f87171;
-        }
-        .manage-resolved-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.46rem;
-            color: rgba(148, 163, 184, 0.3);
-            text-align: center;
-            font-style: italic;
-        }
-        .manage-empty {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            color: rgba(148, 163, 184, 0.3);
-            text-align: center;
-            padding: 24px 0;
-        }
-        .manage-tf-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.42rem;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 5px;
-            background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
+        .daily-summary-chip { font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;padding:4px 9px;border-radius:7px; }
+        .dsc-active { background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);color:#38bdf8; }
+        .dsc-tp     { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
+        .dsc-inv    { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
+        .dsc-total  { background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24; }
     </style>
 </head>
-
 <body>
 
 <div class="bg-container">
@@ -582,6 +474,36 @@
     </div>
     <div class="feed-grid" id="activityFeed"></div>
 
+    <!-- DAILY REVIEW -->
+    <div class="section-header" style="margin-top:28px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span class="section-title" style="color:#a78bfa;">📆 DAILY REVIEW</span>
+            <span id="dailyReviewCount" class="section-count"
+                  style="background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#a78bfa;">0</span>
+        </div>
+        <button class="toggle-btn active" id="drToggle" onclick="toggleSection('dr')">HIDE</button>
+    </div>
+
+    <div id="dailyReviewPanel">
+        <div class="date-selector-bar">
+            <span class="filter-label" style="margin-right:4px;">DATE</span>
+            <button id="drBtn0" class="date-quick-btn active-date" onclick="setDailyDate(0)">Today</button>
+            <button id="drBtn1" class="date-quick-btn" onclick="setDailyDate(1)">Yesterday</button>
+            <button id="drBtn2" class="date-quick-btn" onclick="setDailyDate(2)">2d ago</button>
+            <button id="drBtn3" class="date-quick-btn" onclick="setDailyDate(3)">3d ago</button>
+            <button id="drBtn4" class="date-quick-btn" onclick="setDailyDate(4)">4d ago</button>
+            <button id="drBtn5" class="date-quick-btn" onclick="setDailyDate(5)">5d ago</button>
+            <button id="drBtn6" class="date-quick-btn" onclick="setDailyDate(6)">6d ago</button>
+            <div class="divider-v"></div>
+            <input type="date" id="drDatePicker" class="date-picker-input"
+                   onchange="setDailyDateFromPicker(this.value)" />
+            <span class="date-ist-label" id="drISTLabel">IST</span>
+        </div>
+        <div id="dailyReviewContent">
+            <div class="daily-empty">Loading...</div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -596,14 +518,14 @@ let crtState = {}, crtLog = [], crtStats = {}, breakoutState = {};
 let activeFilter = 'ALL', activeGrade = 'ALL', activeProfile = 'HTF';
 let crtEventSource = null;
 
-const sections = { tp: false, inv: false, hr: false, feed: true };
+const sections = { tp: false, inv: false, hr: false, feed: true, dr: true };
 
 const moneySound = new Audio('/money.mp3');
 moneySound.volume = 0.85;
 let audioOn = false;
 
 // ══════════════════════════════════════════════
-// PROB HELPER — check if entry qualifies
+// PROB HELPER
 // ══════════════════════════════════════════════
 function entryQualifies(e) {
     if (!e?.hit_prob) return false;
@@ -638,10 +560,11 @@ function toggleSection(id) {
     const btn = document.getElementById(id + 'Toggle');
     btn.textContent = sections[id] ? 'HIDE' : 'SHOW';
     btn.classList.toggle('active', sections[id]);
-    if (id === 'tp')   document.getElementById('tpGrid').style.display       = sections[id] ? '' : 'none';
-    if (id === 'inv')  document.getElementById('invGrid').style.display      = sections[id] ? '' : 'none';
-    if (id === 'hr')   document.getElementById('hitratePanel').style.display = sections[id] ? '' : 'none';
-    if (id === 'feed') document.getElementById('activityFeed').style.display = sections[id] ? '' : 'none';
+    if (id === 'tp')   document.getElementById('tpGrid').style.display          = sections[id] ? '' : 'none';
+    if (id === 'inv')  document.getElementById('invGrid').style.display         = sections[id] ? '' : 'none';
+    if (id === 'hr')   document.getElementById('hitratePanel').style.display    = sections[id] ? '' : 'none';
+    if (id === 'feed') document.getElementById('activityFeed').style.display    = sections[id] ? '' : 'none';
+    if (id === 'dr')   document.getElementById('dailyReviewPanel').style.display = sections[id] ? '' : 'none';
 }
 
 // ══════════════════════════════════════════════
@@ -691,14 +614,10 @@ function closeManageModal(e) {
 
 function refreshManageModal() {
     if (!manageModalOpen || !manageModalSymbol) return;
-    if (!crtState[manageModalSymbol]) {
-        closeManageModal();
-        return;
-    }
+    if (!crtState[manageModalSymbol]) { closeManageModal(); return; }
     document.getElementById('manageContent').innerHTML = buildManageContent(manageModalSymbol);
 }
 
-// Escape key handler for both modals
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         if (manageModalOpen) { closeManageModal(); return; }
@@ -711,25 +630,17 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════════
 async function manualUpdate(sym, tf, entryId, action) {
     const warns = {
-        TP_HIT: `Mark this CRT as TARGET HIT?\n\n${sym} — ${tf}`,
+        TP_HIT:  `Mark this CRT as TARGET HIT?\n\n${sym} — ${tf}`,
         INVALID: `Mark this CRT as INVALIDATED?\n\n${sym} — ${tf}`,
-        REMOVE: `⚠️ REMOVE this entry completely?\n\n${sym} — ${tf}\n\nThis will DELETE it and it will NOT count in statistics.`
+        REMOVE:  `⚠️ REMOVE this entry completely?\n\n${sym} — ${tf}\n\nThis will DELETE it and it will NOT count in statistics.`
     };
-
     if (!confirm(warns[action])) return;
-
     try {
         const r = await fetch('/api/manual-crt-update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ symbol: sym, tf, entryId, action, profile: activeProfile })
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ symbol:sym, tf, entryId, action, profile:activeProfile })
         });
-
-        if (!r.ok) {
-            alert(`Error: ${await r.text()}`);
-            return;
-        }
-
+        if (!r.ok) { alert(`Error: ${await r.text()}`); return; }
         if (action === 'REMOVE') {
             if (crtState[sym]?.[tf]) {
                 const arr = Array.isArray(crtState[sym][tf]) ? crtState[sym][tf] : [crtState[sym][tf]];
@@ -748,11 +659,7 @@ async function manualUpdate(sym, tf, entryId, action) {
                 }
             }
         }
-
-        render();
-        rebuildFeed();
-        refreshStats();
-        refreshManageModal();
+        render(); rebuildFeed(); refreshStats(); refreshManageModal();
     } catch(err) {
         console.error('Manual update error:', err);
         alert('Network error. Please try again.');
@@ -799,18 +706,19 @@ function loadProfileData() {
     });
 }
 function refreshStats() {
-    fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json()).then(d => { crtStats = d.crtStats || {}; renderHitRates(); }).catch(()=>{});
+    fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json())
+        .then(d => { crtStats = d.crtStats || {}; renderHitRates(); }).catch(()=>{});
 }
 function reconnectSSE() {
     if (crtEventSource) crtEventSource.close();
     crtEventSource = new EventSource(`/api/crt-stream?profile=${activeProfile}`);
-    crtEventSource.onopen = () => { dot.className='pulse-dot'; lbl.textContent='LIVE'; lbl.style.color='#34d399'; bdg.className='live-badge'; };
+    crtEventSource.onopen  = () => { dot.className='pulse-dot'; lbl.textContent='LIVE'; lbl.style.color='#34d399'; bdg.className='live-badge'; };
     crtEventSource.onerror = () => { dot.className='pulse-dot offline'; lbl.textContent='RECONNECTING'; lbl.style.color='#f87171'; bdg.className='live-badge offline'; };
     crtEventSource.onmessage = e => {
         const d = JSON.parse(e.data);
         if (d.crtSound) { playSound(); return; }
         if (d.crtState) crtState = d.crtState;
-        if (d.crtLog) crtLog = d.crtLog;
+        if (d.crtLog)   crtLog   = d.crtLog;
         render(); rebuildFeed(); refreshStats();
     };
 }
@@ -827,43 +735,32 @@ function fmtTime(ts) {
 function getTFEntries(sym, tf) { const r = crtState[sym]?.[tf]; return !r ? [] : Array.isArray(r) ? r : [r]; }
 function getAllEntries(sym) { const o = []; CRT_TFS.forEach(tf => getTFEntries(sym, tf).forEach(e => o.push({...e, _tf:tf}))); return o; }
 
-// ── QUALIFIED = entries that pass both grade filter AND ≥65% prob ──
 function getQualifiedEntries(sym) {
     return getAllEntries(sym).filter(e => {
         if (activeGrade !== 'ALL' && e.grade !== activeGrade) return false;
         return entryQualifies(e);
     });
 }
-
-// ── FILTERED = grade filter only (for manage modal which shows ALL) ──
 function getFilteredEntries(sym) {
     return getAllEntries(sym).filter(e => activeGrade === 'ALL' || e.grade === activeGrade);
 }
-
 function getLatestQualifiedEntry(sym, tf) {
     let entries = getTFEntries(sym, tf);
     if (activeGrade !== 'ALL') entries = entries.filter(e => e.grade === activeGrade);
     entries = entries.filter(e => entryQualifies(e));
     return entries.length ? entries[entries.length - 1] : null;
 }
-
 function getLatestEntry(sym, tf) {
     const entries = activeGrade === 'ALL' ? getTFEntries(sym, tf) : getTFEntries(sym, tf).filter(e => e.grade === activeGrade);
     return entries.length ? entries[entries.length - 1] : null;
 }
-
 function getBreakoutDir(sym, tf) { const r = breakoutState[sym]?.[tf]; if (!r) return 'NONE'; const a = Array.isArray(r)?r:[r]; return a.length ? a[a.length-1]?.direction || 'NONE' : 'NONE'; }
 function passesFilter(sym) {
     if (activeFilter === 'ALL') return true;
     const w = getBreakoutDir(sym,'1W') !== 'NONE', m = getBreakoutDir(sym,'1MO') !== 'NONE';
     return activeFilter === 'W_BO' ? w : activeFilter === 'M_BO' ? m : activeFilter === 'BOTH_BO' ? w && m : !w && !m;
 }
-
-// ── Symbol passes if it has at least one qualified entry ──
-function passesProb(sym) {
-    return getQualifiedEntries(sym).length > 0;
-}
-
+function passesProb(sym) { return getQualifiedEntries(sym).length > 0; }
 function getCardType(sym) {
     const qe = getQualifiedEntries(sym);
     const sides = qe.map(e => e.side).filter(s => s);
@@ -872,16 +769,14 @@ function getCardType(sym) {
     if (sides.every(s => s === 'BEARISH')) return 'bear';
     return 'mixed';
 }
-
 function tfCellCls(d, qualified) {
     if (!qualified) return 'tf-cell-dimmed';
     if (!d?.side) return 'tf-cell-none';
     return d.side === 'BULLISH' ? 'tf-cell-bull' : 'tf-cell-bear';
 }
-
 function statusBadge(s) {
-    if (s === 'ACTIVE') return '<span class="status-badge status-active">ACTIVE</span>';
-    if (s === 'TP_HIT') return '<span class="status-badge status-tp">🎯 TP</span>';
+    if (s === 'ACTIVE')  return '<span class="status-badge status-active">ACTIVE</span>';
+    if (s === 'TP_HIT')  return '<span class="status-badge status-tp">🎯 TP</span>';
     if (s === 'INVALID') return '<span class="status-badge status-invalid">❌ INV</span>';
     return '';
 }
@@ -899,7 +794,7 @@ function alignTag(e) {
 }
 
 // ══════════════════════════════════════════════
-// BUILD MANAGE CONTENT (shows ALL entries — not filtered by prob)
+// BUILD MANAGE CONTENT
 // ══════════════════════════════════════════════
 function buildManageContent(sym) {
     const allEntries = [];
@@ -912,138 +807,91 @@ function buildManageContent(sym) {
 
     if (allEntries.length === 0) {
         return `<div class="manage-header">
-            <div>
-                <div class="manage-header-title">⚙️ MANAGE CRTs</div>
-                <div class="manage-header-sym">${sym}</div>
-            </div>
+            <div><div class="manage-header-title">⚙️ MANAGE CRTs</div>
+            <div class="manage-header-sym">${sym}</div></div>
         </div>
         <div class="manage-empty">No entries found for this coin.</div>`;
     }
 
-    const activeEntries = allEntries.filter(e => e.status === 'ACTIVE');
+    const activeEntries   = allEntries.filter(e => e.status === 'ACTIVE');
     const resolvedEntries = allEntries.filter(e => e.status !== 'ACTIVE');
 
     let html = `<div class="manage-header">
-        <div>
-            <div class="manage-header-title">⚙️ MANAGE CRTs</div>
-            <div class="manage-header-sym">${sym}</div>
-        </div>
+        <div><div class="manage-header-title">⚙️ MANAGE CRTs</div>
+        <div class="manage-header-sym">${sym}</div></div>
         <span class="manage-header-count">🔵 ${activeEntries.length} active · ${allEntries.length} total</span>
     </div>`;
 
-    // ── ACTIVE ENTRIES ──
     if (activeEntries.length === 0) {
         html += `<div class="manage-empty">No active entries to manage</div>`;
     } else {
         html += `<div class="manage-section-label">🔵 ACTIVE ENTRIES</div>`;
         activeEntries.forEach(e => {
             const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
-            const sideCls = e.side === 'BULLISH' ? 'manage-entry-side-bull' : 'manage-entry-side-bear';
-            const gb = e.grade === 'A+'
-                ? '<span class="grade-badge-aplus" style="font-size:0.42rem;">⭐ A+</span>'
-                : e.grade === 'B+'
-                ? '<span class="grade-badge-bplus" style="font-size:0.42rem;">🔶 B+</span>' : '';
-            const at = alignTag(e);
-            const pb = probBadgeHtml(e);
+            const sideCls  = e.side === 'BULLISH' ? 'manage-entry-side-bull' : 'manage-entry-side-bear';
+            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.42rem;">⭐ A+</span>'
+                     : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.42rem;">🔶 B+</span>' : '';
+            const at = alignTag(e), pb = probBadgeHtml(e);
             const qualLabel = entryQualifies(e)
                 ? '<span class="prob-badge prob-badge-high" style="font-size:0.38rem;">✅ QUAL</span>'
                 : '<span class="prob-badge prob-badge-low" style="font-size:0.38rem;">⚪ NO QUAL</span>';
-
             html += `<div class="manage-entry manage-entry-active">
                 <div class="manage-entry-head">
                     <div style="display:flex;align-items:center;gap:6px;">
                         <span class="manage-entry-side ${sideCls}">${sideIcon} ${e.side}</span>
-                        <span class="manage-tf-tag">${TF_LABELS_CRT[e._tf]}</span>
-                        ${gb}
+                        <span class="manage-tf-tag">${TF_LABELS_CRT[e._tf]}</span>${gb}
                     </div>
-                    <div style="display:flex;align-items:center;gap:4px;">
-                        ${statusBadge(e.status)}
-                        ${at}
-                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">${statusBadge(e.status)}${at}</div>
                 </div>
-                <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
-                    ${pb} ${qualLabel}
-                </div>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">${pb} ${qualLabel}</div>
                 <div class="manage-prices">
-                    <div class="manage-price-cell">
-                        <span class="manage-price-label">REJ</span>
-                        <span class="manage-price-value">${e.rej || '—'}</span>
-                    </div>
-                    <div class="manage-price-cell">
-                        <span class="manage-price-label">BO</span>
-                        <span class="manage-price-value">${e.bo || '—'}</span>
-                    </div>
-                    <div class="manage-price-cell">
-                        <span class="manage-price-label">EXT</span>
-                        <span class="manage-price-value">${e.ext || '—'}</span>
-                    </div>
-                    <div class="manage-price-cell">
-                        <span class="manage-price-label">TGT</span>
-                        <span class="manage-price-value">${e.tgt || '—'}</span>
-                    </div>
+                    <div class="manage-price-cell"><span class="manage-price-label">REJ</span><span class="manage-price-value">${e.rej||'—'}</span></div>
+                    <div class="manage-price-cell"><span class="manage-price-label">BO</span><span class="manage-price-value">${e.bo||'—'}</span></div>
+                    <div class="manage-price-cell"><span class="manage-price-label">EXT</span><span class="manage-price-value">${e.ext||'—'}</span></div>
+                    <div class="manage-price-cell"><span class="manage-price-label">TGT</span><span class="manage-price-value">${e.tgt||'—'}</span></div>
                 </div>
                 <div class="manage-time">🕐 ${fmtTime(e.timestamp)}</div>
                 <div class="manage-actions">
-                    <button class="manage-act-btn manage-act-tp"
-                        onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','TP_HIT')">
-                        🎯 TP HIT
-                    </button>
-                    <button class="manage-act-btn manage-act-inv"
-                        onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','INVALID')">
-                        ❌ INVALID
-                    </button>
-                    <button class="manage-act-btn manage-act-remove"
-                        onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','REMOVE')">
-                        🗑️ REMOVE
-                    </button>
+                    <button class="manage-act-btn manage-act-tp" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','TP_HIT')">🎯 TP HIT</button>
+                    <button class="manage-act-btn manage-act-inv" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','INVALID')">❌ INVALID</button>
+                    <button class="manage-act-btn manage-act-remove" onclick="event.stopPropagation();manualUpdate('${sym}','${e._tf}','${e.id}','REMOVE')">🗑️ REMOVE</button>
                 </div>
             </div>`;
         });
     }
 
-    // ── RESOLVED ENTRIES ──
     if (resolvedEntries.length > 0) {
         html += `<div class="manage-section-label">📋 RESOLVED (${resolvedEntries.length})</div>`;
         resolvedEntries.forEach(e => {
-            const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
-            const entryCls = e.status === 'TP_HIT' ? 'manage-entry-tp' : 'manage-entry-inv';
+            const sideIcon   = e.side === 'BULLISH' ? '🐂' : '🐻';
+            const entryCls   = e.status === 'TP_HIT' ? 'manage-entry-tp' : 'manage-entry-inv';
             const statusLabel = e.status === 'TP_HIT' ? '🎯 TP HIT' : '❌ INVALIDATED';
-            const gb = e.grade === 'A+'
-                ? '<span class="grade-badge-aplus" style="font-size:0.40rem;">⭐ A+</span>'
-                : e.grade === 'B+'
-                ? '<span class="grade-badge-bplus" style="font-size:0.40rem;">🔶 B+</span>' : '';
+            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.40rem;">⭐ A+</span>'
+                     : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.40rem;">🔶 B+</span>' : '';
             const resolvedTime = e.status === 'TP_HIT' ? e.tp_time : e.inv_time;
             const pb = probBadgeHtml(e);
-
             html += `<div class="manage-entry ${entryCls}">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:5px;">
-                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.52rem;font-weight:700;">
-                            ${sideIcon} ${e.side}
-                        </span>
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.52rem;font-weight:700;">${sideIcon} ${e.side}</span>
                         <span class="manage-tf-tag" style="font-size:0.40rem;">${TF_LABELS_CRT[e._tf]}</span>
                         ${gb} ${pb}
                     </div>
-                    <div style="display:flex;align-items:center;gap:4px;">
-                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.44rem;font-weight:700;color:rgba(148,163,184,0.5);">
-                            ${statusLabel}
-                        </span>
-                    </div>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:0.44rem;font-weight:700;color:rgba(148,163,184,0.5);">${statusLabel}</span>
                 </div>
                 ${resolvedTime ? `<div class="manage-time" style="margin-top:4px;">🕐 ${fmtTime(resolvedTime)}</div>` : ''}
             </div>`;
         });
     }
-
     return html;
 }
 
 // ══════════════════════════════════════════════
-// BUILD CARD HTML (only shows qualified TF cells)
+// BUILD CARD HTML
 // ══════════════════════════════════════════════
 function buildCard(sym) {
-    const type = getCardType(sym);
-    const cls = {bull:'card-bull',bear:'card-bear',mixed:'card-mixed',idle:'card-idle'}[type] || 'card-idle';
+    const type  = getCardType(sym);
+    const cls   = {bull:'card-bull',bear:'card-bear',mixed:'card-mixed',idle:'card-idle'}[type] || 'card-idle';
     const badge = {bull:'<span class="card-badge-bull">🐂</span>',bear:'<span class="card-badge-bear">🐻</span>',mixed:'<span class="card-badge-mixed">🔀</span>',idle:'<span class="card-badge-idle">—</span>'}[type];
 
     const qe = getQualifiedEntries(sym);
@@ -1071,8 +919,8 @@ function buildCard(sym) {
     qe.forEach(e => { if (e.status==='ACTIVE') active++; if (e.status==='TP_HIT') tp++; if (e.status==='INVALID') inv++; });
     const parts = [];
     if (active > 0) parts.push(`🔵${active}`);
-    if (tp > 0) parts.push(`🎯${tp}`);
-    if (inv > 0) parts.push(`❌${inv}`);
+    if (tp > 0)     parts.push(`🎯${tp}`);
+    if (inv > 0)    parts.push(`❌${inv}`);
     const abCls = type==='bull'?'align-bar-bull':type==='bear'?'align-bar-bear':type==='mixed'?'align-bar-mixed':'align-bar-none';
     const abTxt = parts.length ? parts.join(' · ') : '—';
 
@@ -1082,7 +930,6 @@ function buildCard(sym) {
         const isQualified = !!qEntry;
         const d = qEntry || getLatestEntry(sym, tf);
 
-        // Count only qualified entries for this TF
         let qualEntries = getTFEntries(sym, tf).filter(e => entryQualifies(e));
         if (activeGrade !== 'ALL') qualEntries = qualEntries.filter(e => e.grade === activeGrade);
         const cnt = qualEntries.length;
@@ -1116,10 +963,9 @@ function buildCard(sym) {
                 ${d?.timestamp ? `<div style="color:rgba(203,213,225,0.6);font-size:0.42rem;margin-top:2px;">🕐 ${fmtTime(d.timestamp)}</div>` : ''}
             </div>`;
         } else {
-            // Dimmed cell — no qualified entry for this TF
             tfCells += `<div class="tf-cell tf-cell-dimmed">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-                    <span style="color:rgba(203,213,225,0.3);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
+                    <span style="color:rgba(203,213,224,0.3);font-size:0.40rem;letter-spacing:.04em;">${TF_LABELS_CRT[tf]}</span>
                     <span style="font-size:0.6rem;opacity:0.3;">—</span>
                 </div>
                 <div style="color:rgba(203,213,225,0.25);font-size:0.40rem;">—</div>
@@ -1143,7 +989,7 @@ function buildCard(sym) {
 }
 
 // ══════════════════════════════════════════════
-// RENDER (cards only show qualified entries)
+// RENDER
 // ══════════════════════════════════════════════
 function render() {
     const allSyms = Object.keys(crtState).sort((a, b) => {
@@ -1153,10 +999,8 @@ function render() {
         return mb - ma;
     });
 
-    // Only show symbols that pass filter, AND have at least one qualified entry
     const syms = allSyms.filter(s => passesFilter(s) && passesProb(s));
 
-    // Stats pills: count only qualified entries across ALL symbols
     let totalBull=0,totalBear=0,totalActive=0,totalTP=0,totalInv=0,totalEntries=0,totalAplus=0,totalBplus=0;
     allSyms.forEach(sym => getQualifiedEntries(sym).forEach(e => {
         totalEntries++;
@@ -1169,140 +1013,98 @@ function render() {
         if (e.grade==='B+') totalBplus++;
     }));
 
-    document.getElementById('activeCount').textContent = syms.length;
-    document.getElementById('bullPill').textContent   = `🐂 ${totalBull}`;
-    document.getElementById('bearPill').textContent   = `🐻 ${totalBear}`;
-    document.getElementById('aplusPill').textContent  = `⭐ ${totalAplus}`;
-    document.getElementById('bplusPill').textContent  = `🔶 ${totalBplus}`;
-    document.getElementById('activePill').textContent = `🔵 ${totalActive}`;
-    document.getElementById('tpPill').textContent     = `🎯 ${totalTP}`;
-    document.getElementById('invPill').textContent    = `❌ ${totalInv}`;
-    document.getElementById('totalPill').textContent  = `🔄 ${totalEntries}`;
+    document.getElementById('activeCount').textContent  = syms.length;
+    document.getElementById('bullPill').textContent    = `🐂 ${totalBull}`;
+    document.getElementById('bearPill').textContent    = `🐻 ${totalBear}`;
+    document.getElementById('aplusPill').textContent   = `⭐ ${totalAplus}`;
+    document.getElementById('bplusPill').textContent   = `🔶 ${totalBplus}`;
+    document.getElementById('activePill').textContent  = `🔵 ${totalActive}`;
+    document.getElementById('tpPill').textContent      = `🎯 ${totalTP}`;
+    document.getElementById('invPill').textContent     = `❌ ${totalInv}`;
+    document.getElementById('totalPill').textContent   = `🔄 ${totalEntries}`;
 
     const categorized = { active: [], tp: [], inv: [] };
     syms.forEach(sym => {
         const qe = getQualifiedEntries(sym);
         if (qe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
         if (qe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
-        if (qe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
+        if (qe.some(e => e.status === 'INVALID'))  categorized.inv.push(sym);
     });
 
-    const activeEntryCount = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'ACTIVE').length, 0);
-    const tpEntryCount     = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'TP_HIT').length, 0);
+    const activeEntryCount = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'ACTIVE').length,  0);
+    const tpEntryCount     = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'TP_HIT').length,  0);
     const invEntryCount    = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'INVALID').length, 0);
 
     const ag = document.getElementById('activeGrid');
     document.getElementById('activeSectionCount').textContent = activeEntryCount;
-    if (!categorized.active.length) {
-        ag.innerHTML = '<p class="empty-state">No active CRTs with ≥65% probability.</p>';
-    } else {
-        ag.innerHTML = categorized.active.map(s => buildCard(s)).join('');
-    }
+    ag.innerHTML = categorized.active.length
+        ? categorized.active.map(s => buildCard(s)).join('')
+        : '<p class="empty-state">No active CRTs with ≥65% probability.</p>';
 
     const tg = document.getElementById('tpGrid');
     document.getElementById('tpSectionCount').textContent = tpEntryCount;
-    if (!categorized.tp.length) { tg.innerHTML = '<p class="empty-state">No target hits with ≥65% probability.</p>'; }
-    else { tg.innerHTML = categorized.tp.map(s => buildCard(s)).join(''); }
+    tg.innerHTML = categorized.tp.length
+        ? categorized.tp.map(s => buildCard(s)).join('')
+        : '<p class="empty-state">No target hits with ≥65% probability.</p>';
 
     const ig = document.getElementById('invGrid');
     document.getElementById('invSectionCount').textContent = invEntryCount;
-    if (!categorized.inv.length) { ig.innerHTML = '<p class="empty-state">No invalidated CRTs with ≥65% probability.</p>'; }
-    else { ig.innerHTML = categorized.inv.map(s => buildCard(s)).join(''); }
+    ig.innerHTML = categorized.inv.length
+        ? categorized.inv.map(s => buildCard(s)).join('')
+        : '<p class="empty-state">No invalidated CRTs with ≥65% probability.</p>';
 
     renderHitRates();
     refreshManageModal();
+    renderDailyReview();
 }
 
 // ══════════════════════════════════════════════
-// HIT RATES (unchanged — uses ALL data)
+// HIT RATES
 // ══════════════════════════════════════════════
-function getHRCardClass(rate) { if (rate==='—') return 'hitrate-card-neutral'; const v = parseFloat(rate); return v>=60?'hitrate-card-good':v>=40?'hitrate-card-warn':'hitrate-card-bad'; }
-function getHRValueClass(rate) { if (rate==='—') return 'hitrate-value-neutral'; const v = parseFloat(rate); return v>=60?'hitrate-value-good':v>=40?'hitrate-value-warn':'hitrate-value-bad'; }
+function getHRCardClass(rate)  { if (rate==='—') return 'hitrate-card-neutral'; const v=parseFloat(rate); return v>=60?'hitrate-card-good':v>=40?'hitrate-card-warn':'hitrate-card-bad'; }
+function getHRValueClass(rate) { if (rate==='—') return 'hitrate-value-neutral'; const v=parseFloat(rate); return v>=60?'hitrate-value-good':v>=40?'hitrate-value-warn':'hitrate-value-bad'; }
 function hrCard(icon, label, s, ec) {
     if (!s) return '';
-    const r = s.hit_rate, res = s.tp + s.inv, c = ec || getHRCardClass(r);
+    const r=s.hit_rate, res=s.tp+s.inv, c=ec||getHRCardClass(r);
     return `<div class="hitrate-card ${c}"><div class="hitrate-label">${icon} ${label}</div><div class="hitrate-value ${getHRValueClass(r)}">${r==='—'?'—':r+'%'}</div><div class="hitrate-sub">🎯${s.tp} ❌${s.inv} 🔵${s.active} · ${res} res</div></div>`;
 }
-
 function renderHitRates() {
     const g = document.getElementById('hitrateGrid');
     if (!crtStats?.overall) { g.innerHTML = '<p class="empty-state">No data yet...</p>'; return; }
     const s = crtStats;
     let h = '';
-
     h += `<div class="hitrate-section-label">📊 OVERALL</div>`;
-    h += hrCard('📊','OVERALL',s.overall)
-       + hrCard('⭐','A+',s.overall_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','B+',s.overall_bplus,'hitrate-card-bplus');
-
+    h += hrCard('📊','OVERALL',s.overall)+hrCard('⭐','A+',s.overall_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.overall_bplus,'hitrate-card-bplus');
     h += `<div class="hitrate-section-label">📅 DAILY</div>`;
-    h += hrCard('📅','ALL',s.daily)
-       + hrCard('⭐','A+',s.daily_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','B+',s.daily_bplus,'hitrate-card-bplus');
-    h += hrCard('✅','MO+W',s.daily_mo_w)
-       + hrCard('⭐','MO+W A+',s.daily_mo_w_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','MO+W B+',s.daily_mo_w_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.daily_mo)
-       + hrCard('⭐','MO A+',s.daily_mo_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','MO B+',s.daily_mo_bplus,'hitrate-card-bplus');
-    h += hrCard('🔵','W',s.daily_w)
-       + hrCard('⭐','W A+',s.daily_w_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','W B+',s.daily_w_bplus,'hitrate-card-bplus');
-    h += hrCard('⚪','NONE',s.daily_none)
-       + hrCard('⭐','NONE A+',s.daily_none_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','NONE B+',s.daily_none_bplus,'hitrate-card-bplus');
-
+    h += hrCard('📅','ALL',s.daily)+hrCard('⭐','A+',s.daily_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.daily_bplus,'hitrate-card-bplus');
+    h += hrCard('✅','MO+W',s.daily_mo_w)+hrCard('⭐','MO+W A+',s.daily_mo_w_aplus,'hitrate-card-aplus')+hrCard('🔶','MO+W B+',s.daily_mo_w_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','MO',s.daily_mo)+hrCard('⭐','MO A+',s.daily_mo_aplus,'hitrate-card-aplus')+hrCard('🔶','MO B+',s.daily_mo_bplus,'hitrate-card-bplus');
+    h += hrCard('🔵','W',s.daily_w)+hrCard('⭐','W A+',s.daily_w_aplus,'hitrate-card-aplus')+hrCard('🔶','W B+',s.daily_w_bplus,'hitrate-card-bplus');
+    h += hrCard('⚪','NONE',s.daily_none)+hrCard('⭐','NONE A+',s.daily_none_aplus,'hitrate-card-aplus')+hrCard('🔶','NONE B+',s.daily_none_bplus,'hitrate-card-bplus');
     h += `<div class="hitrate-section-label">📆 WEEKLY</div>`;
-    h += hrCard('📆','ALL',s.weekly)
-       + hrCard('⭐','A+',s.weekly_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','B+',s.weekly_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.weekly_mo)
-       + hrCard('⭐','MO A+',s.weekly_mo_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','MO B+',s.weekly_mo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚪','NONE',s.weekly_none)
-       + hrCard('⭐','NONE A+',s.weekly_none_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','NONE B+',s.weekly_none_bplus,'hitrate-card-bplus');
-
+    h += hrCard('📆','ALL',s.weekly)+hrCard('⭐','A+',s.weekly_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.weekly_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','MO',s.weekly_mo)+hrCard('⭐','MO A+',s.weekly_mo_aplus,'hitrate-card-aplus')+hrCard('🔶','MO B+',s.weekly_mo_bplus,'hitrate-card-bplus');
+    h += hrCard('⚪','NONE',s.weekly_none)+hrCard('⭐','NONE A+',s.weekly_none_aplus,'hitrate-card-aplus')+hrCard('🔶','NONE B+',s.weekly_none_bplus,'hitrate-card-bplus');
     h += `<div class="hitrate-section-label">⏰ 4H</div>`;
-    h += hrCard('⏰','ALL',s.fourh)
-       + hrCard('⭐','A+',s.fourh_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','B+',s.fourh_bplus,'hitrate-card-bplus');
-    h += hrCard('✅','D+W+MO',s.fourh_dwm)
-       + hrCard('⭐','DWM A+',s.fourh_dwm_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','DWM B+',s.fourh_dwm_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','D+W',s.fourh_dw)
-       + hrCard('⭐','DW A+',s.fourh_dw_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','DW B+',s.fourh_dw_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','D+MO',s.fourh_dmo)
-       + hrCard('⭐','DMO A+',s.fourh_dmo_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','DMO B+',s.fourh_dmo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','D',s.fourh_d)
-       + hrCard('⭐','D A+',s.fourh_d_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','D B+',s.fourh_d_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','W+MO',s.fourh_wmo)
-       + hrCard('⭐','WMO A+',s.fourh_wmo_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','WMO B+',s.fourh_wmo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','W',s.fourh_w)
-       + hrCard('⭐','W A+',s.fourh_w_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','W B+',s.fourh_w_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.fourh_mo)
-       + hrCard('⭐','MO A+',s.fourh_mo_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','MO B+',s.fourh_mo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚪','NONE',s.fourh_none)
-       + hrCard('⭐','NONE A+',s.fourh_none_aplus,'hitrate-card-aplus')
-       + hrCard('🔶','NONE B+',s.fourh_none_bplus,'hitrate-card-bplus');
-
+    h += hrCard('⏰','ALL',s.fourh)+hrCard('⭐','A+',s.fourh_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.fourh_bplus,'hitrate-card-bplus');
+    h += hrCard('✅','D+W+MO',s.fourh_dwm)+hrCard('⭐','DWM A+',s.fourh_dwm_aplus,'hitrate-card-aplus')+hrCard('🔶','DWM B+',s.fourh_dwm_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','D+W',s.fourh_dw)+hrCard('⭐','DW A+',s.fourh_dw_aplus,'hitrate-card-aplus')+hrCard('🔶','DW B+',s.fourh_dw_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','D+MO',s.fourh_dmo)+hrCard('⭐','DMO A+',s.fourh_dmo_aplus,'hitrate-card-aplus')+hrCard('🔶','DMO B+',s.fourh_dmo_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','D',s.fourh_d)+hrCard('⭐','D A+',s.fourh_d_aplus,'hitrate-card-aplus')+hrCard('🔶','D B+',s.fourh_d_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','W+MO',s.fourh_wmo)+hrCard('⭐','WMO A+',s.fourh_wmo_aplus,'hitrate-card-aplus')+hrCard('🔶','WMO B+',s.fourh_wmo_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','W',s.fourh_w)+hrCard('⭐','W A+',s.fourh_w_aplus,'hitrate-card-aplus')+hrCard('🔶','W B+',s.fourh_w_bplus,'hitrate-card-bplus');
+    h += hrCard('⚡','MO',s.fourh_mo)+hrCard('⭐','MO A+',s.fourh_mo_aplus,'hitrate-card-aplus')+hrCard('🔶','MO B+',s.fourh_mo_bplus,'hitrate-card-bplus');
+    h += hrCard('⚪','NONE',s.fourh_none)+hrCard('⭐','NONE A+',s.fourh_none_aplus,'hitrate-card-aplus')+hrCard('🔶','NONE B+',s.fourh_none_bplus,'hitrate-card-bplus');
     g.innerHTML = h;
 }
 
 // ══════════════════════════════════════════════
-// SIGNAL FEED (unchanged — shows ALL signals)
+// SIGNAL FEED
 // ══════════════════════════════════════════════
 function rebuildFeed() {
     const feed = document.getElementById('activityFeed');
     const logs = activeGrade === 'ALL' ? crtLog : crtLog.filter(e => e.grade === activeGrade);
     document.getElementById('feedCount').textContent = logs.length;
-
     if (!logs.length) {
         feed.innerHTML = `<p class="empty-state">${activeGrade!=='ALL'?`No ${activeGrade} signals.`:'Awaiting CRT signals...'}</p>`;
         return;
@@ -1326,18 +1128,228 @@ function rebuildFeed() {
 }
 
 // ══════════════════════════════════════════════
+// DAILY REVIEW — IST HELPERS
+// ══════════════════════════════════════════════
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // UTC+5:30
+
+function toISTMidnight(daysAgo) {
+    const nowIST  = Date.now() + IST_OFFSET_MS;
+    const istDate = new Date(nowIST);
+    istDate.setUTCHours(0, 0, 0, 0);
+    const targetIST = new Date(istDate.getTime() - daysAgo * 86400000);
+    const startUTC  = targetIST.getTime() - IST_OFFSET_MS;
+    const endUTC    = startUTC + 86400000 - 1;
+    return { startUTC, endUTC };
+}
+
+function toISTMidnightFromDate(dateStr) {
+    // dateStr = "YYYY-MM-DD" — treat as IST date
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const startUTC  = Date.UTC(y, m - 1, d) - IST_OFFSET_MS;
+    const endUTC    = startUTC + 86400000 - 1;
+    return { startUTC, endUTC };
+}
+
+function istDateLabel(startUTC) {
+    const ist = new Date(startUTC + IST_OFFSET_MS);
+    return ist.toLocaleDateString('en-IN', {
+        weekday:'short', day:'numeric', month:'short', year:'numeric', timeZone:'UTC'
+    }) + ' IST';
+}
+
+function fmtTimeIST(ts) {
+    if (!ts) return '—';
+    const ist = new Date(ts + IST_OFFSET_MS);
+    const hh  = String(ist.getUTCHours()).padStart(2, '0');
+    const mm  = String(ist.getUTCMinutes()).padStart(2, '0');
+    const ss  = String(ist.getUTCSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss} IST`;
+}
+
+// Daily Review state
+let drDaysAgo    = 0;
+let drCustomDate = null;
+let drMode       = 'quick';
+
+function setDailyDate(daysAgo) {
+    drDaysAgo    = daysAgo;
+    drCustomDate = null;
+    drMode       = 'quick';
+    for (let i = 0; i <= 6; i++) {
+        const btn = document.getElementById('drBtn' + i);
+        if (btn) btn.classList.toggle('active-date', i === daysAgo);
+    }
+    const picker = document.getElementById('drDatePicker');
+    picker.classList.remove('active-date');
+    picker.value = '';
+    renderDailyReview();
+}
+
+function setDailyDateFromPicker(val) {
+    if (!val) return;
+    drCustomDate = val;
+    drMode       = 'picker';
+    for (let i = 0; i <= 6; i++) {
+        const btn = document.getElementById('drBtn' + i);
+        if (btn) btn.classList.remove('active-date');
+    }
+    document.getElementById('drDatePicker').classList.add('active-date');
+    renderDailyReview();
+}
+
+function getDateRange() {
+    if (drMode === 'picker' && drCustomDate) return toISTMidnightFromDate(drCustomDate);
+    return toISTMidnight(drDaysAgo);
+}
+
+// ══════════════════════════════════════════════
+// RENDER DAILY REVIEW
+// ══════════════════════════════════════════════
+function renderDailyReview() {
+    const { startUTC, endUTC } = getDateRange();
+    const label = istDateLabel(startUTC);
+
+    document.getElementById('drISTLabel').textContent = label;
+
+    const TF_ORDER = ['1W', '1D', '4H'];
+    const TF_ICONS = { '1W':'📆', '1D':'📅', '4H':'⏰' };
+    const TF_NAMES = { '1W':'WEEKLY', '1D':'DAILY', '4H':'4-HOUR' };
+
+    const grouped = { '1W': [], '1D': [], '4H': [] };
+    let totalCount = 0;
+
+    for (const sym in crtState) {
+        for (const tf of TF_ORDER) {
+            const entries = Array.isArray(crtState[sym]?.[tf])
+                ? crtState[sym][tf]
+                : crtState[sym]?.[tf] ? [crtState[sym][tf]] : [];
+
+            for (const e of entries) {
+                if (!e?.side) continue;
+                const ts = e.timestamp || 0;
+                if (ts < startUTC || ts > endUTC) continue;
+                if (!entryQualifies(e)) continue;
+                if (activeGrade !== 'ALL' && e.grade !== activeGrade) continue;
+                grouped[tf].push({ sym, e });
+                totalCount++;
+            }
+        }
+    }
+
+    // Sort each group by timestamp ascending
+    for (const tf of TF_ORDER) {
+        grouped[tf].sort((a, b) => (a.e.timestamp || 0) - (b.e.timestamp || 0));
+    }
+
+    document.getElementById('dailyReviewCount').textContent = totalCount;
+
+    if (totalCount === 0) {
+        document.getElementById('dailyReviewContent').innerHTML =
+            `<div class="daily-empty">📭 No qualifying CRTs (≥65%) formed on ${label}</div>`;
+        return;
+    }
+
+    let sumActive = 0, sumTP = 0, sumInv = 0;
+    for (const tf of TF_ORDER) {
+        grouped[tf].forEach(({ e }) => {
+            if (e.status === 'ACTIVE')  sumActive++;
+            if (e.status === 'TP_HIT') sumTP++;
+            if (e.status === 'INVALID') sumInv++;
+        });
+    }
+
+    let html = `
+        <div class="daily-summary-bar">
+            <span class="daily-summary-chip dsc-total">🔄 ${totalCount} total</span>
+            <span class="daily-summary-chip dsc-active">🔵 ${sumActive} active</span>
+            <span class="daily-summary-chip dsc-tp">🎯 ${sumTP} TP hit</span>
+            <span class="daily-summary-chip dsc-inv">❌ ${sumInv} invalid</span>
+        </div>
+        <div class="daily-review-grid">
+    `;
+
+    for (const tf of TF_ORDER) {
+        const items = grouped[tf];
+        if (!items.length) continue;
+
+        html += `
+            <div class="daily-tf-group">
+                <div class="daily-tf-header">
+                    ${TF_ICONS[tf]} ${TF_NAMES[tf]}
+                    <span class="daily-tf-header-count">${items.length} signal${items.length > 1 ? 's' : ''}</span>
+                </div>
+        `;
+
+        for (const { sym, e } of items) {
+            const rowCls = e.status === 'ACTIVE'  ? 'daily-entry-row-active'
+                         : e.status === 'TP_HIT'  ? 'daily-entry-row-tp'
+                         : 'daily-entry-row-inv';
+
+            const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
+            const sideCls  = e.side === 'BULLISH' ? 'daily-side-bull' : 'daily-side-bear';
+
+            let resolvedLine = '';
+            if (e.status === 'TP_HIT' && e.tp_time) {
+                resolvedLine = `<span class="daily-resolved-time">🎯 ${fmtTimeIST(e.tp_time)}</span>`;
+            } else if (e.status === 'INVALID' && e.inv_time) {
+                resolvedLine = `<span class="daily-resolved-time">❌ ${fmtTimeIST(e.inv_time)}</span>`;
+            }
+
+            html += `
+                <div class="daily-entry-row ${rowCls}">
+                    <div class="daily-sym">${sym}</div>
+                    <div class="daily-side ${sideCls}">${sideIcon} ${e.side}</div>
+                    <div class="daily-prices">
+                        <span class="daily-price-chip"><span>REJ</span>${e.rej || '—'}</span>
+                        <span class="daily-price-chip"><span>BO</span>${e.bo || '—'}</span>
+                        <span class="daily-price-chip"><span>EXT</span>${e.ext || '—'}</span>
+                        <span class="daily-price-chip"><span>TGT</span>${e.tgt || '—'}</span>
+                    </div>
+                    <div class="daily-meta">
+                        ${statusBadge(e.status)}
+                        ${gradeBadge(e.grade)}
+                        ${alignTag(e)}
+                        ${probBadgeHtml(e)}
+                        <span class="daily-formed-time">🕐 ${fmtTimeIST(e.timestamp)}</span>
+                        ${resolvedLine}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `</div>`; // close daily-tf-group
+    }
+
+    html += `</div>`; // close daily-review-grid
+    document.getElementById('dailyReviewContent').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
 const dot = document.getElementById('pulseDot');
 const lbl = document.getElementById('liveLabel');
 const bdg = document.getElementById('liveBadge');
 
+// Set date picker max to today IST and init daily review
+(function initDailyReview() {
+    const nowIST   = new Date(Date.now() + IST_OFFSET_MS);
+    const yyyy     = nowIST.getUTCFullYear();
+    const mm       = String(nowIST.getUTCMonth() + 1).padStart(2, '0');
+    const dd       = String(nowIST.getUTCDate()).padStart(2, '0');
+    const todayIST = `${yyyy}-${mm}-${dd}`;
+    document.getElementById('drDatePicker').max = todayIST;
+})();
+
 loadProfileData();
 reconnectSSE();
 setInterval(refreshStats, 30000);
 
 const boEs = new EventSource('/api/breakout-stream');
-boEs.onmessage = e => { const d = JSON.parse(e.data); if (d.breakoutState) { breakoutState = d.breakoutState; render(); } };
+boEs.onmessage = e => {
+    const d = JSON.parse(e.data);
+    if (d.breakoutState) { breakoutState = d.breakoutState; render(); }
+};
 </script>
 </body>
 </html>
