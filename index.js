@@ -1042,7 +1042,7 @@ function buildActiveCRTMsg() {
 }
 
 function buildStatsMsg() {
-    const s  = buildCRTStats('HTF');
+    const s  = buildFilteredCRTStats('HTF');
     const ts = nowUTC();
 
     function block(label, b) {
@@ -1560,6 +1560,10 @@ function migrateCRTState(state){
 // ══════════════════════════════════════════════
 // BUILD CRT STATS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// BUILD CRT STATS — RAW (used internally by calcHitProbability)
+// Does NOT filter by probability to avoid circular dependency
+// ══════════════════════════════════════════════
 function buildCRTStats(profile) {
     const cs = getCRTState(profile);
     const B = () => ({ total:0, tp:0, inv:0, active:0 });
@@ -1571,12 +1575,19 @@ function buildCRTStats(profile) {
         daily_mo:B(), daily_mo_aplus:B(), daily_mo_bplus:B(),
         daily_w:B(), daily_w_aplus:B(), daily_w_bplus:B(),
         daily_none:B(), daily_none_aplus:B(), daily_none_bplus:B(),
+        weekly_none_aplus:B(), weekly_none_bplus:B(),
         weekly:B(), weekly_aplus:B(), weekly_bplus:B(),
         weekly_mo:B(), weekly_mo_aplus:B(), weekly_mo_bplus:B(),
-        weekly_none:B(), weekly_none_aplus:B(), weekly_none_bplus:B(),
+        weekly_none:B(),
         fourh:B(), fourh_aplus:B(), fourh_bplus:B(),
-        fourh_dwm:B(), fourh_dw:B(), fourh_dmo:B(), fourh_d:B(),
-        fourh_wmo:B(), fourh_w:B(), fourh_mo:B(), fourh_none:B(),
+        fourh_dwm:B(), fourh_dwm_aplus:B(), fourh_dwm_bplus:B(),
+        fourh_dw:B(), fourh_dw_aplus:B(), fourh_dw_bplus:B(),
+        fourh_dmo:B(), fourh_dmo_aplus:B(), fourh_dmo_bplus:B(),
+        fourh_d:B(), fourh_d_aplus:B(), fourh_d_bplus:B(),
+        fourh_wmo:B(), fourh_wmo_aplus:B(), fourh_wmo_bplus:B(),
+        fourh_w:B(), fourh_w_aplus:B(), fourh_w_bplus:B(),
+        fourh_mo:B(), fourh_mo_aplus:B(), fourh_mo_bplus:B(),
+        fourh_none:B(), fourh_none_aplus:B(), fourh_none_bplus:B(),
     };
 
     function inc(bucket, status) {
@@ -1590,58 +1601,60 @@ function buildCRTStats(profile) {
     for (const sym in cs) {
         for (const tf in cs[sym]) {
             const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
-
             for (const entry of entries) {
                 if (!entry || !entry.side) continue;
-
-                // 🔥 FILTER: Only include entries ≥ 65%
-                const prob = calcHitProbability(profile, tf, entry.align_level || 'NONE', entry.grade || '');
-                if (!prob.found) continue;
-                if (parseFloat(prob.pct) < MIN_PROB_THRESHOLD) continue;
-
-                const s  = entry.status;
-                const lv = entry.align_level || 'NONE';
-                const g  = entry.grade || '';
+                // ✅ NO probability check here — avoids circular call
+                const s      = entry.status;
+                const lv     = entry.align_level || 'NONE';
+                const g      = entry.grade || '';
+                const isAplus = g === 'A+';
+                const isBplus = g === 'B+';
 
                 const bucket = tf === '1D' ? 'daily'
-                              : tf === '1W' ? 'weekly'
-                              : tf === '4H' ? 'fourh'
-                              : null;
+                             : tf === '1W' ? 'weekly'
+                             : tf === '4H' ? 'fourh'
+                             : null;
                 if (!bucket) continue;
 
                 inc('overall', s);
-                if (g === 'A+') inc('overall_aplus', s);
-                if (g === 'B+') inc('overall_bplus', s);
+                if (isAplus) inc('overall_aplus', s);
+                if (isBplus) inc('overall_bplus', s);
 
                 inc(bucket, s);
-                if (g === 'A+') inc(bucket + '_aplus', s);
-                if (g === 'B+') inc(bucket + '_bplus', s);
+                if (isAplus) inc(bucket + '_aplus', s);
+                if (isBplus) inc(bucket + '_bplus', s);
 
                 if (tf === '1D') {
-                    const key = lv === 'MO+W' ? 'daily_mo_w'
-                              : lv === 'MO'   ? 'daily_mo'
-                              : lv === 'W'    ? 'daily_w'
-                              : 'daily_none';
-                    inc(key, s);
+                    let alignKey;
+                    if (lv === 'MO+W')    alignKey = 'daily_mo_w';
+                    else if (lv === 'MO') alignKey = 'daily_mo';
+                    else if (lv === 'W')  alignKey = 'daily_w';
+                    else                  alignKey = 'daily_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
                 }
 
                 if (tf === '1W') {
-                    const key = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
-                    inc(key, s);
+                    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
                 }
 
                 if (tf === '4H') {
-                    const map = {
-                        'D+W+MO':'fourh_dwm',
-                        'D+W':'fourh_dw',
-                        'D+MO':'fourh_dmo',
-                        'D':'fourh_d',
-                        'W+MO':'fourh_wmo',
-                        'W':'fourh_w',
-                        'MO':'fourh_mo'
-                    };
-                    const key = map[lv] || 'fourh_none';
-                    inc(key, s);
+                    let alignKey;
+                    if (lv === 'D+W+MO')    alignKey = 'fourh_dwm';
+                    else if (lv === 'D+W')  alignKey = 'fourh_dw';
+                    else if (lv === 'D+MO') alignKey = 'fourh_dmo';
+                    else if (lv === 'D')    alignKey = 'fourh_d';
+                    else if (lv === 'W+MO') alignKey = 'fourh_wmo';
+                    else if (lv === 'W')    alignKey = 'fourh_w';
+                    else if (lv === 'MO')   alignKey = 'fourh_mo';
+                    else                    alignKey = 'fourh_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
                 }
             }
         }
@@ -1656,6 +1669,122 @@ function buildCRTStats(profile) {
     return stats;
 }
 
+// ══════════════════════════════════════════════
+// BUILD FILTERED CRT STATS — ≥65% ONLY
+// Used for /stats bot command and hit rate display
+// Uses pre-built raw stats from buildCRTStats()
+// to avoid circular dependency with calcHitProbability()
+// ══════════════════════════════════════════════
+function buildFilteredCRTStats(profile) {
+    const cs = getCRTState(profile);
+    const B = () => ({ total:0, tp:0, inv:0, active:0 });
+
+    const stats = {
+        overall:B(), overall_aplus:B(), overall_bplus:B(),
+        daily:B(), daily_aplus:B(), daily_bplus:B(),
+        daily_mo_w:B(), daily_mo_w_aplus:B(), daily_mo_w_bplus:B(),
+        daily_mo:B(), daily_mo_aplus:B(), daily_mo_bplus:B(),
+        daily_w:B(), daily_w_aplus:B(), daily_w_bplus:B(),
+        daily_none:B(), daily_none_aplus:B(), daily_none_bplus:B(),
+        weekly_none_aplus:B(), weekly_none_bplus:B(),
+        weekly:B(), weekly_aplus:B(), weekly_bplus:B(),
+        weekly_mo:B(), weekly_mo_aplus:B(), weekly_mo_bplus:B(),
+        weekly_none:B(),
+        fourh:B(), fourh_aplus:B(), fourh_bplus:B(),
+        fourh_dwm:B(), fourh_dwm_aplus:B(), fourh_dwm_bplus:B(),
+        fourh_dw:B(), fourh_dw_aplus:B(), fourh_dw_bplus:B(),
+        fourh_dmo:B(), fourh_dmo_aplus:B(), fourh_dmo_bplus:B(),
+        fourh_d:B(), fourh_d_aplus:B(), fourh_d_bplus:B(),
+        fourh_wmo:B(), fourh_wmo_aplus:B(), fourh_wmo_bplus:B(),
+        fourh_w:B(), fourh_w_aplus:B(), fourh_w_bplus:B(),
+        fourh_mo:B(), fourh_mo_aplus:B(), fourh_mo_bplus:B(),
+        fourh_none:B(), fourh_none_aplus:B(), fourh_none_bplus:B(),
+    };
+
+    function inc(bucket, status) {
+        if (!stats[bucket]) return;
+        stats[bucket].total++;
+        if (status === 'TP_HIT') stats[bucket].tp++;
+        if (status === 'INVALID') stats[bucket].inv++;
+        if (status === 'ACTIVE') stats[bucket].active++;
+    }
+
+    for (const sym in cs) {
+        for (const tf in cs[sym]) {
+            const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
+            for (const entry of entries) {
+                if (!entry || !entry.side) continue;
+
+                // ✅ Use calcHitProbability safely here
+                // because buildCRTStats() (raw) does NOT call calcHitProbability()
+                // so there is NO circular dependency
+                const prob = calcHitProbability(profile, tf, entry.align_level || 'NONE', entry.grade || '');
+                if (!prob.found || parseFloat(prob.pct) < MIN_PROB_THRESHOLD) continue;
+
+                const s       = entry.status;
+                const lv      = entry.align_level || 'NONE';
+                const g       = entry.grade || '';
+                const isAplus = g === 'A+';
+                const isBplus = g === 'B+';
+
+                const bucket = tf === '1D' ? 'daily'
+                             : tf === '1W' ? 'weekly'
+                             : tf === '4H' ? 'fourh'
+                             : null;
+                if (!bucket) continue;
+
+                inc('overall', s);
+                if (isAplus) inc('overall_aplus', s);
+                if (isBplus) inc('overall_bplus', s);
+
+                inc(bucket, s);
+                if (isAplus) inc(bucket + '_aplus', s);
+                if (isBplus) inc(bucket + '_bplus', s);
+
+                if (tf === '1D') {
+                    let alignKey;
+                    if (lv === 'MO+W')    alignKey = 'daily_mo_w';
+                    else if (lv === 'MO') alignKey = 'daily_mo';
+                    else if (lv === 'W')  alignKey = 'daily_w';
+                    else                  alignKey = 'daily_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
+                }
+
+                if (tf === '1W') {
+                    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
+                }
+
+                if (tf === '4H') {
+                    let alignKey;
+                    if (lv === 'D+W+MO')    alignKey = 'fourh_dwm';
+                    else if (lv === 'D+W')  alignKey = 'fourh_dw';
+                    else if (lv === 'D+MO') alignKey = 'fourh_dmo';
+                    else if (lv === 'D')    alignKey = 'fourh_d';
+                    else if (lv === 'W+MO') alignKey = 'fourh_wmo';
+                    else if (lv === 'W')    alignKey = 'fourh_w';
+                    else if (lv === 'MO')   alignKey = 'fourh_mo';
+                    else                    alignKey = 'fourh_none';
+                    inc(alignKey, s);
+                    if (isAplus) inc(alignKey + '_aplus', s);
+                    if (isBplus) inc(alignKey + '_bplus', s);
+                }
+            }
+        }
+    }
+
+    for (const k in stats) {
+        const b = stats[k];
+        const r = b.tp + b.inv;
+        b.hit_rate = r > 0 ? ((b.tp / r) * 100).toFixed(1) : '—';
+    }
+
+    return stats;
+}
 async function saveBreakoutState(){await redisClient.set(REDIS_BREAKOUT_KEY,JSON.stringify(breakoutState));}
 async function saveCRTState(profile){await redisClient.set(getCRTRedisKey(profile),JSON.stringify(getCRTState(profile)));}
 
@@ -1788,17 +1917,24 @@ app.get('/api/state',(req,res)=>res.json({marketState,activityLog,settings:appSe
 app.get('/api/stats',(req,res)=>res.json({tradeStats:buildEnrichedStats(),alignmentCombos:ALIGNMENT_COMBOS}));
 
 // ── /api/crt-state: always returns live-calculated hit_prob ──
-app.get('/api/crt-state', (req, res) => {
+app.get('/api/crt-stats', (req, res) => {
     const p = normalizeBoProfile(req.query.profile);
     res.json({
-        crtState: enrichCRTStateWithLiveProb(p),
-        crtLog:   getCRTLog(p),
-        crtStats: buildCRTStats(p),
-        profile:  p
+        crtStats:         buildFilteredCRTStats(p),  // ≥65% filtered (for display)
+        crtStatsRaw:      buildCRTStats(p),           // all signals (optional)
+        profile: p
     });
 });
 
-app.get('/api/crt-stats',(req,res)=>{const p=normalizeBoProfile(req.query.profile);res.json({crtStats:buildCRTStats(p),profile:p});});
+app.get('/api/crt-state', (req, res) => {
+    const p = normalizeBoProfile(req.query.profile);
+    res.json({
+        crtState:  enrichCRTStateWithLiveProb(p),
+        crtLog:    getCRTLog(p),
+        crtStats:  buildFilteredCRTStats(p),          // ≥65% filtered
+        profile:   p
+    });
+});
 app.get('/api/breakout-state',(req,res)=>res.json({breakoutState,breakoutLog}));
 app.get('/api/settings',(req,res)=>res.json({settings:appSettings,alignmentCombos:ALIGNMENT_COMBOS}));
 app.post('/api/settings',async(req,res)=>{const{activeAlignments}=req.body;if(!Array.isArray(activeAlignments))return res.status(400).send("Invalid");appSettings.activeAlignments=activeAlignments.filter(id=>ALIGNMENT_COMBOS.map(c=>c.id).includes(id));await redisClient.set(REDIS_SETTINGS_KEY,JSON.stringify(appSettings));broadcastAll({settings:appSettings});res.json({ok:true,settings:appSettings});});
