@@ -1571,19 +1571,12 @@ function buildCRTStats(profile) {
         daily_mo:B(), daily_mo_aplus:B(), daily_mo_bplus:B(),
         daily_w:B(), daily_w_aplus:B(), daily_w_bplus:B(),
         daily_none:B(), daily_none_aplus:B(), daily_none_bplus:B(),
-        weekly_none_aplus:B(), weekly_none_bplus:B(),
         weekly:B(), weekly_aplus:B(), weekly_bplus:B(),
         weekly_mo:B(), weekly_mo_aplus:B(), weekly_mo_bplus:B(),
-        weekly_none:B(),
+        weekly_none:B(), weekly_none_aplus:B(), weekly_none_bplus:B(),
         fourh:B(), fourh_aplus:B(), fourh_bplus:B(),
-        fourh_dwm:B(), fourh_dwm_aplus:B(), fourh_dwm_bplus:B(),
-        fourh_dw:B(), fourh_dw_aplus:B(), fourh_dw_bplus:B(),
-        fourh_dmo:B(), fourh_dmo_aplus:B(), fourh_dmo_bplus:B(),
-        fourh_d:B(), fourh_d_aplus:B(), fourh_d_bplus:B(),
-        fourh_wmo:B(), fourh_wmo_aplus:B(), fourh_wmo_bplus:B(),
-        fourh_w:B(), fourh_w_aplus:B(), fourh_w_bplus:B(),
-        fourh_mo:B(), fourh_mo_aplus:B(), fourh_mo_bplus:B(),
-        fourh_none:B(), fourh_none_aplus:B(), fourh_none_bplus:B(),
+        fourh_dwm:B(), fourh_dw:B(), fourh_dmo:B(), fourh_d:B(),
+        fourh_wmo:B(), fourh_w:B(), fourh_mo:B(), fourh_none:B(),
     };
 
     function inc(bucket, status) {
@@ -1597,56 +1590,58 @@ function buildCRTStats(profile) {
     for (const sym in cs) {
         for (const tf in cs[sym]) {
             const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
+
             for (const entry of entries) {
                 if (!entry || !entry.side) continue;
-                const s = entry.status;
-                const lv = entry.align_level || 'NONE';
-                const g = entry.grade || '';
-                const isAplus = g === 'A+';
-                const isBplus = g === 'B+';
 
-                const bucket = tf === '1D' ? 'daily' : tf === '1W' ? 'weekly' : tf === '4H' ? 'fourh' : null;
+                // 🔥 FILTER: Only include entries ≥ 65%
+                const prob = calcHitProbability(profile, tf, entry.align_level || 'NONE', entry.grade || '');
+                if (!prob.found) continue;
+                if (parseFloat(prob.pct) < MIN_PROB_THRESHOLD) continue;
+
+                const s  = entry.status;
+                const lv = entry.align_level || 'NONE';
+                const g  = entry.grade || '';
+
+                const bucket = tf === '1D' ? 'daily'
+                              : tf === '1W' ? 'weekly'
+                              : tf === '4H' ? 'fourh'
+                              : null;
                 if (!bucket) continue;
 
                 inc('overall', s);
-                if (isAplus) inc('overall_aplus', s);
-                if (isBplus) inc('overall_bplus', s);
+                if (g === 'A+') inc('overall_aplus', s);
+                if (g === 'B+') inc('overall_bplus', s);
 
                 inc(bucket, s);
-                if (isAplus) inc(bucket + '_aplus', s);
-                if (isBplus) inc(bucket + '_bplus', s);
+                if (g === 'A+') inc(bucket + '_aplus', s);
+                if (g === 'B+') inc(bucket + '_bplus', s);
 
                 if (tf === '1D') {
-                    let alignKey;
-                    if (lv === 'MO+W')      alignKey = 'daily_mo_w';
-                    else if (lv === 'MO')   alignKey = 'daily_mo';
-                    else if (lv === 'W')    alignKey = 'daily_w';
-                    else                    alignKey = 'daily_none';
-                    inc(alignKey, s);
-                    if (isAplus) inc(alignKey + '_aplus', s);
-                    if (isBplus) inc(alignKey + '_bplus', s);
+                    const key = lv === 'MO+W' ? 'daily_mo_w'
+                              : lv === 'MO'   ? 'daily_mo'
+                              : lv === 'W'    ? 'daily_w'
+                              : 'daily_none';
+                    inc(key, s);
                 }
 
                 if (tf === '1W') {
-                    const alignKey = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
-                    inc(alignKey, s);
-                    if (isAplus) inc(alignKey + '_aplus', s);
-                    if (isBplus) inc(alignKey + '_bplus', s);
+                    const key = lv === 'MO' ? 'weekly_mo' : 'weekly_none';
+                    inc(key, s);
                 }
 
                 if (tf === '4H') {
-                    let alignKey;
-                    if (lv === 'D+W+MO')    alignKey = 'fourh_dwm';
-                    else if (lv === 'D+W')  alignKey = 'fourh_dw';
-                    else if (lv === 'D+MO') alignKey = 'fourh_dmo';
-                    else if (lv === 'D')    alignKey = 'fourh_d';
-                    else if (lv === 'W+MO') alignKey = 'fourh_wmo';
-                    else if (lv === 'W')    alignKey = 'fourh_w';
-                    else if (lv === 'MO')   alignKey = 'fourh_mo';
-                    else                    alignKey = 'fourh_none';
-                    inc(alignKey, s);
-                    if (isAplus) inc(alignKey + '_aplus', s);
-                    if (isBplus) inc(alignKey + '_bplus', s);
+                    const map = {
+                        'D+W+MO':'fourh_dwm',
+                        'D+W':'fourh_dw',
+                        'D+MO':'fourh_dmo',
+                        'D':'fourh_d',
+                        'W+MO':'fourh_wmo',
+                        'W':'fourh_w',
+                        'MO':'fourh_mo'
+                    };
+                    const key = map[lv] || 'fourh_none';
+                    inc(key, s);
                 }
             }
         }
