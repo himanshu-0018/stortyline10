@@ -45,6 +45,9 @@ const TG_BOT_TOKEN            = process.env.TG_BOT_TOKEN;
 const TG_BOT_ALLOWED_CHAT_IDS = (process.env.TG_BOT_ALLOWED_CHAT_IDS || '')
     .split(',').map(s => s.trim()).filter(Boolean);
 
+// ── CRT PAGE PASSWORD ──
+const CRT_PAGE_PASSWORD = process.env.CRT_PAGE_PASSWORD || null;
+
 const REDIS_STATE_KEY      = process.env.REDIS_KEY || 'godModeState_v4';
 const REDIS_LOG_KEY        = REDIS_STATE_KEY + '_activityLog';
 const REDIS_STATS_KEY      = REDIS_STATE_KEY + '_tradeStats';
@@ -118,9 +121,9 @@ function broadcastStats() {
 
 // ══════════════════════════════════════════════
 // LIVE HIT_PROB ENRICHMENT
-// Recalculates hit_prob live instead of using frozen stored values.
-// This ensures the frontend always sees current probabilities
-// based on the latest resolved stats — not stale values from formation time.
+// Recalculates hit_prob live for display purposes only.
+// The 'qualified' flag is NEVER modified here — it is
+// locked at formation time and persisted in Redis.
 // ══════════════════════════════════════════════
 function enrichCRTStateWithLiveProb(profile) {
     const cs = getCRTState(profile);
@@ -133,6 +136,7 @@ function enrichCRTStateWithLiveProb(profile) {
                 if (!e || !e.side) return e;
                 return {
                     ...e,
+                    // Recalculate hit_prob live for display — but DO NOT touch 'qualified'
                     hit_prob: calcHitProbability(profile, tf, e.align_level || 'NONE', e.grade || '')
                 };
             });
@@ -646,7 +650,7 @@ function checkCRTAlignment(symbol, tf, side) {
         if (d === side && mo === side)               return { aligned: true, level: 'D+MO',   label: `D+MO aligned ${side}` };
         if (d === side)                              return { aligned: true, level: 'D',      label: `D aligned ${side}` };
         if (w === side && mo === side)               return { aligned: true, level: 'W+MO',   label: `W+MO aligned ${side}` };
-        if (w === side)                              return { aligned: true, level: 'W',      label: `W aligned ${side}` };
+        if (w === side)                              return { aligned: true, level: 'W',      label: `W aligned ${side}` });
         if (mo === side)                             return { aligned: true, level: 'MO',     label: `MO aligned ${side}` };
         return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
     }
@@ -1778,21 +1782,11 @@ const savedBS=await redisClient.get(REDIS_BOT_SESSIONS);
 if(savedBS){botSessions=JSON.parse(savedBS);console.log(`🤖 Bot sessions: ${Object.keys(botSessions).length}`);}
 
 // ══════════════════════════════════════════════
-// NOTE: backfillHitProb removed.
-// hit_prob is now calculated live on every API response
-// and broadcast via enrichCRTStateWithLiveProb().
-// Stored hit_prob values on entries are kept as historical
-// snapshots but are always overridden with live values
-// when sent to clients.
-// ══════════════════════════════════════════════
-
-// ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
 app.get('/api/state',(req,res)=>res.json({marketState,activityLog,settings:appSettings}));
 app.get('/api/stats',(req,res)=>res.json({tradeStats:buildEnrichedStats(),alignmentCombos:ALIGNMENT_COMBOS}));
 
-// ── /api/crt-state: always returns live-calculated hit_prob ──
 app.get('/api/crt-state', (req, res) => {
     const p = normalizeBoProfile(req.query.profile);
     res.json({
@@ -1837,6 +1831,29 @@ app.post('/api/purge-crt', async (req, res) => {
 
 app.post('/api/delete-breakout',async(req,res)=>{const{symbol}=req.body;if(!symbol)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();if(sym==="ALL"){breakoutState={};breakoutLog=[];}else{if(breakoutState[sym])delete breakoutState[sym];breakoutLog=breakoutLog.filter(e=>e.symbol!==sym);}await saveBreakoutState();await redisClient.set(REDIS_BREAKOUT_KEY+'_log',JSON.stringify(breakoutLog));broadcastBreakout();res.send("Cleared");});
 app.post('/api/breakout-inject',async(req,res)=>{const{symbol,tf,direction}=req.body;if(!symbol||!tf||!direction)return res.status(400).send("Invalid");const sym=symbol.toUpperCase().trim();const nt=normalizeTf(tf);const dir=normalizeBreakoutDirection(direction);if(!BREAKOUT_PAGE_TFS.includes(nt))return res.status(400).send("Invalid TF");if(dir==='NONE')return res.status(400).send("Direction required");await processBreakoutUpdate(sym,nt==='1MO'?dir:'NONE',nt==='1W'?dir:'NONE','INJECT');res.send("OK");});
+
+// ══════════════════════════════════════════════
+// CRT PAGE PASSWORD API
+// ══════════════════════════════════════════════
+app.post('/api/crt-auth', (req, res) => {
+    const { password } = req.body;
+    if (!CRT_PAGE_PASSWORD) {
+        // No password set — open access
+        return res.json({ ok: true, token: 'open' });
+    }
+    if (password === CRT_PAGE_PASSWORD) {
+        return res.json({ ok: true, token: Buffer.from(`crt:${Date.now()}`).toString('base64') });
+    }
+    return res.status(401).json({ ok: false, message: 'Wrong password' });
+});
+
+app.get('/api/crt-auth-check', (req, res) => {
+    // If no password is set, always authorized
+    if (!CRT_PAGE_PASSWORD) return res.json({ ok: true });
+    // Password is set — client must have validated via /api/crt-auth
+    // We just tell the client whether a password is required
+    res.json({ ok: false, required: true });
+});
 
 // ══════════════════════════════════════════════
 // MAIN WEBHOOK
@@ -1942,9 +1959,14 @@ app.post('/webhook', async (req, res) => {
 
         if(payload.kind==='CRT'){
             const ac=checkCRTAlignment(sym,tf,side);
-            // Store formation-time snapshot of hit_prob (for historical reference only)
-            // The live hit_prob is always recalculated via enrichCRTStateWithLiveProb()
+
+            // ── Calculate hit probability at formation time ──
+            // This snapshot is used to permanently lock the 'qualified' flag.
+            // The 'hit_prob' field is recalculated live on every broadcast for display,
+            // but 'qualified' NEVER changes after formation.
             const hitProbSnapshot = calcHitProbability(profile, tf, ac.level, grade);
+            const isQualified = hitProbSnapshot.found && parseFloat(hitProbSnapshot.pct) >= MIN_PROB_THRESHOLD;
+
             const ne={
                 id:`${sym}_${tf}_${Date.now()}`,
                 side, grade, rej, bo, ext, tgt,
@@ -1955,12 +1977,14 @@ app.post('/webhook', async (req, res) => {
                 align_label:ac.label,
                 aligned:ac.aligned,
                 bo_profile:profile,
-                hit_prob: hitProbSnapshot  // snapshot only — overridden live on send
+                hit_prob: hitProbSnapshot,   // snapshot for reference only — overridden live on send
+                qualified: isQualified       // LOCKED at formation — never changes
             };
             crtState[sym][tf].push(ne);
             if(crtState[sym][tf].length>20)crtState[sym][tf]=crtState[sym][tf].slice(-20);
             const at=ac.aligned?`✅ ${ac.label}`:`⚠️ ${ac.label}`;
             const gradeTag=grade?` [${grade}]`:'';
+            console.log(`[CRT FORMED] ${sym} ${tf} ${side} | qualified=${isQualified} | prob=${hitProbSnapshot.found ? hitProbSnapshot.pct+'%' : 'N/A'}`);
             await pushCRTLog(profile,sym,side,
                 `${side==='BULLISH'?'🐂':'🐻'} ${tf} CRT${gradeTag} FORMED [${profile}]: ${side}|Rej:${rej} BO:${bo} Tgt:${tgt}|${at}`,
                 {tf,rej,bo,ext,tgt,action:'CRT_FORMED',align_level:ac.level,grade});
@@ -2097,6 +2121,7 @@ app.listen(PORT, () => {
     console.log(`🤖 Bot: ${TG_BOT_TOKEN ? 'ENABLED' : 'DISABLED'}`);
     console.log(`🤖 Allowed: ${TG_BOT_ALLOWED_CHAT_IDS.length ? TG_BOT_ALLOWED_CHAT_IDS.join(', ') : 'ALL'}`);
     console.log(`📡 Threads: Storyline=${TG_STORYLINE_THREAD_ID||'none'} | CRT_HTF=${TG_CRT_HTF_THREAD_ID||'none'} | CRT_LTF=${TG_CRT_LTF_THREAD_ID||'none'} | Breakout=${TG_BREAKOUT_THREAD_ID||'none'} | BO5=${TG_BREAKOUT5_THREAD_ID||'none'} | BO6=${TG_BREAKOUT6_THREAD_ID||'none'}`);
+    console.log(`🔐 CRT Password: ${CRT_PAGE_PASSWORD ? 'SET' : 'NOT SET (open access)'}`);
     startBotPolling();
 });
 
