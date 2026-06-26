@@ -340,9 +340,89 @@
         .dsc-tp     { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399; }
         .dsc-inv    { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171; }
         .dsc-total  { background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24; }
+
+        /* ── LOGIN SCREEN ── */
+        .login-overlay {
+            position:fixed;inset:0;z-index:99999;
+            background:linear-gradient(135deg,#0a0e1a 0%,#0f1629 50%,#0a0e1a 100%);
+            display:flex;align-items:center;justify-content:center;
+            flex-direction:column;
+        }
+        .login-overlay.hidden { display:none; }
+        .login-bg-orb1 { position:absolute;width:500px;height:500px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(80px);top:-150px;left:-100px;animation:orbFloat 18s ease-in-out infinite; }
+        .login-bg-orb2 { position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(14,165,233,0.08);filter:blur(80px);bottom:-100px;right:-80px;animation:orbFloat 22s ease-in-out infinite reverse; }
+        .login-card {
+            position:relative;z-index:2;
+            width:90%;max-width:380px;padding:36px 32px;
+            border-radius:24px;
+            background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(20,30,55,0.90));
+            border:1px solid rgba(245,158,11,0.3);
+            box-shadow:0 0 80px rgba(245,158,11,0.08),0 20px 60px rgba(0,0,0,0.6);
+            animation:modalPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            text-align:center;
+        }
+        .login-logo {
+            width:64px;height:64px;border-radius:18px;margin:0 auto 16px;
+            background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);
+            display:flex;align-items:center;justify-content:center;font-size:2rem;
+            animation:logoGlow 4s ease-in-out infinite;
+        }
+        .login-title {
+            font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;
+            letter-spacing:0.08em;margin-bottom:4px;
+            background:linear-gradient(135deg,#fbbf24,#f59e0b,#d97706);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+        }
+        .login-subtitle {
+            font-family:'JetBrains Mono',monospace;font-size:0.55rem;
+            color:rgba(148,163,184,0.5);letter-spacing:0.1em;margin-bottom:24px;
+        }
+        .login-input {
+            width:100%;padding:14px 16px;border-radius:12px;
+            background:rgba(15,23,42,0.9);border:1px solid rgba(71,85,105,0.4);
+            color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.8rem;
+            outline:none;transition:all 0.2s;letter-spacing:0.08em;text-align:center;
+        }
+        .login-input::placeholder { color:rgba(148,163,184,0.3); }
+        .login-input:focus { border-color:rgba(245,158,11,0.5);box-shadow:0 0 20px rgba(245,158,11,0.1); }
+        .login-input.error { border-color:rgba(239,68,68,0.6);box-shadow:0 0 20px rgba(239,68,68,0.15);animation:loginShake 0.4s ease-in-out; }
+        @keyframes loginShake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+        .login-btn {
+            width:100%;padding:14px;border-radius:12px;margin-top:14px;
+            background:linear-gradient(135deg,rgba(245,158,11,0.4),rgba(217,119,6,0.3));
+            border:1px solid rgba(245,158,11,0.6);color:#fbbf24;
+            font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;
+            letter-spacing:0.06em;cursor:pointer;transition:all 0.2s;
+        }
+        .login-btn:hover { background:linear-gradient(135deg,rgba(245,158,11,0.6),rgba(217,119,6,0.5));box-shadow:0 0 25px rgba(245,158,11,0.2);transform:translateY(-2px); }
+        .login-btn:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
+        .login-error {
+            font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+            color:#f87171;margin-top:12px;min-height:18px;
+        }
+        .login-footer {
+            font-family:'JetBrains Mono',monospace;font-size:0.45rem;
+            color:rgba(148,163,184,0.25);margin-top:20px;letter-spacing:0.08em;
+        }
     </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-bg-orb1"></div>
+    <div class="login-bg-orb2"></div>
+    <div class="login-card">
+        <div class="login-logo">🔒</div>
+        <div class="login-title">CRT DASHBOARD</div>
+        <div class="login-subtitle">RESTRICTED ACCESS · ENTER PASSWORD</div>
+        <input type="password" id="loginInput" class="login-input" placeholder="Enter password..." autocomplete="off"
+               onkeydown="if(event.key==='Enter')attemptLogin()" />
+        <button class="login-btn" id="loginBtn" onclick="attemptLogin()">🔓 UNLOCK</button>
+        <div class="login-error" id="loginError"></div>
+        <div class="login-footer">GOD-MODE CRT ENGINE · AUTHORIZED PERSONNEL ONLY</div>
+    </div>
+</div>
 
 <div class="bg-container">
     <div class="bg-photo"></div><div class="bg-gradient"></div><div class="bg-grid"></div>
@@ -372,7 +452,7 @@
 </div>
 
 <!-- STICKY TOP BAR -->
-<div class="top-bar">
+<div class="top-bar" id="appTopBar" style="display:none;">
     <div style="display:flex;align-items:center;gap:14px;">
         <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.2rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
         <div>
@@ -397,7 +477,7 @@
 </div>
 
 <!-- STICKY FILTER BAR -->
-<div class="filter-bar">
+<div class="filter-bar" id="appFilterBar" style="display:none;">
     <span class="filter-label">Profile</span>
     <button id="profileHTF" onclick="setProfile('HTF')" class="stats-pill sp-profile active-profile">📊 HTF</button>
     <div class="divider-v"></div>
@@ -424,7 +504,7 @@
 </div>
 
 <!-- SCROLLABLE MAIN CONTENT -->
-<div class="main-content">
+<div class="main-content" id="appMainContent" style="display:none;">
 
     <!-- ACTIVE CRTs -->
     <div class="section-header">
@@ -508,6 +588,109 @@
 
 <script>
 // ══════════════════════════════════════════════
+// AUTH — LOGIN GATE
+// ══════════════════════════════════════════════
+const AUTH_STORAGE_KEY = 'crt_auth_token';
+const AUTH_EXPIRY_KEY  = 'crt_auth_expiry';
+const AUTH_TTL_MS      = 24 * 60 * 60 * 1000; // 24 hours
+
+let isAuthenticated = false;
+
+async function checkAuth() {
+    // Check if server requires password
+    try {
+        const res = await fetch('/api/crt-auth-check');
+        const data = await res.json();
+        if (data.ok) {
+            // No password required — open access
+            grantAccess();
+            return;
+        }
+    } catch(e) {
+        // If check fails, assume password needed
+    }
+
+    // Password required — check localStorage
+    const token  = localStorage.getItem(AUTH_STORAGE_KEY);
+    const expiry = localStorage.getItem(AUTH_EXPIRY_KEY);
+
+    if (token && expiry && Date.now() < parseInt(expiry)) {
+        grantAccess();
+        return;
+    }
+
+    // Clear expired tokens
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(AUTH_EXPIRY_KEY);
+
+    // Show login screen
+    showLoginScreen();
+}
+
+function showLoginScreen() {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('appTopBar').style.display = 'none';
+    document.getElementById('appFilterBar').style.display = 'none';
+    document.getElementById('appMainContent').style.display = 'none';
+    setTimeout(() => document.getElementById('loginInput').focus(), 300);
+}
+
+function grantAccess() {
+    isAuthenticated = true;
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('appTopBar').style.display = '';
+    document.getElementById('appFilterBar').style.display = '';
+    document.getElementById('appMainContent').style.display = '';
+    initApp();
+}
+
+async function attemptLogin() {
+    const input = document.getElementById('loginInput');
+    const btn   = document.getElementById('loginBtn');
+    const err   = document.getElementById('loginError');
+    const pw    = input.value.trim();
+
+    if (!pw) {
+        err.textContent = '⚠️ Enter a password';
+        input.classList.add('error');
+        setTimeout(() => input.classList.remove('error'), 600);
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ VERIFYING...';
+    err.textContent = '';
+
+    try {
+        const res = await fetch('/api/crt-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            localStorage.setItem(AUTH_STORAGE_KEY, data.token);
+            localStorage.setItem(AUTH_EXPIRY_KEY, String(Date.now() + AUTH_TTL_MS));
+            input.value = '';
+            err.textContent = '';
+            grantAccess();
+        } else {
+            err.textContent = '❌ Wrong password';
+            input.value = '';
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 600);
+            input.focus();
+        }
+    } catch(e) {
+        err.textContent = '⚠️ Network error. Try again.';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔓 UNLOCK';
+}
+
+// ══════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════
 const CRT_TFS = ['1W', '1D', '4H'];
@@ -525,9 +708,12 @@ moneySound.volume = 0.85;
 let audioOn = false;
 
 // ══════════════════════════════════════════════
-// PROB HELPER
+// PROB HELPER — uses locked 'qualified' flag
 // ══════════════════════════════════════════════
 function entryQualifies(e) {
+    // If 'qualified' flag exists (new entries), use it — locked at formation time
+    if (e?.qualified !== undefined) return e.qualified === true;
+    // Fallback for old entries without 'qualified' flag: use live hit_prob
     if (!e?.hit_prob) return false;
     if (!e.hit_prob.found) return false;
     return parseFloat(e.hit_prob.pct) >= MIN_PROB;
@@ -1130,7 +1316,7 @@ function rebuildFeed() {
 // ══════════════════════════════════════════════
 // DAILY REVIEW — IST HELPERS
 // ══════════════════════════════════════════════
-const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // UTC+5:30
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
 function toISTMidnight(daysAgo) {
     const nowIST  = Date.now() + IST_OFFSET_MS;
@@ -1143,7 +1329,6 @@ function toISTMidnight(daysAgo) {
 }
 
 function toISTMidnightFromDate(dateStr) {
-    // dateStr = "YYYY-MM-DD" — treat as IST date
     const [y, m, d] = dateStr.split('-').map(Number);
     const startUTC  = Date.UTC(y, m - 1, d) - IST_OFFSET_MS;
     const endUTC    = startUTC + 86400000 - 1;
@@ -1166,7 +1351,6 @@ function fmtTimeIST(ts) {
     return `${hh}:${mm}:${ss} IST`;
 }
 
-// Daily Review state
 let drDaysAgo    = 0;
 let drCustomDate = null;
 let drMode       = 'quick';
@@ -1203,7 +1387,7 @@ function getDateRange() {
 }
 
 // ══════════════════════════════════════════════
-// RENDER DAILY REVIEW
+// RENDER DAILY REVIEW — uses locked 'qualified' flag
 // ══════════════════════════════════════════════
 function renderDailyReview() {
     const { startUTC, endUTC } = getDateRange();
@@ -1228,6 +1412,7 @@ function renderDailyReview() {
                 if (!e?.side) continue;
                 const ts = e.timestamp || 0;
                 if (ts < startUTC || ts > endUTC) continue;
+                // Use locked 'qualified' flag — same as entryQualifies()
                 if (!entryQualifies(e)) continue;
                 if (activeGrade !== 'ALL' && e.grade !== activeGrade) continue;
                 grouped[tf].push({ sym, e });
@@ -1236,7 +1421,6 @@ function renderDailyReview() {
         }
     }
 
-    // Sort each group by timestamp ascending
     for (const tf of TF_ORDER) {
         grouped[tf].sort((a, b) => (a.e.timestamp || 0) - (b.e.timestamp || 0));
     }
@@ -1317,39 +1501,50 @@ function renderDailyReview() {
             `;
         }
 
-        html += `</div>`; // close daily-tf-group
+        html += `</div>`;
     }
 
-    html += `</div>`; // close daily-review-grid
+    html += `</div>`;
     document.getElementById('dailyReviewContent').innerHTML = html;
 }
 
 // ══════════════════════════════════════════════
-// INIT
+// INIT — waits for auth before loading data
 // ══════════════════════════════════════════════
-const dot = document.getElementById('pulseDot');
-const lbl = document.getElementById('liveLabel');
-const bdg = document.getElementById('liveBadge');
+let dot, lbl, bdg;
+let appInitialized = false;
 
-// Set date picker max to today IST and init daily review
-(function initDailyReview() {
+function initApp() {
+    if (appInitialized) return;
+    appInitialized = true;
+
+    dot = document.getElementById('pulseDot');
+    lbl = document.getElementById('liveLabel');
+    bdg = document.getElementById('liveBadge');
+
+    // Set date picker max to today IST
     const nowIST   = new Date(Date.now() + IST_OFFSET_MS);
     const yyyy     = nowIST.getUTCFullYear();
     const mm       = String(nowIST.getUTCMonth() + 1).padStart(2, '0');
     const dd       = String(nowIST.getUTCDate()).padStart(2, '0');
     const todayIST = `${yyyy}-${mm}-${dd}`;
     document.getElementById('drDatePicker').max = todayIST;
-})();
 
-loadProfileData();
-reconnectSSE();
-setInterval(refreshStats, 30000);
+    loadProfileData();
+    reconnectSSE();
+    setInterval(refreshStats, 30000);
 
-const boEs = new EventSource('/api/breakout-stream');
-boEs.onmessage = e => {
-    const d = JSON.parse(e.data);
-    if (d.breakoutState) { breakoutState = d.breakoutState; render(); }
-};
+    const boEs = new EventSource('/api/breakout-stream');
+    boEs.onmessage = e => {
+        const d = JSON.parse(e.data);
+        if (d.breakoutState) { breakoutState = d.breakoutState; render(); }
+    };
+}
+
+// ══════════════════════════════════════════════
+// START — check auth first
+// ══════════════════════════════════════════════
+checkAuth();
 </script>
 </body>
 </html>
