@@ -1782,6 +1782,50 @@ const savedBS=await redisClient.get(REDIS_BOT_SESSIONS);
 if(savedBS){botSessions=JSON.parse(savedBS);console.log(`🤖 Bot sessions: ${Object.keys(botSessions).length}`);}
 
 // ══════════════════════════════════════════════
+// BACKFILL 'qualified' FLAG ON EXISTING ENTRIES
+// Runs once at startup — adds 'qualified' to any
+// entry that doesn't have it, based on current stats.
+// After this, the flag is locked and never changes.
+// ══════════════════════════════════════════════
+async function backfillQualifiedFlag() {
+    let countHTF = 0, countLTF = 0;
+
+    for (const profile of ['HTF', 'LTF']) {
+        const cs = getCRTState(profile);
+        let changed = false;
+
+        for (const sym in cs) {
+            for (const tf in cs[sym]) {
+                const entries = Array.isArray(cs[sym][tf]) ? cs[sym][tf] : [cs[sym][tf]];
+                for (const e of entries) {
+                    if (!e || !e.side) continue;
+                    if (e.qualified !== undefined) continue; // already has flag
+
+                    const prob = calcHitProbability(profile, tf, e.align_level || 'NONE', e.grade || '');
+                    e.qualified = prob.found && parseFloat(prob.pct) >= MIN_PROB_THRESHOLD;
+                    changed = true;
+                    if (profile === 'HTF') countHTF++; else countLTF++;
+                }
+                cs[sym][tf] = entries;
+            }
+        }
+
+        if (changed) {
+            setCRTState(profile, cs);
+            await saveCRTState(profile);
+        }
+    }
+
+    if (countHTF > 0 || countLTF > 0) {
+        console.log(`🔧 Backfilled 'qualified' flag: HTF=${countHTF} LTF=${countLTF} entries`);
+    } else {
+        console.log(`✅ All entries already have 'qualified' flag`);
+    }
+}
+
+await backfillQualifiedFlag();
+
+// ══════════════════════════════════════════════
 // API ROUTES
 // ══════════════════════════════════════════════
 app.get('/api/state',(req,res)=>res.json({marketState,activityLog,settings:appSettings}));
