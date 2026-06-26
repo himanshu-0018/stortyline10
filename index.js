@@ -650,7 +650,7 @@ function checkCRTAlignment(symbol, tf, side) {
         if (d === side && mo === side)               return { aligned: true, level: 'D+MO',   label: `D+MO aligned ${side}` };
         if (d === side)                              return { aligned: true, level: 'D',      label: `D aligned ${side}` };
         if (w === side && mo === side)               return { aligned: true, level: 'W+MO',   label: `W+MO aligned ${side}` };
-        if (w === side)                              return { aligned: true, level: 'W',      label: `W aligned ${side}` });
+        if (w === side)                              return { aligned: true, level: 'W',      label: `W aligned ${side}` };
         if (mo === side)                             return { aligned: true, level: 'MO',     label: `MO aligned ${side}` };
         return { aligned: false, level: 'NONE', label: `No storyline aligned for ${side}` };
     }
