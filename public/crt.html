@@ -52,7 +52,6 @@
         .sp-inv    { background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#f87171; }
         .sp-total  { background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24; }
         .sp-aplus  { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#34d399; }
-        .sp-bplus  { background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24; }
         .sp-filter { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s;cursor:pointer; }
         .sp-filter:hover { background:rgba(168,85,247,0.2);border-color:rgba(168,85,247,0.4);color:#c4b5fd; }
         .active-filter { background:rgba(168,85,247,0.25)!important;border-color:rgba(168,85,247,0.5)!important;color:#c4b5fd!important; }
@@ -60,7 +59,6 @@
         .sp-grade:hover { background:rgba(245,158,11,0.2);border-color:rgba(245,158,11,0.4);color:#fbbf24; }
         .active-grade-all   { background:rgba(99,102,241,0.25)!important;border-color:rgba(99,102,241,0.5)!important;color:#a5b4fc!important; }
         .active-grade-aplus { background:rgba(16,185,129,0.25)!important;border-color:rgba(16,185,129,0.5)!important;color:#34d399!important; }
-        .active-grade-bplus { background:rgba(245,158,11,0.25)!important;border-color:rgba(245,158,11,0.5)!important;color:#fbbf24!important; }
         .sp-profile { background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.3);color:#94a3b8;transition:all 0.2s;cursor:pointer; }
         .active-profile { background:rgba(245,158,11,0.25)!important;border-color:rgba(245,158,11,0.5)!important;color:#fbbf24!important; }
         .divider-v { width:1px;height:16px;background:rgba(255,255,255,0.1); }
@@ -99,7 +97,6 @@
         .card-badge-idle  { font-family:'JetBrains Mono',monospace;font-size:0.52rem;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(71,85,105,0.3);border:1px solid rgba(71,85,105,0.4);color:#64748b; }
 
         .grade-badge-aplus { font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:5px;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(52,211,153,0.15));border:1px solid rgba(52,211,153,0.5);color:#34d399; }
-        .grade-badge-bplus { font-family:'JetBrains Mono',monospace;font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:5px;background:linear-gradient(135deg,rgba(245,158,11,0.3),rgba(251,191,36,0.15));border:1px solid rgba(245,158,11,0.5);color:#fbbf24; }
 
         .tf-row { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px; }
         .tf-cell { padding:7px 4px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:0.48rem;text-align:center; }
@@ -144,7 +141,6 @@
         .hitrate-card-bad     { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25); }
         .hitrate-card-neutral { background:rgba(71,85,105,0.1);border:1px solid rgba(71,85,105,0.25); }
         .hitrate-card-aplus   { background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2); }
-        .hitrate-card-bplus   { background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2); }
         .hitrate-label { font-size:0.48rem;color:rgba(203,213,225,0.5);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px; }
         .hitrate-value { font-size:0.95rem;font-weight:800; }
         .hitrate-sub { font-size:0.42rem;color:rgba(203,213,225,0.4);margin-top:2px; }
@@ -168,7 +164,6 @@
         .log-time { font-family:'JetBrains Mono',monospace;font-size:0.48rem; }
         .log-tf-tag      { font-family:'JetBrains Mono',monospace;font-size:0.40rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3); }
         .log-grade-aplus { font-family:'JetBrains Mono',monospace;font-size:0.40rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.4); }
-        .log-grade-bplus { font-family:'JetBrains Mono',monospace;font-size:0.40rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.4); }
 
         .empty-state { font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:rgba(148,163,184,0.3);text-align:center;padding:40px 0;grid-column:1/-1; }
         @keyframes logoGlow { 0%,100%{box-shadow:0 0 25px rgba(245,158,11,0.4);} 50%{box-shadow:0 0 40px rgba(251,191,36,0.5);} }
@@ -457,7 +452,7 @@
         <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:1.2rem;animation:logoGlow 4s ease-in-out infinite;">🔄</div>
         <div>
             <div class="brand-name">CRT DASHBOARD</div>
-            <div class="brand-sub" id="brandSub">CRT ENGINE · HTF · W→D · D→4H · 4H→1H · A+ &amp; B+ · ≥65%</div>
+            <div class="brand-sub">CRT ENGINE · HTF · W→D · D→4H · 4H→1H · ⭐ A+ ONLY</div>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -484,12 +479,10 @@
     <span class="filter-label">Grade</span>
     <button id="gradeAll"   onclick="setGrade('ALL')" class="stats-pill sp-grade active-grade-all">📊 ALL</button>
     <button id="gradeAplus" onclick="setGrade('A+')"  class="stats-pill sp-grade">⭐ A+</button>
-    <button id="gradeBplus" onclick="setGrade('B+')"  class="stats-pill sp-grade">🔶 B+</button>
     <div class="divider-v"></div>
     <span id="bullPill"   class="stats-pill sp-bull">🐂 0</span>
     <span id="bearPill"   class="stats-pill sp-bear">🐻 0</span>
     <span id="aplusPill"  class="stats-pill sp-aplus">⭐ 0</span>
-    <span id="bplusPill"  class="stats-pill sp-bplus">🔶 0</span>
     <span id="activePill" class="stats-pill sp-active">🔵 0</span>
     <span id="tpPill"     class="stats-pill sp-tp">🎯 0</span>
     <span id="invPill"    class="stats-pill sp-inv">❌ 0</span>
@@ -511,7 +504,7 @@
         <span class="section-title" style="color:#38bdf8;">🟢 ACTIVE CRTs</span>
         <span id="activeSectionCount" class="section-count" style="background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);color:#38bdf8;">0</span>
     </div>
-    <div class="coin-grid" id="activeGrid"><p class="empty-state">No active CRTs yet...</p></div>
+    <div class="coin-grid" id="activeGrid"><p class="empty-state">No active A+ CRTs yet...</p></div>
 
     <!-- TP HIT -->
     <div class="section-header">
@@ -536,7 +529,7 @@
     <!-- HIT RATES -->
     <div class="section-header">
         <div style="display:flex;align-items:center;gap:10px;">
-            <span class="section-title" style="color:#fbbf24;">📊 HIT RATES</span>
+            <span class="section-title" style="color:#fbbf24;">📊 HIT RATES  ⭐ A+</span>
         </div>
         <button class="toggle-btn" id="hrToggle" onclick="toggleSection('hr')">SHOW</button>
     </div>
@@ -557,7 +550,7 @@
     <!-- DAILY REVIEW -->
     <div class="section-header" style="margin-top:28px;">
         <div style="display:flex;align-items:center;gap:10px;">
-            <span class="section-title" style="color:#a78bfa;">📆 DAILY REVIEW</span>
+            <span class="section-title" style="color:#a78bfa;">📆 DAILY REVIEW  ⭐ A+</span>
             <span id="dailyReviewCount" class="section-count"
                   style="background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#a78bfa;">0</span>
         </div>
@@ -592,38 +585,23 @@
 // ══════════════════════════════════════════════
 const AUTH_STORAGE_KEY = 'crt_auth_token';
 const AUTH_EXPIRY_KEY  = 'crt_auth_expiry';
-const AUTH_TTL_MS      = 24 * 60 * 60 * 1000; // 24 hours
+const AUTH_TTL_MS      = 24 * 60 * 60 * 1000;
 
 let isAuthenticated = false;
 
 async function checkAuth() {
-    // Check if server requires password
     try {
         const res = await fetch('/api/crt-auth-check');
         const data = await res.json();
-        if (data.ok) {
-            // No password required — open access
-            grantAccess();
-            return;
-        }
-    } catch(e) {
-        // If check fails, assume password needed
-    }
+        if (data.ok) { grantAccess(); return; }
+    } catch(e) {}
 
-    // Password required — check localStorage
     const token  = localStorage.getItem(AUTH_STORAGE_KEY);
     const expiry = localStorage.getItem(AUTH_EXPIRY_KEY);
+    if (token && expiry && Date.now() < parseInt(expiry)) { grantAccess(); return; }
 
-    if (token && expiry && Date.now() < parseInt(expiry)) {
-        grantAccess();
-        return;
-    }
-
-    // Clear expired tokens
     localStorage.removeItem(AUTH_STORAGE_KEY);
     localStorage.removeItem(AUTH_EXPIRY_KEY);
-
-    // Show login screen
     showLoginScreen();
 }
 
@@ -668,7 +646,6 @@ async function attemptLogin() {
             body: JSON.stringify({ password: pw })
         });
         const data = await res.json();
-
         if (data.ok) {
             localStorage.setItem(AUTH_STORAGE_KEY, data.token);
             localStorage.setItem(AUTH_EXPIRY_KEY, String(Date.now() + AUTH_TTL_MS));
@@ -695,7 +672,6 @@ async function attemptLogin() {
 // ══════════════════════════════════════════════
 const CRT_TFS = ['1W', '1D', '4H'];
 const TF_LABELS_CRT = { '1W':'WEEKLY', '1D':'DAILY', '4H':'4H' };
-const MIN_PROB = 65;
 
 let crtState = {}, crtLog = [], crtStats = {}, breakoutState = {};
 let activeFilter = 'ALL', activeGrade = 'ALL', activeProfile = 'HTF';
@@ -708,15 +684,11 @@ moneySound.volume = 0.85;
 let audioOn = false;
 
 // ══════════════════════════════════════════════
-// PROB HELPER — uses locked 'qualified' flag
+// QUALIFY HELPER — A+ only
 // ══════════════════════════════════════════════
 function entryQualifies(e) {
-    // If 'qualified' flag exists (new entries), use it — locked at formation time
-    if (e?.qualified !== undefined) return e.qualified === true;
-    // Fallback for old entries without 'qualified' flag: use live hit_prob
-    if (!e?.hit_prob) return false;
-    if (!e.hit_prob.found) return false;
-    return parseFloat(e.hit_prob.pct) >= MIN_PROB;
+    if (!e?.side) return false;
+    return e.grade === 'A+';
 }
 
 function probBadgeHtml(e) {
@@ -746,10 +718,10 @@ function toggleSection(id) {
     const btn = document.getElementById(id + 'Toggle');
     btn.textContent = sections[id] ? 'HIDE' : 'SHOW';
     btn.classList.toggle('active', sections[id]);
-    if (id === 'tp')   document.getElementById('tpGrid').style.display          = sections[id] ? '' : 'none';
-    if (id === 'inv')  document.getElementById('invGrid').style.display         = sections[id] ? '' : 'none';
-    if (id === 'hr')   document.getElementById('hitratePanel').style.display    = sections[id] ? '' : 'none';
-    if (id === 'feed') document.getElementById('activityFeed').style.display    = sections[id] ? '' : 'none';
+    if (id === 'tp')   document.getElementById('tpGrid').style.display           = sections[id] ? '' : 'none';
+    if (id === 'inv')  document.getElementById('invGrid').style.display          = sections[id] ? '' : 'none';
+    if (id === 'hr')   document.getElementById('hitratePanel').style.display     = sections[id] ? '' : 'none';
+    if (id === 'feed') document.getElementById('activityFeed').style.display     = sections[id] ? '' : 'none';
     if (id === 'dr')   document.getElementById('dailyReviewPanel').style.display = sections[id] ? '' : 'none';
 }
 
@@ -857,12 +829,12 @@ async function manualUpdate(sym, tf, entryId, action) {
 // ══════════════════════════════════════════════
 function setGrade(g) {
     activeGrade = g;
-    ['gradeAll','gradeAplus','gradeBplus'].forEach(id => document.getElementById(id).className = 'stats-pill sp-grade');
+    ['gradeAll','gradeAplus'].forEach(id => document.getElementById(id).className = 'stats-pill sp-grade');
     if (g === 'ALL') document.getElementById('gradeAll').classList.add('active-grade-all');
     if (g === 'A+')  document.getElementById('gradeAplus').classList.add('active-grade-aplus');
-    if (g === 'B+')  document.getElementById('gradeBplus').classList.add('active-grade-bplus');
     render();
 }
+
 function setFilter(f) {
     activeFilter = f;
     document.querySelectorAll('.sp-filter').forEach(el => el.classList.remove('active-filter'));
@@ -870,6 +842,7 @@ function setFilter(f) {
     document.getElementById(map[f]).classList.add('active-filter');
     render();
 }
+
 function setProfile(p) {
     if (p === activeProfile) return;
     activeProfile = p;
@@ -891,10 +864,12 @@ function loadProfileData() {
         render(); rebuildFeed(); renderHitRates();
     });
 }
+
 function refreshStats() {
     fetch(`/api/crt-stats?profile=${activeProfile}`).then(r => r.json())
         .then(d => { crtStats = d.crtStats || {}; renderHitRates(); }).catch(()=>{});
 }
+
 function reconnectSSE() {
     if (crtEventSource) crtEventSource.close();
     crtEventSource = new EventSource(`/api/crt-stream?profile=${activeProfile}`);
@@ -931,9 +906,8 @@ function getFilteredEntries(sym) {
     return getAllEntries(sym).filter(e => activeGrade === 'ALL' || e.grade === activeGrade);
 }
 function getLatestQualifiedEntry(sym, tf) {
-    let entries = getTFEntries(sym, tf);
+    let entries = getTFEntries(sym, tf).filter(e => entryQualifies(e));
     if (activeGrade !== 'ALL') entries = entries.filter(e => e.grade === activeGrade);
-    entries = entries.filter(e => entryQualifies(e));
     return entries.length ? entries[entries.length - 1] : null;
 }
 function getLatestEntry(sym, tf) {
@@ -968,7 +942,6 @@ function statusBadge(s) {
 }
 function gradeBadge(g) {
     if (g === 'A+') return '<span class="grade-badge-aplus">⭐ A+</span>';
-    if (g === 'B+') return '<span class="grade-badge-bplus">🔶 B+</span>';
     return '';
 }
 function alignTag(e) {
@@ -1015,12 +988,11 @@ function buildManageContent(sym) {
         activeEntries.forEach(e => {
             const sideIcon = e.side === 'BULLISH' ? '🐂' : '🐻';
             const sideCls  = e.side === 'BULLISH' ? 'manage-entry-side-bull' : 'manage-entry-side-bear';
-            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.42rem;">⭐ A+</span>'
-                     : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.42rem;">🔶 B+</span>' : '';
+            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.42rem;">⭐ A+</span>' : '';
             const at = alignTag(e), pb = probBadgeHtml(e);
             const qualLabel = entryQualifies(e)
-                ? '<span class="prob-badge prob-badge-high" style="font-size:0.38rem;">✅ QUAL</span>'
-                : '<span class="prob-badge prob-badge-low" style="font-size:0.38rem;">⚪ NO QUAL</span>';
+                ? '<span class="prob-badge prob-badge-high" style="font-size:0.38rem;">⭐ A+</span>'
+                : '<span class="prob-badge prob-badge-low" style="font-size:0.38rem;">⚪ NOT A+</span>';
             html += `<div class="manage-entry manage-entry-active">
                 <div class="manage-entry-head">
                     <div style="display:flex;align-items:center;gap:6px;">
@@ -1049,11 +1021,10 @@ function buildManageContent(sym) {
     if (resolvedEntries.length > 0) {
         html += `<div class="manage-section-label">📋 RESOLVED (${resolvedEntries.length})</div>`;
         resolvedEntries.forEach(e => {
-            const sideIcon   = e.side === 'BULLISH' ? '🐂' : '🐻';
-            const entryCls   = e.status === 'TP_HIT' ? 'manage-entry-tp' : 'manage-entry-inv';
+            const sideIcon    = e.side === 'BULLISH' ? '🐂' : '🐻';
+            const entryCls    = e.status === 'TP_HIT' ? 'manage-entry-tp' : 'manage-entry-inv';
             const statusLabel = e.status === 'TP_HIT' ? '🎯 TP HIT' : '❌ INVALIDATED';
-            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.40rem;">⭐ A+</span>'
-                     : e.grade === 'B+' ? '<span class="grade-badge-bplus" style="font-size:0.40rem;">🔶 B+</span>' : '';
+            const gb = e.grade === 'A+' ? '<span class="grade-badge-aplus" style="font-size:0.40rem;">⭐ A+</span>' : '';
             const resolvedTime = e.status === 'TP_HIT' ? e.tp_time : e.inv_time;
             const pb = probBadgeHtml(e);
             html += `<div class="manage-entry ${entryCls}">
@@ -1092,13 +1063,10 @@ function buildCard(sym) {
         boLine = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.40rem;color:rgba(168,85,247,0.7);margin-top:2px;">💥 ${p.join(' · ')}</div>`;
     }
 
-    const ap = qe.filter(e => e.grade === 'A+').length, bp = qe.filter(e => e.grade === 'B+').length;
+    const ap = qe.filter(e => e.grade === 'A+').length;
     let gs = '';
-    if (ap > 0 || bp > 0) {
-        const bits = [];
-        if (ap > 0) bits.push(`<span class="grade-badge-aplus">⭐${ap}</span>`);
-        if (bp > 0) bits.push(`<span class="grade-badge-bplus">🔶${bp}</span>`);
-        gs = `<div style="display:flex;gap:3px;margin-top:3px;">${bits.join('')}</div>`;
+    if (ap > 0) {
+        gs = `<div style="display:flex;gap:3px;margin-top:3px;"><span class="grade-badge-aplus">⭐${ap}</span></div>`;
     }
 
     let active = 0, tp = 0, inv = 0;
@@ -1187,7 +1155,7 @@ function render() {
 
     const syms = allSyms.filter(s => passesFilter(s) && passesProb(s));
 
-    let totalBull=0,totalBear=0,totalActive=0,totalTP=0,totalInv=0,totalEntries=0,totalAplus=0,totalBplus=0;
+    let totalBull=0,totalBear=0,totalActive=0,totalTP=0,totalInv=0,totalEntries=0,totalAplus=0;
     allSyms.forEach(sym => getQualifiedEntries(sym).forEach(e => {
         totalEntries++;
         if (e.side==='BULLISH') totalBull++;
@@ -1196,14 +1164,12 @@ function render() {
         if (e.status==='TP_HIT') totalTP++;
         if (e.status==='INVALID') totalInv++;
         if (e.grade==='A+') totalAplus++;
-        if (e.grade==='B+') totalBplus++;
     }));
 
     document.getElementById('activeCount').textContent  = syms.length;
     document.getElementById('bullPill').textContent    = `🐂 ${totalBull}`;
     document.getElementById('bearPill').textContent    = `🐻 ${totalBear}`;
     document.getElementById('aplusPill').textContent   = `⭐ ${totalAplus}`;
-    document.getElementById('bplusPill').textContent   = `🔶 ${totalBplus}`;
     document.getElementById('activePill').textContent  = `🔵 ${totalActive}`;
     document.getElementById('tpPill').textContent      = `🎯 ${totalTP}`;
     document.getElementById('invPill').textContent     = `❌ ${totalInv}`;
@@ -1214,7 +1180,7 @@ function render() {
         const qe = getQualifiedEntries(sym);
         if (qe.some(e => e.status === 'ACTIVE'))  categorized.active.push(sym);
         if (qe.some(e => e.status === 'TP_HIT'))  categorized.tp.push(sym);
-        if (qe.some(e => e.status === 'INVALID'))  categorized.inv.push(sym);
+        if (qe.some(e => e.status === 'INVALID')) categorized.inv.push(sym);
     });
 
     const activeEntryCount = syms.reduce((n, sym) => n + getQualifiedEntries(sym).filter(e => e.status === 'ACTIVE').length,  0);
@@ -1225,19 +1191,19 @@ function render() {
     document.getElementById('activeSectionCount').textContent = activeEntryCount;
     ag.innerHTML = categorized.active.length
         ? categorized.active.map(s => buildCard(s)).join('')
-        : '<p class="empty-state">No active CRTs with ≥65% probability.</p>';
+        : '<p class="empty-state">No active A+ CRTs.</p>';
 
     const tg = document.getElementById('tpGrid');
     document.getElementById('tpSectionCount').textContent = tpEntryCount;
     tg.innerHTML = categorized.tp.length
         ? categorized.tp.map(s => buildCard(s)).join('')
-        : '<p class="empty-state">No target hits with ≥65% probability.</p>';
+        : '<p class="empty-state">No A+ target hits.</p>';
 
     const ig = document.getElementById('invGrid');
     document.getElementById('invSectionCount').textContent = invEntryCount;
     ig.innerHTML = categorized.inv.length
         ? categorized.inv.map(s => buildCard(s)).join('')
-        : '<p class="empty-state">No invalidated CRTs with ≥65% probability.</p>';
+        : '<p class="empty-state">No invalidated A+ CRTs.</p>';
 
     renderHitRates();
     refreshManageModal();
@@ -1245,7 +1211,7 @@ function render() {
 }
 
 // ══════════════════════════════════════════════
-// HIT RATES
+// HIT RATES — A+ only
 // ══════════════════════════════════════════════
 function getHRCardClass(rate)  { if (rate==='—') return 'hitrate-card-neutral'; const v=parseFloat(rate); return v>=60?'hitrate-card-good':v>=40?'hitrate-card-warn':'hitrate-card-bad'; }
 function getHRValueClass(rate) { if (rate==='—') return 'hitrate-value-neutral'; const v=parseFloat(rate); return v>=60?'hitrate-value-good':v>=40?'hitrate-value-warn':'hitrate-value-bad'; }
@@ -1254,57 +1220,63 @@ function hrCard(icon, label, s, ec) {
     const r=s.hit_rate, res=s.tp+s.inv, c=ec||getHRCardClass(r);
     return `<div class="hitrate-card ${c}"><div class="hitrate-label">${icon} ${label}</div><div class="hitrate-value ${getHRValueClass(r)}">${r==='—'?'—':r+'%'}</div><div class="hitrate-sub">🎯${s.tp} ❌${s.inv} 🔵${s.active} · ${res} res</div></div>`;
 }
+
 function renderHitRates() {
     const g = document.getElementById('hitrateGrid');
-    if (!crtStats?.overall) { g.innerHTML = '<p class="empty-state">No data yet...</p>'; return; }
+    if (!crtStats?.overall_aplus) { g.innerHTML = '<p class="empty-state">No A+ data yet...</p>'; return; }
     const s = crtStats;
     let h = '';
-    h += `<div class="hitrate-section-label">📊 OVERALL</div>`;
-    h += hrCard('📊','OVERALL',s.overall)+hrCard('⭐','A+',s.overall_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.overall_bplus,'hitrate-card-bplus');
-    h += `<div class="hitrate-section-label">📅 DAILY</div>`;
-    h += hrCard('📅','ALL',s.daily)+hrCard('⭐','A+',s.daily_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.daily_bplus,'hitrate-card-bplus');
-    h += hrCard('✅','MO+W',s.daily_mo_w)+hrCard('⭐','MO+W A+',s.daily_mo_w_aplus,'hitrate-card-aplus')+hrCard('🔶','MO+W B+',s.daily_mo_w_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.daily_mo)+hrCard('⭐','MO A+',s.daily_mo_aplus,'hitrate-card-aplus')+hrCard('🔶','MO B+',s.daily_mo_bplus,'hitrate-card-bplus');
-    h += hrCard('🔵','W',s.daily_w)+hrCard('⭐','W A+',s.daily_w_aplus,'hitrate-card-aplus')+hrCard('🔶','W B+',s.daily_w_bplus,'hitrate-card-bplus');
-    h += hrCard('⚪','NONE',s.daily_none)+hrCard('⭐','NONE A+',s.daily_none_aplus,'hitrate-card-aplus')+hrCard('🔶','NONE B+',s.daily_none_bplus,'hitrate-card-bplus');
-    h += `<div class="hitrate-section-label">📆 WEEKLY</div>`;
-    h += hrCard('📆','ALL',s.weekly)+hrCard('⭐','A+',s.weekly_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.weekly_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.weekly_mo)+hrCard('⭐','MO A+',s.weekly_mo_aplus,'hitrate-card-aplus')+hrCard('🔶','MO B+',s.weekly_mo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚪','NONE',s.weekly_none)+hrCard('⭐','NONE A+',s.weekly_none_aplus,'hitrate-card-aplus')+hrCard('🔶','NONE B+',s.weekly_none_bplus,'hitrate-card-bplus');
-    h += `<div class="hitrate-section-label">⏰ 4H</div>`;
-    h += hrCard('⏰','ALL',s.fourh)+hrCard('⭐','A+',s.fourh_aplus,'hitrate-card-aplus')+hrCard('🔶','B+',s.fourh_bplus,'hitrate-card-bplus');
-    h += hrCard('✅','D+W+MO',s.fourh_dwm)+hrCard('⭐','DWM A+',s.fourh_dwm_aplus,'hitrate-card-aplus')+hrCard('🔶','DWM B+',s.fourh_dwm_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','D+W',s.fourh_dw)+hrCard('⭐','DW A+',s.fourh_dw_aplus,'hitrate-card-aplus')+hrCard('🔶','DW B+',s.fourh_dw_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','D+MO',s.fourh_dmo)+hrCard('⭐','DMO A+',s.fourh_dmo_aplus,'hitrate-card-aplus')+hrCard('🔶','DMO B+',s.fourh_dmo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','D',s.fourh_d)+hrCard('⭐','D A+',s.fourh_d_aplus,'hitrate-card-aplus')+hrCard('🔶','D B+',s.fourh_d_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','W+MO',s.fourh_wmo)+hrCard('⭐','WMO A+',s.fourh_wmo_aplus,'hitrate-card-aplus')+hrCard('🔶','WMO B+',s.fourh_wmo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','W',s.fourh_w)+hrCard('⭐','W A+',s.fourh_w_aplus,'hitrate-card-aplus')+hrCard('🔶','W B+',s.fourh_w_bplus,'hitrate-card-bplus');
-    h += hrCard('⚡','MO',s.fourh_mo)+hrCard('⭐','MO A+',s.fourh_mo_aplus,'hitrate-card-aplus')+hrCard('🔶','MO B+',s.fourh_mo_bplus,'hitrate-card-bplus');
-    h += hrCard('⚪','NONE',s.fourh_none)+hrCard('⭐','NONE A+',s.fourh_none_aplus,'hitrate-card-aplus')+hrCard('🔶','NONE B+',s.fourh_none_bplus,'hitrate-card-bplus');
+
+    h += `<div class="hitrate-section-label">⭐ A+ OVERALL</div>`;
+    h += hrCard('⭐','A+ Overall', s.overall_aplus, 'hitrate-card-aplus');
+
+    h += `<div class="hitrate-section-label">📅 DAILY A+</div>`;
+    h += hrCard('📅','All Daily A+',   s.daily_aplus,       'hitrate-card-aplus');
+    h += hrCard('✅','MO+W A+',        s.daily_mo_w_aplus,  'hitrate-card-aplus');
+    h += hrCard('⚡','MO A+',          s.daily_mo_aplus,    'hitrate-card-aplus');
+    h += hrCard('🔵','W A+',           s.daily_w_aplus,     'hitrate-card-aplus');
+    h += hrCard('⚪','No Align A+',    s.daily_none_aplus,  'hitrate-card-aplus');
+
+    h += `<div class="hitrate-section-label">📆 WEEKLY A+</div>`;
+    h += hrCard('📆','All Weekly A+',  s.weekly_aplus,      'hitrate-card-aplus');
+    h += hrCard('⚡','MO A+',          s.weekly_mo_aplus,   'hitrate-card-aplus');
+    h += hrCard('⚪','No Align A+',    s.weekly_none_aplus, 'hitrate-card-aplus');
+
+    h += `<div class="hitrate-section-label">⏰ 4H A+</div>`;
+    h += hrCard('⏰','All 4H A+',      s.fourh_aplus,       'hitrate-card-aplus');
+    h += hrCard('✅','D+W+MO A+',      s.fourh_dwm_aplus,   'hitrate-card-aplus');
+    h += hrCard('⚡','D+W A+',         s.fourh_dw_aplus,    'hitrate-card-aplus');
+    h += hrCard('⚡','D+MO A+',        s.fourh_dmo_aplus,   'hitrate-card-aplus');
+    h += hrCard('⚡','D A+',           s.fourh_d_aplus,     'hitrate-card-aplus');
+    h += hrCard('⚡','W+MO A+',        s.fourh_wmo_aplus,   'hitrate-card-aplus');
+    h += hrCard('⚡','W A+',           s.fourh_w_aplus,     'hitrate-card-aplus');
+    h += hrCard('⚡','MO A+',          s.fourh_mo_aplus,    'hitrate-card-aplus');
+    h += hrCard('⚪','No Align A+',    s.fourh_none_aplus,  'hitrate-card-aplus');
+
     g.innerHTML = h;
 }
 
 // ══════════════════════════════════════════════
-// SIGNAL FEED
+// SIGNAL FEED — A+ only
 // ══════════════════════════════════════════════
 function rebuildFeed() {
     const feed = document.getElementById('activityFeed');
-    const logs = activeGrade === 'ALL' ? crtLog : crtLog.filter(e => e.grade === activeGrade);
+    const logs = crtLog.filter(e => e.grade === 'A+');
     document.getElementById('feedCount').textContent = logs.length;
     if (!logs.length) {
-        feed.innerHTML = `<p class="empty-state">${activeGrade!=='ALL'?`No ${activeGrade} signals.`:'Awaiting CRT signals...'}</p>`;
+        feed.innerHTML = `<p class="empty-state">No A+ signals yet...</p>`;
         return;
     }
     feed.innerHTML = logs.slice(0, 80).map(e => {
         let cls = e.action==='CRT_TARGET'?'log-card log-card-tp':e.action==='CRT_INVALID'?'log-card log-card-inv':e.side==='BULLISH'?'log-card log-card-bull':'log-card log-card-bear';
         const tc = e.action==='CRT_TARGET'?'rgba(52,211,153,0.8)':e.action==='CRT_INVALID'?'rgba(248,113,113,0.8)':e.side==='BULLISH'?'rgba(52,211,153,0.8)':'rgba(248,113,113,0.8)';
         const icon = e.action==='CRT_TARGET'?'🎯':e.action==='CRT_INVALID'?'❌':e.side==='BULLISH'?'🐂':'🐻';
-        const gt = e.grade==='A+'?`<span class="log-grade-aplus">⭐A+</span>`:e.grade==='B+'?`<span class="log-grade-bplus">🔶B+</span>`:'';
         return `<div class="${cls}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
                 <span class="log-sym">${icon} ${e.symbol}</span>
                 <div style="display:flex;align-items:center;gap:3px;">
-                    ${e.tf?`<span class="log-tf-tag">${e.tf}</span>`:''}${gt}
+                    ${e.tf?`<span class="log-tf-tag">${e.tf}</span>`:''}
+                    <span class="log-grade-aplus">⭐A+</span>
                     <span class="log-time" style="color:${tc};">${fmtTime(e.timestamp)}</span>
                 </div>
             </div>
@@ -1387,7 +1359,7 @@ function getDateRange() {
 }
 
 // ══════════════════════════════════════════════
-// RENDER DAILY REVIEW — uses locked 'qualified' flag
+// RENDER DAILY REVIEW — A+ only
 // ══════════════════════════════════════════════
 function renderDailyReview() {
     const { startUTC, endUTC } = getDateRange();
@@ -1410,11 +1382,9 @@ function renderDailyReview() {
 
             for (const e of entries) {
                 if (!e?.side) continue;
+                if (!entryQualifies(e)) continue;
                 const ts = e.timestamp || 0;
                 if (ts < startUTC || ts > endUTC) continue;
-                // Use locked 'qualified' flag — same as entryQualifies()
-                if (!entryQualifies(e)) continue;
-                if (activeGrade !== 'ALL' && e.grade !== activeGrade) continue;
                 grouped[tf].push({ sym, e });
                 totalCount++;
             }
@@ -1429,7 +1399,7 @@ function renderDailyReview() {
 
     if (totalCount === 0) {
         document.getElementById('dailyReviewContent').innerHTML =
-            `<div class="daily-empty">📭 No qualifying CRTs (≥65%) formed on ${label}</div>`;
+            `<div class="daily-empty">📭 No A+ CRTs formed on ${label}</div>`;
         return;
     }
 
@@ -1444,7 +1414,7 @@ function renderDailyReview() {
 
     let html = `
         <div class="daily-summary-bar">
-            <span class="daily-summary-chip dsc-total">🔄 ${totalCount} total</span>
+            <span class="daily-summary-chip dsc-total">⭐ ${totalCount} A+ total</span>
             <span class="daily-summary-chip dsc-active">🔵 ${sumActive} active</span>
             <span class="daily-summary-chip dsc-tp">🎯 ${sumTP} TP hit</span>
             <span class="daily-summary-chip dsc-inv">❌ ${sumInv} invalid</span>
@@ -1491,7 +1461,7 @@ function renderDailyReview() {
                     </div>
                     <div class="daily-meta">
                         ${statusBadge(e.status)}
-                        ${gradeBadge(e.grade)}
+                        <span class="grade-badge-aplus">⭐ A+</span>
                         ${alignTag(e)}
                         ${probBadgeHtml(e)}
                         <span class="daily-formed-time">🕐 ${fmtTimeIST(e.timestamp)}</span>
@@ -1509,7 +1479,7 @@ function renderDailyReview() {
 }
 
 // ══════════════════════════════════════════════
-// INIT — waits for auth before loading data
+// INIT
 // ══════════════════════════════════════════════
 let dot, lbl, bdg;
 let appInitialized = false;
@@ -1522,7 +1492,6 @@ function initApp() {
     lbl = document.getElementById('liveLabel');
     bdg = document.getElementById('liveBadge');
 
-    // Set date picker max to today IST
     const nowIST   = new Date(Date.now() + IST_OFFSET_MS);
     const yyyy     = nowIST.getUTCFullYear();
     const mm       = String(nowIST.getUTCMonth() + 1).padStart(2, '0');
@@ -1542,7 +1511,7 @@ function initApp() {
 }
 
 // ══════════════════════════════════════════════
-// START — check auth first
+// START
 // ══════════════════════════════════════════════
 checkAuth();
 </script>
